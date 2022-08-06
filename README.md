@@ -19,17 +19,17 @@ bundle exec pod install
 Have an Android emulator running.
 
 ```bash
-npx react-native run-android
+yarn react-native run-android
 ```
 
 ### iOS
 
 ```bash
-npx react-native run-ios
+yarn react-native run-ios
 ```
 
 ### Testing
 
 ```bash
-npm run test
+yarn run test
 ```

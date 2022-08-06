@@ -1,0 +1,23 @@
+name: Github Actions
+on:
+  push:
+    branches: '**'
+  pull_request:
+    branches: '**'
+  schedule:
+    - cron: '0 0 * * *'
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    strategy:
+      matrix:
+        node-version: [16]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: yarn install
+        run: yarn install
+      - run: yarn test
