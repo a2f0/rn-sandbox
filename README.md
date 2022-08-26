@@ -14,6 +14,15 @@ cd ios
 bundle exec pod install
 ```
 
+### Performing Upgrades
+
+1. Run `npx react-native upgrade`
+2. Use the [upgrade helper](https://react-native-community.github.io/upgrade-helper/) for diffs to make manual updates for files that filed to the automatic upgrade.
+3. Commit and push, wait for CI/CD to finish.
+4. 
+
+
+
 ### Android
 
 Have an Android emulator running.
