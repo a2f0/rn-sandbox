@@ -8,6 +8,7 @@
 
 ```bash
 nvm use
+npm install detox-cli --global
 yarn install
 bundle install
 cd ios
@@ -37,6 +38,15 @@ yarn react-native run-ios
 
 ### Testing
 
+#### Jest
+
 ```bash
 yarn run test
+```
+
+#### Detox
+
+```bash
+detox build --configuration ios
+detox test --configuration ios
 ```
