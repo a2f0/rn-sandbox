@@ -21,3 +21,5 @@ jobs:
       - run: yarn install
       - run: yarn test
       - run: yarn eslint .
+      - run: npm i detox -g
+      - run: detox test --configuration android.release
