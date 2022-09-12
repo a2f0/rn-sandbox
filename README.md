@@ -46,7 +46,19 @@ yarn run test
 
 #### Detox
 
+Debug builds
+
 ```bash
+yarn run start
 detox build --configuration ios
 detox test --configuration ios
+detox build --configuration android
+detox test --configuration android
+```
+
+Release builds
+
+```bash
+detox build --configuration android.release
+detox test --configuration android.release
 ```
