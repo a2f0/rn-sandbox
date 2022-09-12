@@ -34,4 +34,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install
-      - run: detox build --configuration android.release
+      - run: | 
+        npx detox build --configuration android.release
+        npx detox test --configuration android.release
