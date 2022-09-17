@@ -35,4 +35,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: yarn install
       - run: npx detox build --configuration android.release
-      - run: npx detox test --configuration android.release
+      - name: run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: npx detox test --configuration android.release
