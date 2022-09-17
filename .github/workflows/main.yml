@@ -37,6 +37,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
+      - run: npx detox build --configuration android.release
       - name: run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -44,4 +45,5 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: avdmanager list device
+          script: npx detox test --configuration android.release
+          avd-name: rn-sandbox
