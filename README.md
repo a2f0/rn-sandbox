@@ -38,6 +38,16 @@ yarn react-native run-ios
 
 ### Testing
 
+#### Setup
+
+
+Provision a test emulator for Android.
+```
+echo no | avdmanager create avd -n rn-sandbox -k "system-images;android-30;google_apis;x86"
+# should show rn-sandbox
+emulator -list-avds
+```
+
 #### Jest
 
 ```bash

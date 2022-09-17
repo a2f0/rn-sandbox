@@ -30,7 +30,7 @@
     "emulator": {
       "type": "android.emulator",
       "device": {
-        "avdName": "Pixel_XL_API_30"
+        "avdName": "rn-sandbox"
       }
     }
   },
