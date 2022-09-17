@@ -22,7 +22,6 @@ jobs:
       - run: yarn eslint .
       - run: yarn test
   detox-android:
-    needs: [code-quality]
     runs-on: macos-latest
     continue-on-error: false
     strategy:
@@ -38,7 +37,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
-      - run: npx detox build --configuration android.release
       - name: run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -46,4 +44,4 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: npx detox test --configuration android.release
+          script: avdmanager list device
