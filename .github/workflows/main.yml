@@ -34,6 +34,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
       - run: npx detox build --configuration android.release
       - name: run tests
         uses: reactivecircus/android-emulator-runner@v2
