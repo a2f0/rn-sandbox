@@ -3,11 +3,11 @@
   "runnerConfig": "e2e/config.json",
   "skipLegacyWorkersInjection": true,
   "apps": {
-    "ios": {
-      "name": "YourProject",
+    "ios.release": {
+      "name": "Sandbox",
       "type": "ios.app",
       "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/sandbox.app",
-      "build": "xcodebuild -workspace ios/sandbox.xcworkspace -scheme sandbox -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build"
+      "build": "xcodebuild -workspace ios/sandbox.xcworkspace -scheme sandbox -configuration Release -sdk iphonesimulator -derivedDataPath ios/build"
     },
     "android": {
       "type": "android.apk",
@@ -35,9 +35,9 @@
     }
   },
   "configurations": {
-    "ios": {
+    "ios.release": {
       "device": "simulator",
-      "app": "ios"
+      "app": "ios.release"
     },
     "android": {
       "device": "emulator",
