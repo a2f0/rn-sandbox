@@ -7,7 +7,7 @@
       "name": "YourProject",
       "type": "ios.app",
       "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/sandbox.app",
-      "build": "xcodebuild -workspace ios/sandbox.xcworkspace -scheme sandbox -sdk iphonesimulator -derivedDataPath ios/build"
+      "build": "xcodebuild -workspace ios/sandbox.xcworkspace -scheme sandbox -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build"
     },
     "android": {
       "type": "android.apk",

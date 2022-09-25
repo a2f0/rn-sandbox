@@ -21,6 +21,24 @@ jobs:
       - run: yarn install
       - run: yarn eslint .
       - run: yarn test
+  detox-macos:
+    runs-on: macos-latest
+    continue-on-error: false
+    strategy:
+      matrix:
+        node-version: [16]
+        ruby: [ '2.7' ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install
+      - run: bundle install
+      - name: run pod install 
+        working-directory: ./ios
+        run: bundle exec pod install
+      - run: npx detox build --configuration ios
   detox-android:
     runs-on: macos-latest
     continue-on-error: false
