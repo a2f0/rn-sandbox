@@ -35,7 +35,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: yarn install
       - run: bundle install
-      - run: bundle exec pod install
+      - name: run pod install 
+        working-directory: ./ios
+        run: bundle exec pod install
       - run: npx detox build --configuration ios
   detox-android:
     runs-on: macos-latest
