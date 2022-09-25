@@ -27,12 +27,15 @@ jobs:
     strategy:
       matrix:
         node-version: [16]
+        ruby: [ '2.7' ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install
+      - run: bundle install
+      - run: bundle exec pod install
       - run: npx detox build --configuration ios
   detox-android:
     runs-on: macos-latest
