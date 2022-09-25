@@ -39,6 +39,7 @@ jobs:
         working-directory: ./ios
         run: bundle exec pod install
       - run: npx detox build --configuration ios.release
+      - run: npx detox test --configuration ios.release
   detox-android:
     runs-on: macos-latest
     continue-on-error: false
