@@ -37,7 +37,7 @@
   "configurations": {
     "ios.release": {
       "device": "simulator",
-      "app": "ios"
+      "app": "ios.release"
     },
     "android": {
       "device": "emulator",
