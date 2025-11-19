@@ -7,8 +7,10 @@
 ### Getting Started
 
 ```bash
+nvm install
 nvm use
 npm install detox-cli --global
+npm install yarn --global
 yarn install
 bundle install
 cd ios
@@ -24,16 +26,15 @@ bundle exec pod install
 
 ### Android
 
-Have an Android emulator running.
 
 ```bash
-yarn react-native run-android
+yarn run android
 ```
 
 ### iOS
 
 ```bash
-yarn react-native run-ios
+yarn run ios
 ```
 
 ### Testing
