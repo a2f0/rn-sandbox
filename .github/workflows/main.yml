@@ -11,7 +11,7 @@ jobs:
     continue-on-error: false
     strategy:
       matrix:
-        node-version: [16]
+        node-version: [24]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -25,8 +25,8 @@ jobs:
     continue-on-error: false
     strategy:
       matrix:
-        node-version: [16]
-        ruby: [ '2.7' ]
+        node-version: [24]
+        ruby: ['3.3.5']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -45,7 +45,7 @@ jobs:
     continue-on-error: false
     strategy:
       matrix:
-        node-version: [16]
+        node-version: [24]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
