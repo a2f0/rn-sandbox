@@ -39,7 +39,7 @@ jobs:
       - run: npx detox build --configuration ios.release
       - run: npx detox test --configuration ios.release
   detox-android:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     continue-on-error: false
     strategy:
       matrix:
