@@ -15,9 +15,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install
-      - run: yarn eslint .
-      - run: yarn test
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
   detox-macos:
     runs-on: macos-latest
     continue-on-error: false
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install
+      - run: npm ci
       - run: bundle install
       - run: brew tap wix/brew && brew install applesimutils
       - name: run pod install 
