@@ -28,6 +28,12 @@
     "detox": "20.46.0",
     "eslint": "8.57.1",
     "eslint-plugin-detox": "1.0.0",
+    "eslint-plugin-ft-flow": "3.0.11",
+    "eslint-plugin-jest": "27.9.0",
+    "eslint-plugin-react": "7.37.2",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "eslint-plugin-react-native": "4.1.0",
+    "hermes-eslint": "0.25.1",
     "prettier": "2.8.8",
     "react-test-renderer": "19.1.1",
     "typescript": "5.8.3"
