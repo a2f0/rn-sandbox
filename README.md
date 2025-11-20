@@ -10,8 +10,7 @@
 nvm install
 nvm use
 npm install detox-cli --global
-npm install yarn --global
-yarn install
+npm ci
 bundle install
 cd ios
 bundle exec pod install
@@ -28,13 +27,13 @@ bundle exec pod install
 
 
 ```bash
-yarn run android
+npm run android
 ```
 
 ### iOS
 
 ```bash
-yarn run ios
+npm run ios
 ```
 
 ### Testing
@@ -52,7 +51,7 @@ emulator -list-avds
 #### Jest
 
 ```bash
-yarn run test
+npm run test
 ```
 
 #### Detox
@@ -60,7 +59,7 @@ yarn run test
 Debug builds
 
 ```bash
-yarn run start
+npm run start
 detox build --configuration ios
 detox test --configuration ios
 detox build --configuration android
