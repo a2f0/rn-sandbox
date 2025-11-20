@@ -49,7 +49,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install
+      - run: npm ci
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
