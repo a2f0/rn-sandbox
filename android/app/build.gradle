@@ -77,13 +77,14 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.rndiffapp"
+    namespace "com.sandbox"
     defaultConfig {
-        applicationId "com.rndiffapp"
+        applicationId "com.sandbox"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
         debug {
@@ -116,4 +117,11 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    // Detox
+    androidTestImplementation("com.wix:detox:20.46.0")
+    androidTestImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:rules:1.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
