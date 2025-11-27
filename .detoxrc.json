@@ -1,10 +1,15 @@
 {
-  "testRunner": "jest",
-  "runnerConfig": "e2e/config.json",
-  "skipLegacyWorkersInjection": true,
+  "testRunner": {
+    "args": {
+      "$0": "jest",
+      "config": "e2e/jest.config.js"
+    },
+    "jest": {
+      "setupTimeout": 120000
+    }
+  },
   "apps": {
     "ios.release": {
-      "name": "Sandbox",
       "type": "ios.app",
       "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/sandbox.app",
       "build": "xcodebuild -workspace ios/sandbox.xcworkspace -scheme sandbox -configuration Release -sdk iphonesimulator -derivedDataPath ios/build"
@@ -24,7 +29,7 @@
     "simulator": {
       "type": "ios.simulator",
       "device": {
-        "type": "iPhone 11"
+        "type": "iPhone 16"
       }
     },
     "emulator": {

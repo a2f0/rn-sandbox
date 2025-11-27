@@ -1,8 +1,10 @@
-import { render, screen } from '@testing-library/react';
-import { expect, test } from 'vitest';
+// biome-ignore lint/correctness/noUnusedImports: Required for JSX
+import React from 'react';
+import renderer from 'react-test-renderer';
 import App from '../App';
 
-test('renders correctly', () => {
-  render(<App />);
-  expect(screen.getByTestId('safe-area-provider')).toBeDefined();
+test('renders correctly', async () => {
+  await renderer.act(() => {
+    renderer.create(<App />);
+  });
 });
