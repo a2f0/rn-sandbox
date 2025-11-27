@@ -72,7 +72,7 @@ jobs:
           sudo rm -rf /usr/local/lib/android/sdk/ndk
           sudo rm -rf /opt/ghc
           df -h
-      - run: npx detox build --configuration android.release
+      - run: npx detox build --configuration android
       - name: run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:

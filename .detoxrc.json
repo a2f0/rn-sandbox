@@ -81,7 +81,7 @@
     },
     "android.ci": {
       "device": "attached",
-      "app": "android.release"
+      "app": "android"
     }
   }
 }
