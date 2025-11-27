@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { expect, test } from 'vitest';
+import App from '../App';
 
-describe('App', () => {
-  it('basic test works', () => {
-    expect(1 + 1).toBe(2);
-  });
+test('renders correctly', () => {
+  render(<App />);
+  expect(screen.getByTestId('safe-area-provider')).toBeDefined();
 });
