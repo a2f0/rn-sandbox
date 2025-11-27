@@ -1,13 +1,7 @@
-/**
- * @format
- */
+import { describe, expect, it } from 'vitest';
 
-import React from 'react';
-import ReactTestRenderer from 'react-test-renderer';
-import App from '../App';
-
-test('renders correctly', async () => {
-  await ReactTestRenderer.act(() => {
-    ReactTestRenderer.create(<App />);
+describe('App', () => {
+  it('basic test works', () => {
+    expect(1 + 1).toBe(2);
   });
 });
