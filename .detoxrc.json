@@ -37,6 +37,12 @@
       "device": {
         "avdName": "rn-sandbox"
       }
+    },
+    "attached": {
+      "type": "android.attached",
+      "device": {
+        "adbName": "emulator-5554"
+      }
     }
   },
   "configurations": {
@@ -50,6 +56,10 @@
     },
     "android.release": {
       "device": "emulator",
+      "app": "android.release"
+    },
+    "android.ci": {
+      "device": "attached",
       "app": "android.release"
     }
   }
