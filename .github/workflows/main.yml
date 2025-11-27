@@ -37,7 +37,14 @@ jobs:
         working-directory: ./ios
         run: bundle exec pod install
       - run: npx detox build --configuration ios.release
-      - run: npx detox test --configuration ios.release
+      - run: npx detox test --configuration ios.release --record-videos all
+      - name: Upload Detox artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detox-artifacts-ios
+          path: artifacts/
+          retention-days: 14
   detox-android:
     runs-on: ubuntu-latest
     continue-on-error: false
@@ -80,5 +87,12 @@ jobs:
           script: |
             adb devices
             adb wait-for-device
-            npx detox test --configuration android.ci --headless
+            npx detox test --configuration android.ci --headless --record-videos all
           avd-name: rn-sandbox
+      - name: Upload Detox artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detox-artifacts-android
+          path: artifacts/
+          retention-days: 14

@@ -8,6 +8,25 @@
       "setupTimeout": 120000
     }
   },
+  "artifacts": {
+    "rootDir": "artifacts",
+    "plugins": {
+      "video": {
+        "enabled": true,
+        "keepOnlyFailedTestsArtifacts": false
+      },
+      "screenshot": {
+        "enabled": true,
+        "keepOnlyFailedTestsArtifacts": true,
+        "shouldTakeAutomaticSnapshots": true,
+        "takeWhen": {
+          "testStart": false,
+          "testDone": true,
+          "testFailure": true
+        }
+      }
+    }
+  },
   "apps": {
     "ios.release": {
       "type": "ios.app",
