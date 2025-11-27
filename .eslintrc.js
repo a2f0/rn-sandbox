@@ -1,14 +1,18 @@
 module.exports = {
   root: true,
   extends: '@react-native',
-  plugins: ['detox'],
   overrides: [
     {
       files: ['*.e2e.js'],
       env: {
-        'detox/detox': true,
         jest: true,
-        'jest/globals': true,
+      },
+      globals: {
+        device: 'readonly',
+        element: 'readonly',
+        by: 'readonly',
+        expect: 'readonly',
+        waitFor: 'readonly',
       },
     },
   ],

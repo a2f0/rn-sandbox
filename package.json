@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@babel/core": "7.25.2",
+    "detox": "20.46.0",
     "@babel/preset-env": "7.25.3",
     "@babel/runtime": "7.25.0",
     "@react-native-community/cli": "20.0.0",
@@ -29,7 +30,7 @@
     "@types/jest": "29.5.13",
     "@types/react": "19.1.1",
     "@types/react-test-renderer": "19.1.0",
-    "eslint": "8.19.0",
+    "eslint": "8.57.0",
     "jest": "29.6.3",
     "prettier": "2.8.8",
     "react-test-renderer": "19.1.1",
@@ -37,5 +38,10 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "overrides": {
+    "@react-native/eslint-config": {
+      "eslint-plugin-jest": "27.9.0"
+    }
   }
 }

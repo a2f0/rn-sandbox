@@ -9,13 +9,13 @@ jobs:
     continue-on-error: false
     strategy:
       matrix:
-        node-version: [18]
+        node-version: [20]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
       - run: npm run lint
       - run: npm run test
   detox-macos:
@@ -23,14 +23,14 @@ jobs:
     continue-on-error: false
     strategy:
       matrix:
-        node-version: [18]
+        node-version: [20]
         ruby: [ '3.3' ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
       - run: bundle install
       - run: brew tap wix/brew && brew install applesimutils
       - name: run pod install 
@@ -43,13 +43,13 @@ jobs:
     continue-on-error: false
     strategy:
       matrix:
-        node-version: [18]
+        node-version: [20]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
