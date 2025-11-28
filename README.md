@@ -60,15 +60,15 @@ Debug builds
 
 ```bash
 npm run start
-detox build --configuration ios
-detox test --configuration ios
-detox build --configuration android
-detox test --configuration android
+npx detox build --configuration ios
+npx detox test --configuration ios
+npx detox build --configuration android
+npx detox test --configuration android
 ```
 
 Release builds
 
 ```bash
-detox build --configuration android.release
-detox test --configuration android.release
+npx detox build --configuration android.release
+npx detox test --configuration android.release
 ```
