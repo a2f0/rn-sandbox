@@ -1,5 +1,3 @@
-// biome-ignore lint/correctness/noUnusedImports: Required for JSX
-import React from 'react';
 import renderer from 'react-test-renderer';
 import App from '../App';
 
