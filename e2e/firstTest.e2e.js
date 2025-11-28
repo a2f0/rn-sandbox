@@ -8,6 +8,6 @@ describe('Example', () => {
   });
 
   it('should show world screen after tap', async () => {
-    await expect(element(by.text('Step One'))).toBeVisible();
+    await expect(element(by.text('Welcome to React Native'))).toBeVisible();
   });
 });

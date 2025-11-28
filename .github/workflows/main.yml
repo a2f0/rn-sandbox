@@ -9,7 +9,7 @@ jobs:
     continue-on-error: false
     strategy:
       matrix:
-        node-version: [18]
+        node-version: [20]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -23,7 +23,7 @@ jobs:
     continue-on-error: false
     strategy:
       matrix:
-        node-version: [18]
+        node-version: [20]
         ruby: [ '3.3' ]
     steps:
       - uses: actions/checkout@v3
@@ -37,13 +37,20 @@ jobs:
         working-directory: ./ios
         run: bundle exec pod install
       - run: npx detox build --configuration ios.release
-      - run: npx detox test --configuration ios.release
+      - run: npx detox test --configuration ios.release --record-videos all
+      - name: Upload Detox artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detox-artifacts-ios
+          path: artifacts/
+          retention-days: 14
   detox-android:
     runs-on: ubuntu-latest
     continue-on-error: false
     strategy:
       matrix:
-        node-version: [18]
+        node-version: [20]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -53,14 +60,39 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android/sdk/ndk
+          sudo rm -rf /opt/ghc
+          df -h
       - run: npx detox build --configuration android.release
       - name: run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 28
-          force-avd-creation: false
+          api-level: 31
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: true
+          disk-size: 4G
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: npx detox test --configuration android.release
+          emulator-boot-timeout: 600
+          script: |
+            adb devices
+            adb wait-for-device
+            npx detox test --configuration android.ci --headless --record-videos all
           avd-name: rn-sandbox
+      - name: Upload Detox artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detox-artifacts-android
+          path: artifacts/
+          retention-days: 14

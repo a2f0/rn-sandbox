@@ -1,10 +1,34 @@
 {
-  "testRunner": "jest",
-  "runnerConfig": "e2e/config.json",
-  "skipLegacyWorkersInjection": true,
+  "testRunner": {
+    "args": {
+      "$0": "jest",
+      "config": "e2e/jest.config.js"
+    },
+    "jest": {
+      "setupTimeout": 120000
+    }
+  },
+  "artifacts": {
+    "rootDir": "artifacts",
+    "plugins": {
+      "video": {
+        "enabled": true,
+        "keepOnlyFailedTestsArtifacts": false
+      },
+      "screenshot": {
+        "enabled": true,
+        "keepOnlyFailedTestsArtifacts": true,
+        "shouldTakeAutomaticSnapshots": true,
+        "takeWhen": {
+          "testStart": false,
+          "testDone": true,
+          "testFailure": true
+        }
+      }
+    }
+  },
   "apps": {
     "ios.release": {
-      "name": "Sandbox",
       "type": "ios.app",
       "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/sandbox.app",
       "build": "xcodebuild -workspace ios/sandbox.xcworkspace -scheme sandbox -configuration Release -sdk iphonesimulator -derivedDataPath ios/build"
@@ -12,25 +36,33 @@
     "android": {
       "type": "android.apk",
       "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
-      "build": "cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd .."
+      "testBinaryPath": "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
+      "build": "cd android && ./gradlew assembleDebug assembleDebugAndroidTest && cd .."
     },
     "android.release": {
       "type": "android.apk",
       "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
-      "build": "cd android && ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd .."
+      "testBinaryPath": "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
+      "build": "cd android && ./gradlew assembleRelease assembleDebugAndroidTest && cd .."
     }
   },
   "devices": {
     "simulator": {
       "type": "ios.simulator",
       "device": {
-        "type": "iPhone 11"
+        "type": "iPhone 16"
       }
     },
     "emulator": {
       "type": "android.emulator",
       "device": {
         "avdName": "rn-sandbox"
+      }
+    },
+    "attached": {
+      "type": "android.attached",
+      "device": {
+        "adbName": "emulator-5554"
       }
     }
   },
@@ -45,6 +77,10 @@
     },
     "android.release": {
       "device": "emulator",
+      "app": "android.release"
+    },
+    "android.ci": {
+      "device": "attached",
       "app": "android.release"
     }
   }

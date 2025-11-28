@@ -1,5 +1,6 @@
 package com.sandbox;
 
+import com.sandbox.BuildConfig;
 import com.wix.detox.Detox;
 import com.wix.detox.config.DetoxConfig;
 
