@@ -1,8 +1,6 @@
 import type { Config } from 'jest';
 
-const config: Config = {
+export default {
   preset: 'react-native',
   testMatch: ['**/__tests__/**/*-test.[jt]s?(x)'],
-};
-
-export default config;
+} satisfies Config;
