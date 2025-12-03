@@ -45,6 +45,17 @@ jobs:
           key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ios/build
+          key: ${{ runner.os }}-derived-data-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-derived-data-
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ runner.os }}-ccache
       - run: npm ci
       - run: brew tap wix/brew && brew install applesimutils
       - name: run pod install

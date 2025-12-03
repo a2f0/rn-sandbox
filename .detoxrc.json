@@ -13,7 +13,7 @@
     "plugins": {
       "video": {
         "enabled": true,
-        "keepOnlyFailedTestsArtifacts": false
+        "keepOnlyFailedTestsArtifacts": true
       },
       "screenshot": {
         "enabled": true,
@@ -21,7 +21,7 @@
         "shouldTakeAutomaticSnapshots": true,
         "takeWhen": {
           "testStart": false,
-          "testDone": true,
+          "testDone": false,
           "testFailure": true
         }
       }
@@ -37,13 +37,13 @@
       "type": "android.apk",
       "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
       "testBinaryPath": "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
-      "build": "cd android && ./gradlew assembleDebug assembleDebugAndroidTest && cd .."
+      "build": "cd android && ./gradlew assembleDebug assembleDebugAndroidTest -PreactNativeArchitectures=x86_64 && cd .."
     },
     "android.release": {
       "type": "android.apk",
       "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
       "testBinaryPath": "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
-      "build": "cd android && ./gradlew assembleRelease assembleDebugAndroidTest && cd .."
+      "build": "cd android && ./gradlew assembleRelease assembleDebugAndroidTest -PreactNativeArchitectures=x86_64 && cd .."
     }
   },
   "devices": {
