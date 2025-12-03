@@ -1,5 +1,5 @@
 /** @type {import('@jest/types').Config.InitialOptions} */
-module.exports = {
+export default {
   rootDir: '..',
   testMatch: ['<rootDir>/e2e/**/*.e2e.ts'],
   testTimeout: 120000,
