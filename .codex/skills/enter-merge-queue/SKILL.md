@@ -48,8 +48,9 @@ gh pr view --json state,mergeStateStatus,mergeable,reviewDecision -R "$REPO"
 4b. Rebase when behind:
 
 ```bash
-git fetch origin "$(gh pr view --json baseRefName -q .baseRefName -R "$REPO")" >/dev/null
-git rebase "origin/$(gh pr view --json baseRefName -q .baseRefName -R "$REPO")" >/dev/null
+BASE_REF_NAME=$(gh pr view --json baseRefName -q .baseRefName -R "$REPO")
+git fetch origin "$BASE_REF_NAME" >/dev/null
+git rebase "origin/$BASE_REF_NAME" >/dev/null
 ```
 
 If conflicts occur during RN upgrade files:

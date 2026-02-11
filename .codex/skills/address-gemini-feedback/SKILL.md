@@ -57,7 +57,7 @@ git push >/dev/null
 
 ```bash
 gh api -X POST "/repos/$REPO/pulls/$PR_NUM/comments/<comment_id>/replies" \
-  -f body="@gemini-code-assist Fixed in <commit_sha>. Please confirm this addresses the issue."
+  -f body="@gemini-code-assist Fixed in $(git rev-parse HEAD). Please confirm this addresses the issue."
 ```
 
 6. Iterate until no actionable unresolved Gemini comments remain.
