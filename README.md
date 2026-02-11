@@ -2,7 +2,8 @@
 
 ## Overview
 
-[React Native](https://reactnative.dev/) Sandbox, created with `npx react-native init`.
+[React Native](https://reactnative.dev/) sandbox, created with
+`npx react-native init`.
 
 ### Getting Started
 
@@ -18,7 +19,8 @@ bundle exec pod install
 
 ### Performing Upgrades
 
-Use the [upgrade helper](https://react-native-community.github.io/upgrade-helper/) for diffs to make manual updates for files that filed to the automatic upgrade.
+Use the [upgrade helper](https://react-native-community.github.io/upgrade-helper/)
+for diffs to make manual updates for files that failed to the automatic upgrade.
 
 ### Android
 
@@ -36,9 +38,9 @@ npm run ios
 
 #### Setup
 
-
 Provision a test emulator for Android.
-```
+
+```bash
 echo no | avdmanager create avd -n rn-sandbox -k "system-images;android-30;google_apis;x86"
 # should show rn-sandbox
 emulator -list-avds
