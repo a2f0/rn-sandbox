@@ -20,7 +20,8 @@ bundle exec pod install
 ### Performing Upgrades
 
 Use the [upgrade helper](https://react-native-community.github.io/upgrade-helper/)
-for diffs to make manual updates for files that failed to the automatic upgrade.
+for diffs to make manual updates for files that failed during the automatic
+upgrade.
 
 ### Android
 
