@@ -1,0 +1,4 @@
+interface:
+  display_name: "Commit and Push"
+  short_description: "Commit and push branch changes, then prep PR review."
+  default_prompt: "Commit staged changes with a conventional message, push the current branch, create or update the PR, and kick off Gemini review. Include RN upgrade test evidence when versions changed."

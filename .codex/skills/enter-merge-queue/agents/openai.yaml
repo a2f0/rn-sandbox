@@ -1,0 +1,4 @@
+interface:
+  display_name: "Enter Merge Queue"
+  short_description: "Babysit PRs through CI and merge queue to merged state."
+  default_prompt: "Take the active PR through merge queue conditions until merged: keep branch up to date, monitor code-quality/detox jobs, address Gemini feedback, and maintain auto-merge eligibility."

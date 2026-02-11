@@ -1,0 +1,4 @@
+interface:
+  display_name: "Update Everything"
+  short_description: "Run end-to-end RN dependency and toolchain upgrades."
+  default_prompt: "Perform a full dependency refresh for rn-sandbox, including React Native upgrade steps, toolchain alignment for Node/Ruby/Java, GitHub Actions updates, and verification commands before PR handoff."
