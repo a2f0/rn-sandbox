@@ -1,0 +1,4 @@
+interface:
+  display_name: "Address Gemini Feedback"
+  short_description: "Fix Gemini PR comments and reply in-thread with SHAs."
+  default_prompt: "Fetch unresolved Gemini inline comments for the active PR, implement fixes, run validations, push commits, and reply in-thread asking for confirmation."
