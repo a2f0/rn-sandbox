@@ -64,8 +64,18 @@ echo "https://react-native-community.github.io/upgrade-helper/?from=${FROM_RN}&t
 - `.ruby-version`
 - `.java-version`
 - `package.json` `engines.node`
+- `Gemfile` / `Gemfile.lock` CocoaPods version
 
-6. Align CI toolchain setup in `.github/workflows/main.yml`.
+6. Bump CocoaPods gem when a newer stable version exists:
+   - Check latest stable CocoaPods release (RubyGems).
+   - Example check command: `gem list -r '^cocoapods$'`
+   - Update `Gemfile` `gem 'cocoapods', '<version>'`.
+   - Run `bundle update cocoapods` and commit `Gemfile` + `Gemfile.lock`.
+   - If already at latest stable, note that explicitly in the PR summary.
+
+7. Align CI toolchain setup in `.github/workflows/main.yml`.
+   - Keep CocoaPods cache key checksum-based and deterministic.
+   - Do not use broad fallback restore keys for `ios/Pods`.
 
 ## Phase 3: Validation Matrix (Hard Gates)
 
