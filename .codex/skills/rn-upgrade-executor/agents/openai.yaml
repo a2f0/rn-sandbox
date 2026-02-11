@@ -1,0 +1,4 @@
+interface:
+  display_name: "RN Upgrade Executor"
+  short_description: "Execute deterministic React Native major upgrade workflows."
+  default_prompt: "Execute a React Native upgrade for rn-sandbox using strict phases: version planning, native diff checkpoints, toolchain+CI alignment, validation gates, and targeted failure playbooks."
