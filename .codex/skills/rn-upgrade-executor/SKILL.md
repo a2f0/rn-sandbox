@@ -40,8 +40,13 @@ npm ls react-native react @react-native-community/cli --depth=0
 
 ## Phase 2: Upgrade Execution
 
-1. Update npm packages and lockfile.
-2. Generate and review React Native Upgrade Helper diffs (required):
+1. Pin npm dependency versions first (no ranges in `package.json`):
+   - Set exact versions for RN/react/CLI and related packages (no `^` / `~`).
+   - Commit only `package.json` pin changes.
+2. Regenerate and commit lockfile from pinned versions:
+   - Run `npm install --package-lock-only`.
+   - Commit `package-lock.json` in a separate commit tied to the pin commit.
+3. Generate and review React Native Upgrade Helper diffs (required):
    - Build the URL with exact from/to versions:
 
 ```bash
@@ -53,14 +58,14 @@ echo "https://react-native-community.github.io/upgrade-helper/?from=${FROM_RN}&t
    - Open that URL and review all changed files.
    - For every file that overlaps this repo (especially `android/*.gradle`, `android/settings.gradle`, `ios/Podfile`, AppDelegate/MainApplication/MainActivity), apply the semantic changes here.
    - Do not blindly copy; preserve repo-specific customizations (Detox hooks, CI assumptions, shell scripts, etc.).
-3. Apply repo-specific checkpoints from `references/known-diff-map.md` to ensure no upgrade-helper misses.
-4. Align toolchain files:
+4. Apply repo-specific checkpoints from `references/known-diff-map.md` to ensure no upgrade-helper misses.
+5. Align toolchain files:
 - `.nvmrc`
 - `.ruby-version`
 - `.java-version`
 - `package.json` `engines.node`
 
-5. Align CI toolchain setup in `.github/workflows/main.yml`.
+6. Align CI toolchain setup in `.github/workflows/main.yml`.
 
 ## Phase 3: Validation Matrix (Hard Gates)
 
