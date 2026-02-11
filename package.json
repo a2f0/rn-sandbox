@@ -7,7 +7,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "biome check .",
-    "lint:md": "markdownlint \"**/*.md\" --ignore node_modules --ignore vendor --ignore ios/Pods --ignore ios/build --ignore android/build --ignore artifacts",
+    "lint:md": "markdownlint \"**/*.md\" \".codex/**/*.md\" --ignore node_modules --ignore vendor --ignore ios/Pods --ignore ios/build --ignore android/build --ignore artifacts",
     "lint:shell": "shellcheck scripts/*.sh",
     "start": "react-native start",
     "test": "jest",
