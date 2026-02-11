@@ -7,6 +7,11 @@ description: Update React Native and related dependencies across this repository
 
 Update dependencies and platform/toolchain configuration for `rn-sandbox`, then verify the upgrade is shippable.
 
+## Skill Composition
+
+- For React Native version upgrades, invoke `../rn-upgrade-executor/SKILL.md` first and treat its hard gates as mandatory.
+- Use this skill as the repo-wide wrapper for broader dependency/toolchain/workflow refresh tasks around that RN upgrade.
+
 ## Preflight
 
 - Confirm you are not on `main`.
@@ -50,11 +55,20 @@ bundle install
 (cd ios && bundle exec pod install)
 ```
 
-6. Validate:
+6. Validate (repo test suite):
 
 ```bash
 npm run lint
+npm run lint:shell
 npm run test
+./scripts/detox-ios-headless.sh --loglevel info
+./scripts/detox-android-headless.sh --loglevel info
+```
+
+- If a headless Detox script fails, debug and rerun the same script until it passes.
+- For quick isolation while debugging, you may run:
+
+```bash
 npx detox build --configuration ios.release
 npx detox build --configuration android.release
 ```

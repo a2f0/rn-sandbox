@@ -49,6 +49,7 @@
   "devices": {
     "simulator": {
       "type": "ios.simulator",
+      "bootArgs": "--disabledJob=com.apple.audio.coreaudiod --disabledJob=com.apple.audio.audiohald --disabledJob=com.apple.audio.SystemSoundServer-Sim",
       "device": {
         "type": "iPhone 16"
       }

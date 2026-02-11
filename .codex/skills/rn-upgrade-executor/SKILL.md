@@ -41,8 +41,19 @@ npm ls react-native react @react-native-community/cli --depth=0
 ## Phase 2: Upgrade Execution
 
 1. Update npm packages and lockfile.
-2. Apply Upgrade Helper changes for target RN from/to.
-3. Apply repo-specific checkpoints from `references/known-diff-map.md`.
+2. Generate and review React Native Upgrade Helper diffs (required):
+   - Build the URL with exact from/to versions:
+
+```bash
+FROM_RN="<current-rn-version>"
+TO_RN="<target-rn-version>"
+echo "https://react-native-community.github.io/upgrade-helper/?from=${FROM_RN}&to=${TO_RN}"
+```
+
+   - Open that URL and review all changed files.
+   - For every file that overlaps this repo (especially `android/*.gradle`, `android/settings.gradle`, `ios/Podfile`, AppDelegate/MainApplication/MainActivity), apply the semantic changes here.
+   - Do not blindly copy; preserve repo-specific customizations (Detox hooks, CI assumptions, shell scripts, etc.).
+3. Apply repo-specific checkpoints from `references/known-diff-map.md` to ensure no upgrade-helper misses.
 4. Align toolchain files:
 - `.nvmrc`
 - `.ruby-version`
@@ -95,3 +106,5 @@ Re-run only the failed gate plus its prerequisite gate after each fix.
 
 - Use `references/known-diff-map.md` for repo hotspots to verify every RN upgrade.
 - Use `references/failure-playbook.md` for known failure signatures and exact remediation path.
+- Use React Native Upgrade Helper as the source of truth for template diffs between RN versions:
+  - `https://react-native-community.github.io/upgrade-helper/?from=<from>&to=<to>`
