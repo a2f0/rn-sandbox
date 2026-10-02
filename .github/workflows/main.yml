@@ -5,87 +5,91 @@ on:
   workflow_dispatch:
 jobs:
   code-quality:
+    # Preserve the check name required by main's branch protection.
+    name: code-quality (20)
     runs-on: ubuntu-latest
     continue-on-error: false
-    strategy:
-      matrix:
-        node-version: [20]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version-file: .nvmrc
           cache: 'npm'
       - run: npm ci
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y shellcheck
       - run: npm run lint
       - run: npm run lint:shell
       - run: npm run test
   detox-macos:
+    # Preserve the check name required by main's branch protection.
+    name: detox-macos (20, 3.3)
     runs-on: macos-latest
     continue-on-error: false
-    strategy:
-      matrix:
-        node-version: [20]
-        ruby: [ '3.3' ]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version-file: .nvmrc
           cache: 'npm'
-      - uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1.327.0
         with:
-          ruby-version: ${{ matrix.ruby }}
+          ruby-version: '3.3.12'
           bundler-cache: true
       - name: Cache CocoaPods
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: ~/Library/Caches/CocoaPods
           key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock', 'Gemfile.lock') }}
       - name: Cache DerivedData
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: ios/build
           key: ${{ runner.os }}-derived-data-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-derived-data-
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
+        uses: hendrikmuhs/ccache-action@v1.2.24
         with:
           key: ${{ runner.os }}-ccache
       - run: npm ci
-      - run: brew tap wix/brew && brew install applesimutils
+      - name: Install AppleSimUtils
+        run: |
+          brew tap wix/brew
+          brew trust --formula wix/brew/applesimutils
+          brew install wix/brew/applesimutils
       - name: run pod install
         working-directory: ./ios
         run: bundle exec pod install
       - run: npx detox build --configuration ios.release
+      - name: Create iOS simulator
+        run: xcrun simctl create rn-sandbox com.apple.CoreSimulator.SimDeviceType.iPhone-16
       - run: npx detox test --configuration ios.release --record-videos all
       - name: Upload Detox artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: detox-artifacts-ios
           path: artifacts/
           retention-days: 14
   detox-android:
+    # Preserve the check name required by main's branch protection.
+    name: detox-android (20)
     runs-on: ubuntu-latest
     continue-on-error: false
-    strategy:
-      matrix:
-        node-version: [20]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version-file: .nvmrc
           cache: 'npm'
       - run: npm ci
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6.0.1
         with:
           distribution: 'temurin'
           java-version: '17'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6.4.0
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -99,7 +103,7 @@ jobs:
           df -h
       - run: npx detox build --configuration android.release
       - name: run tests
-        uses: reactivecircus/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
           api-level: 31
           target: google_apis
@@ -116,7 +120,7 @@ jobs:
           avd-name: rn-sandbox
       - name: Upload Detox artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: detox-artifacts-android
           path: artifacts/

@@ -13,35 +13,42 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@react-native/new-app-screen": "0.83.1",
-    "react": "19.2.4",
-    "react-native": "0.83.1",
-    "react-native-safe-area-context": "5.6.2"
+    "@react-native/new-app-screen": "0.87.1",
+    "react": "19.2.8",
+    "react-native": "0.87.1",
+    "react-native-safe-area-context": "5.10.1"
   },
   "devDependencies": {
-    "@babel/core": "7.29.0",
-    "@babel/preset-env": "7.29.0",
-    "@babel/runtime": "7.28.6",
-    "@biomejs/biome": "2.3.14",
-    "@react-native-community/cli": "20.1.1",
-    "@react-native-community/cli-platform-android": "20.1.1",
-    "@react-native-community/cli-platform-ios": "20.1.1",
-    "@react-native/babel-preset": "0.83.1",
-    "@react-native/metro-config": "0.83.1",
-    "@react-native/typescript-config": "0.83.1",
-    "@testing-library/react-native": "14.0.0-alpha.1",
+    "@babel/core": "7.29.7",
+    "@babel/preset-env": "7.29.7",
+    "@babel/runtime": "7.29.7",
+    "@biomejs/biome": "2.5.15",
+    "@react-native-community/cli": "20.2.0",
+    "@react-native-community/cli-platform-android": "20.2.0",
+    "@react-native-community/cli-platform-ios": "20.2.0",
+    "@react-native/babel-preset": "0.87.1",
+    "@react-native/jest-preset": "0.87.1",
+    "@react-native/metro-config": "0.87.1",
+    "@react-native/typescript-config": "0.87.1",
+    "@testing-library/react-native": "14.0.1",
     "@types/jest": "30.0.0",
-    "@types/react": "19.2.13",
-    "detox": "20.47.0",
+    "@types/react": "19.2.18",
+    "detox": "20.51.4",
     "husky": "9.1.7",
-    "jest": "30.2.0",
-    "prettier": "3.8.1",
-    "shellcheck": "4.1.0",
+    "jest": "30.5.2",
+    "prettier": "3.9.9",
     "ts-node": "10.9.2",
-    "typescript": "5.9.3",
-    "universal-test-renderer": "0.6.0"
+    "test-renderer": "1.2.0",
+    "typescript": "6.0.3"
   },
   "engines": {
-    "node": ">=20"
+    "node": "^22.13.0 || ^24.3.0 || >=26.0.0"
+  },
+  "allowScripts": {
+    "detox@20.51.4": true,
+    "@parcel/watcher@2.6.0": true,
+    "fsevents@2.3.3": true,
+    "unrs-resolver@1.12.2": true,
+    "dtrace-provider": false
   }
 }
