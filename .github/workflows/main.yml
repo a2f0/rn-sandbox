@@ -53,7 +53,11 @@ jobs:
         with:
           key: ${{ runner.os }}-ccache
       - run: npm ci
-      - run: brew tap wix/brew && brew install applesimutils
+      - name: Install AppleSimUtils
+        run: |
+          brew tap wix/brew
+          brew trust --formula wix/brew/applesimutils
+          brew install wix/brew/applesimutils
       - name: run pod install
         working-directory: ./ios
         run: bundle exec pod install
