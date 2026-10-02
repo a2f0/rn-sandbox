@@ -62,6 +62,8 @@ jobs:
         working-directory: ./ios
         run: bundle exec pod install
       - run: npx detox build --configuration ios.release
+      - name: Create iOS simulator
+        run: xcrun simctl create rn-sandbox com.apple.CoreSimulator.SimDeviceType.iPhone-16
       - run: npx detox test --configuration ios.release --record-videos all
       - name: Upload Detox artifacts
         if: always()
