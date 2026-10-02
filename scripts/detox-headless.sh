@@ -41,7 +41,7 @@ if [ "$PLATFORM" = "android" ] && [ "${RN_ANDROID_ARCH:-}" = "" ]; then
   if [ "$EMULATOR_ID" != "" ]; then
     RN_ANDROID_ARCH=$(adb -s "$EMULATOR_ID" shell getprop ro.product.cpu.abi 2>/dev/null | tr -d '\r')
   elif [ -f "$HOME/.android/avd/$AVD_NAME.avd/config.ini" ]; then
-    RN_ANDROID_ARCH=$(awk -F= '/^abi.type=/{print $2; exit}' "$HOME/.android/avd/$AVD_NAME.avd/config.ini" | tr -d '\r')
+    RN_ANDROID_ARCH=$(awk -F= '/^[[:space:]]*abi[.]type[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); print $2; exit}' "$HOME/.android/avd/$AVD_NAME.avd/config.ini")
   else
     RN_ANDROID_ARCH=""
   fi

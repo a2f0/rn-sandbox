@@ -16,6 +16,10 @@ cd ios
 bundle exec pod install
 ```
 
+Shell linting requires the native [ShellCheck](https://www.shellcheck.net/) binary.
+Install it with `brew install shellcheck` on macOS or `sudo apt-get install shellcheck`
+on Ubuntu. CI installs it from the system package manager.
+
 ### Performing Upgrades
 
 Use the [upgrade helper](https://react-native-community.github.io/upgrade-helper/) for diffs to make manual updates for files that filed to the automatic upgrade.
