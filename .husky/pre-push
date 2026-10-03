@@ -1,4 +1,5 @@
 set -e
 
 npm run lint
+npm run lint:md
 npm run lint:shell

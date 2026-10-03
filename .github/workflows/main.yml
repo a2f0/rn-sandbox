@@ -19,6 +19,7 @@ jobs:
       - name: Install ShellCheck
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y shellcheck
       - run: npm run lint
+      - run: npm run lint:md
       - run: npm run lint:shell
       - run: npm run test
   detox-macos:
