@@ -7,7 +7,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "biome check .",
-    "lint:md": "markdownlint \"**/*.md\" \".codex/**/*.md\" --ignore node_modules --ignore vendor --ignore ios/Pods --ignore ios/build --ignore android/build --ignore artifacts",
+    "lint:md": "markdownlint --dot \"**/*.md\" --ignore-path .gitignore --ignore .git --ignore vendor",
     "lint:shell": "shellcheck scripts/*.sh",
     "start": "react-native start",
     "test": "jest",
@@ -52,5 +52,10 @@
     "fsevents@2.3.3": true,
     "unrs-resolver@1.12.2": true,
     "dtrace-provider": false
+  },
+  "overrides": {
+    "markdownlint-cli": {
+      "js-yaml": "5.4.2"
+    }
   }
 }

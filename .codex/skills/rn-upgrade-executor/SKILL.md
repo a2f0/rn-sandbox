@@ -63,8 +63,8 @@ Run React Native upgrades using strict phases and hard pass/fail gates.
    ```bash
    FROM_RN="<current-rn-version>"
    TO_RN="<target-rn-version>"
-   echo "https://react-native-community.github.io/upgrade-helper/\
-   ?from=${FROM_RN}&to=${TO_RN}"
+   UPGRADE_HELPER="https://react-native-community.github.io/upgrade-helper/"
+   echo "${UPGRADE_HELPER}?from=${FROM_RN}&to=${TO_RN}"
    ```
 
    - Open that URL and review all changed files.
