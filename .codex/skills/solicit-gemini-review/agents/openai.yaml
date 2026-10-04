@@ -1,4 +1,0 @@
-interface:
-  display_name: "Solicit Gemini Review"
-  short_description: "Request Gemini PR review and summarize action items."
-  default_prompt: "Request a fresh Gemini Code Assist review on the active PR, wait for review activity, and summarize unresolved actionable inline comments."
