@@ -16,6 +16,10 @@ edit them. After changing the pin, run `npm run agents:sync` and commit
 together. The CLI runs under Bun, so Bun must be on `PATH`. Title and required
 CI policy is in `agent-tool.json`.
 
+npm installs the CLI in `node_modules/.bin`, which is not on `PATH`. Where the
+skills run `agent-tool <arguments>`, run `npm run -s agent-tool -- <arguments>`
+instead. npm keeps empty arguments, so this also works for `pr merge ''`.
+
 The React Native skills, `rn-upgrade-executor` and `update-everything`, live in
 `.agents/skills`, and `.claude/skills` links to them. Use them for React Native
 upgrades and broad dependency refreshes.
