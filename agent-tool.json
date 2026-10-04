@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "merge": {
+    "requiredChecks": [
+      { "name": "code-quality (20)", "workflow": "Github Actions" },
+      { "name": "detox-android (20)", "workflow": "Github Actions" },
+      { "name": "detox-macos (20, 3.3)", "workflow": "Github Actions" }
+    ]
+  },
+  "versions": { "lockfile": null },
+  "pr": { "rejectClaudeBranding": true }
+}

@@ -16,6 +16,14 @@ jobs:
           node-version-file: .nvmrc
           cache: 'npm'
       - run: npm ci
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: 1.4.2
+      - name: Verify agent-tool
+        run: |
+          npm run agent-tool -- --version
+          npm run agent-tool -- config show
+          npm run agents:check
       - name: Install ShellCheck
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y shellcheck
       - run: npm run lint

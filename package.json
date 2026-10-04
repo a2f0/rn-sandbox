@@ -11,7 +11,10 @@
     "lint:shell": "shellcheck scripts/*.sh",
     "start": "react-native start",
     "test": "jest",
-    "prepare": "husky"
+    "prepare": "husky",
+    "agent-tool": "agent-tool",
+    "agents:sync": "agent-tool skills install --apply",
+    "agents:check": "agent-tool skills check"
   },
   "dependencies": {
     "@react-native/new-app-screen": "0.87.1",
@@ -34,6 +37,7 @@
     "@testing-library/react-native": "14.0.1",
     "@types/jest": "30.0.0",
     "@types/react": "19.2.18",
+    "agent-tool": "github:a2f0/agent-tool#ef1a91300c347ac13a1cb163d85ad734bfe81bf9",
     "detox": "20.51.4",
     "husky": "9.1.7",
     "jest": "30.5.2",

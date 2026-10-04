@@ -121,8 +121,7 @@ npm ls react-native react @react-native-community/cli --depth=0
    - Verify expected diffs in `android/`, `ios/`, lockfiles, toolchain files,
      and `.github/workflows/main.yml`.
    - Summarize from/to versions for RN, Node, Ruby, and Java.
-   - Hand off to `/commit-and-push`, then `/solicit-gemini-review`, then
-     `/enter-merge-queue`.
+   - Hand off to the `ship-pr` skill.
 
 ## Notes
 

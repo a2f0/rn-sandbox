@@ -21,6 +21,11 @@ Shell linting requires the native [ShellCheck](https://www.shellcheck.net/) bina
 Install it with `brew install shellcheck` on macOS or `sudo apt-get install shellcheck`
 on Ubuntu. CI installs it from the system package manager.
 
+Agent guidance is in [AGENTS.md](AGENTS.md). Shared shipping and review skills
+come from the commit-pinned [agent-tool](https://github.com/a2f0/agent-tool)
+dependency, whose CLI runs under [Bun](https://bun.sh/). Install Bun for the
+pre-push hook, which runs `npm run agents:check`.
+
 ### Performing Upgrades
 
 Use the [upgrade helper](https://react-native-community.github.io/upgrade-helper/)

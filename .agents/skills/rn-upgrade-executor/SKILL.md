@@ -135,12 +135,8 @@ Re-run only the failed gate plus its prerequisite gate after each fix.
 
 1. Summarize exact from/to versions and major manual diffs.
 1. Commit focused changes.
-1. Hand off to:
-
-   - `/commit-and-push`
-   - `/solicit-gemini-review`
-   - `/address-gemini-feedback` (if needed)
-   - `/enter-merge-queue`
+1. Hand off to the `ship-pr` skill. `AGENTS.md` covers the RN upgrade PR
+   notes and Gemini review.
 
 ## References
 
