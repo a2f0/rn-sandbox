@@ -39,6 +39,26 @@ npm run android
 npm run ios
 ```
 
+### Web
+
+The web build renders `App.tsx` with
+[React Native for Web](https://necolas.github.io/react-native-web/), bundled
+by [Vite](https://vite.dev/) from `web/`.
+
+```bash
+npm run web
+```
+
+Vite resolves `react-native` to `web/react-native.ts`, which re-exports
+react-native-web and adds the React Native APIs that
+`@react-native/new-app-screen` needs. It also prefers `.web` files, as Metro
+prefers `.ios` and `.android` ones.
+
+`build:web` writes the site to `dist/`. `deploy:web` builds it and deploys the
+`rn-sandbox` Worker, which serves `dist/` at `rn-sandbox.a2f0.net`. Wrangler
+attaches that custom domain on deploy, so log in with `npx wrangler login`
+first.
+
 ### Testing
 
 #### Setup
