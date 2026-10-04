@@ -7,7 +7,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "biome check .",
-    "lint:md": "markdownlint --dot \"**/*.md\" --ignore-path .gitignore --ignore .git --ignore vendor",
+    "lint:md": "git ls-files -z --cached --others --exclude-standard \"*.md\" | xargs -0 markdownlint",
     "lint:shell": "shellcheck scripts/*.sh",
     "start": "react-native start",
     "test": "jest",
