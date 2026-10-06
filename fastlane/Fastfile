@@ -66,9 +66,36 @@ def with_manual_ios_signing(team_id, profile_name)
 end
 
 platform :ios do
-  # Apple has no API for creating App Store Connect apps, and the shared API key
-  # can't create signing profiles, so this lane logs in with your Apple ID
-  # (APPLE_ID) and may ask for a 2FA code. Run it once, in a terminal.
+  desc 'Register the bundle ID (App Store Connect API key)'
+  lane :register_identifiers do
+    load_store_secrets(IOS_SECRETS)
+    app_store_connect_api_key(**app_store_connect_api_key_options)
+    Spaceship::ConnectAPI::BundleId.find(APP_IDENTIFIER) ||
+      Spaceship::ConnectAPI::BundleId.create(
+        name: APP_NAME, platform: Spaceship::ConnectAPI::Platform::IOS, identifier: APP_IDENTIFIER
+      )
+    UI.success("#{APP_IDENTIFIER}: registered")
+  end
+
+  # match keeps the App Store profile in the encrypted certificates repo
+  # (MATCH_GIT_URL), where build_release installs it from. This creates the
+  # profile when it's missing or no longer valid; force:true regenerates it, as
+  # after the bundle ID's capabilities or the distribution certificate change.
+  desc 'Create or renew the match App Store profile (App Store Connect API key; force:true regenerates it)'
+  lane :profiles do |options|
+    load_store_secrets(IOS_SECRETS)
+    api_key = app_store_connect_api_key(**app_store_connect_api_key_options)
+    with_signing_keychain do |keychain_name, keychain_password|
+      match(
+        type: 'appstore', app_identifier: APP_IDENTIFIER, api_key: api_key, readonly: false,
+        force: options[:force].to_s == 'true', keychain_name: keychain_name, keychain_password: keychain_password
+      )
+    end
+  end
+
+  # Apple has no API for creating App Store Connect apps, so this lane logs in
+  # with your Apple ID (APPLE_ID) and may ask for a 2FA code. Run it once, in a
+  # terminal.
   desc 'Create the bundle ID, App Store Connect app, TestFlight group, and App Store profile (Apple ID login)'
   lane :create_app do
     load_store_secrets(IOS_SECRETS)
@@ -89,12 +116,7 @@ platform :ios do
     end
     UI.success("TestFlight group: #{TESTFLIGHT_INTERNAL_GROUP} (add internal testers in App Store Connect)")
 
-    with_signing_keychain do |keychain_name, keychain_password|
-      match(
-        type: 'appstore', app_identifier: APP_IDENTIFIER, username: username, team_id: team_id,
-        readonly: false, keychain_name: keychain_name, keychain_password: keychain_password
-      )
-    end
+    profiles
   end
 
   desc 'Build the App Store IPA, signed with the match profile'

@@ -19,14 +19,28 @@ module FastlaneCore
   end
 end
 
-# create_app looks the new app up through Spaceship; tests set the finder.
+# create_app looks the new app up through Spaceship, and register_identifiers
+# the bundle ID; tests set the finders and see what was created.
 module Spaceship
   module ConnectAPI
+    module Platform
+      IOS = 'IOS'
+    end
+
     class App
       class << self
         attr_accessor :finder
 
         def find(identifier) = finder.call(identifier)
+      end
+    end
+
+    class BundleId
+      class << self
+        attr_accessor :finder, :created
+
+        def find(identifier) = finder.call(identifier)
+        def create(**args) = created.push(args).last
       end
     end
   end

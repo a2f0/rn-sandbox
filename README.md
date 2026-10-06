@@ -113,9 +113,13 @@ settings, and the Android upload key (`rn-sandbox-upload.keystore`, password in
 
 Lanes:
 
+- `fastlane ios register_identifiers`: registers the bundle ID (API key).
+- `fastlane ios profiles`: creates the match App Store profile when it's
+  missing or no longer valid (API key). `force:true` regenerates it, as after
+  the bundle ID's capabilities or the distribution certificate change.
 - `fastlane ios create_app`: one time, interactive (Apple ID and 2FA). Creates
-  the bundle ID, the App Store Connect app, an `Internal` TestFlight group that
-  gets every build, and the match App Store profile.
+  the bundle ID, the App Store Connect app, and an `Internal` TestFlight group
+  that gets every build, then runs `profiles`.
 - `fastlane ios build_release`: signed App Store IPA in `ios/build/release/`.
 - `fastlane ios beta`: signed build to TestFlight.
 - `fastlane android build_release`: signed release App Bundle.
