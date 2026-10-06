@@ -5,14 +5,14 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
-    "android": "react-native run-android",
+    "android": "sh scripts/ensureGradleWrapper.sh && react-native run-android",
     "ios": "react-native run-ios",
     "lint": "biome check .",
     "lint:md": "markdownlint --dot \"**/*.md\" --ignore-path .gitignore --ignore .git --ignore vendor",
-    "lint:shell": "shellcheck scripts/*.sh",
+    "lint:shell": "shellcheck -x scripts/*.sh scripts/*/*.sh",
     "start": "react-native start",
     "test": "jest",
-    "prepare": "husky",
+    "prepare": "husky && sh scripts/ensureGradleWrapper.sh --optional",
     "agent-tool": "agent-tool",
     "agents:sync": "agent-tool skills install --apply",
     "agents:check": "agent-tool skills check"
@@ -26,6 +26,7 @@
   "devDependencies": {
     "@babel/core": "7.29.7",
     "@babel/preset-env": "7.29.7",
+    "@a2f0/agent-tool": "0.1.4",
     "@babel/runtime": "7.29.7",
     "@biomejs/biome": "2.5.15",
     "@react-native-community/cli": "20.2.0",
@@ -38,7 +39,6 @@
     "@testing-library/react-native": "14.0.1",
     "@types/jest": "30.0.0",
     "@types/react": "19.2.18",
-    "agent-tool": "github:a2f0/agent-tool#ef1a91300c347ac13a1cb163d85ad734bfe81bf9",
     "detox": "20.51.4",
     "husky": "9.1.7",
     "jest": "30.5.2",

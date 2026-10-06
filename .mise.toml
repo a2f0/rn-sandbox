@@ -1,0 +1,10 @@
+# Ruby and Node come from .ruby-version and .nvmrc, which CI reads too.
+[settings]
+idiomatic_version_file_enable_tools = ["ruby", "node"]
+
+[tools]
+# Generates android/gradle/wrapper/gradle-wrapper.jar; builds run the Gradle
+# version in gradle-wrapper.properties.
+gradle = "9.4.1"
+shellcheck = "0.11.0"
+bun = "1.4.2"

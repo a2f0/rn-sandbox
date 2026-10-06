@@ -9,9 +9,9 @@ GitHub issues without an explicit request.
 
 ## Agent tooling
 
-Shipping and review skills come from the commit-pinned `a2f0/agent-tool`
-dependency and are managed in `.agents/skills` and `.claude/skills`. Do not
-edit them. After changing the pin, run `npm run agents:sync` and commit
+Shipping and review skills come from the exactly pinned `@a2f0/agent-tool`
+dev dependency and are managed in `.agents/skills` and `.claude/skills`. Do not
+edit them. After changing its version, run `npm run agents:sync` and commit
 `package.json`, `package-lock.json`, the skills, and `.agent-tool-skills.json`
 together. The CLI runs under Bun, so Bun must be on `PATH`. Title and required
 CI policy is in `agent-tool.json`.
@@ -24,11 +24,19 @@ The React Native skills, `rn-upgrade-executor` and `update-everything`, live in
 `.agents/skills`, and `.claude/skills` links to them. Use them for React Native
 upgrades and broad dependency refreshes.
 
+## Binary files
+
+Do not commit binary files. Generate them from text sources instead, as the app
+icons (`assets/*.svg`, `scripts/buildImages.sh`) and the Gradle wrapper jar
+(`scripts/ensureGradleWrapper.sh`) are; see the README. Tool versions come from
+`.mise.toml`, `.ruby-version`, and `.nvmrc`.
+
 ## Validation
 
-Run these checks before shipping. The pre-push hook runs the lint and agent
-checks; `lint:shell` needs ShellCheck.
+Run these checks before shipping. The pre-push hook runs the binary file, lint,
+and agent checks; `lint:shell` needs ShellCheck.
 
+- `sh scripts/checks/checkBinaryFiles.sh`
 - `npm run lint`
 - `npm run lint:md`
 - `npm run lint:shell`
