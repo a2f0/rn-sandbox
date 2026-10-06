@@ -3,8 +3,9 @@
 require 'dotenv'
 
 # .secrets is a gitignored symlink to the store credentials shared with
-# tearleads and nc (see the README).
-SECRETS_DIR = File.expand_path('../../.secrets', __dir__)
+# tearleads and nc (see the README). RN_SANDBOX_SECRETS_DIR points elsewhere,
+# as the lane tests do.
+SECRETS_DIR = ENV.fetch('RN_SANDBOX_SECRETS_DIR') { File.expand_path('../../.secrets', __dir__) }
 
 # Only what each platform's lanes need: root.env also holds unrelated secrets.
 IOS_SECRETS = {

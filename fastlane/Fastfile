@@ -146,11 +146,33 @@ end
 # MARK: - Android
 
 def next_google_play_version_code
-  missing = lambda do |track, error|
-    UI.important("No version codes from the #{track} track (#{error.message.lines.first&.strip})")
+  missing = lambda do |source, error|
+    UI.important("No version codes from #{source} (#{error.message.lines.first&.strip})")
   end
-  PlayVersionCode.next_code(GOOGLE_PLAY_TRACKS, on_missing: missing) do |track|
-    google_play_track_version_codes(package_name: APP_IDENTIFIER, track: track, json_key: GOOGLE_PLAY_JSON_KEY_PATH)
+  PlayVersionCode.next_code(GOOGLE_PLAY_TRACKS, on_missing: missing) do |source|
+    if source == PlayVersionCode::UPLOADED
+      google_play_uploaded_version_codes
+    else
+      google_play_track_version_codes(package_name: APP_IDENTIFIER, track: source, json_key: GOOGLE_PLAY_JSON_KEY_PATH)
+    end
+  end
+end
+
+# The version codes of every bundle and APK uploaded to Google Play, released
+# or not. No fastlane action lists them, so this reads them through supply's
+# client in an edit it then discards.
+def google_play_uploaded_version_codes
+  require 'supply'
+  require 'supply/options'
+  Supply.config = FastlaneCore::Configuration.create(
+    Supply::Options.available_options, package_name: APP_IDENTIFIER, json_key: GOOGLE_PLAY_JSON_KEY_PATH
+  )
+  client = Supply::Client.make_from_config
+  client.begin_edit(package_name: APP_IDENTIFIER)
+  begin
+    (client.aab_version_codes + client.apks_version_codes).compact.map(&:to_i)
+  ensure
+    client.abort_current_edit
   end
 end
 
