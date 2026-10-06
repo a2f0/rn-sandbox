@@ -54,6 +54,15 @@
         "type": "iPhone 16"
       }
     },
+    "simulator.ci": {
+      "type": "ios.simulator",
+      "bootArgs": "--disabledJob=com.apple.audio.coreaudiod --disabledJob=com.apple.audio.audiohald --disabledJob=com.apple.audio.SystemSoundServer-Sim",
+      "headless": true,
+      "device": {
+        "name": "rn-sandbox",
+        "type": "iPhone 16"
+      }
+    },
     "emulator": {
       "type": "android.emulator",
       "device": {
@@ -70,6 +79,10 @@
   "configurations": {
     "ios.release": {
       "device": "simulator",
+      "app": "ios.release"
+    },
+    "ios.release.ci": {
+      "device": "simulator.ci",
       "app": "ios.release"
     },
     "android": {
