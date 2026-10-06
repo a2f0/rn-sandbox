@@ -109,7 +109,24 @@ end
 def create_app(app)
   Spaceship::ConnectAPI::App.finder = ->(_identifier) { app }
   FakeFastfile.new(File.join(ARGV.fetch(0), "Fastfile"),
-    produce: ->(**) {}, create_keychain: ->(**) {}, delete_keychain: ->(**) {}, match: ->(**) {})
+    produce: ->(**) {}, app_store_connect_api_key: ->(**) { "api-key" },
+    create_keychain: ->(**) {}, delete_keychain: ->(**) {}, match: ->(**) {})
+end
+
+def run_profiles(options = {})
+  fastfile = FakeFastfile.new(File.join(ARGV.fetch(0), "Fastfile"),
+    app_store_connect_api_key: ->(**) { "api-key" },
+    create_keychain: ->(**) {}, delete_keychain: ->(**) {}, match: ->(**) {})
+  fastfile.run_lane(:ios, :profiles, options)
+  { match: fastfile.calls_to(:match), keychain: fastfile.calls_to(:create_keychain).first&.fetch(:name) }
+end
+
+def run_register_identifiers(existing)
+  Spaceship::ConnectAPI::BundleId.finder = ->(_identifier) { existing }
+  Spaceship::ConnectAPI::BundleId.created = []
+  fastfile = FakeFastfile.new(File.join(ARGV.fetch(0), "Fastfile"), app_store_connect_api_key: ->(**) { "api-key" })
+  fastfile.run_lane(:ios, :register_identifiers)
+  { api_key: fastfile.calls_to(:app_store_connect_api_key), created: Spaceship::ConnectAPI::BundleId.created }
 end
 
 def create_app_result(fastfile, app)
@@ -135,6 +152,18 @@ write_secrets(secrets)
 File.write(File.join(secrets, "root.env"), File.read(File.join(secrets, "root.env")).sub(/^export APPLE_ID=.*\n/, ""))
 app = FakeApp.new([])
 results[:create_app_no_apple_id] = create_app_result(create_app(app), app)
+
+write_secrets(secrets)
+results[:profiles] = run_profiles
+
+write_secrets(secrets)
+results[:profiles_force] = run_profiles({ force: "true" })
+
+write_secrets(secrets)
+results[:register_identifiers] = run_register_identifiers(nil)
+
+write_secrets(secrets)
+results[:register_identifiers_existing] = run_register_identifiers(:existing)
 
 write_secrets(secrets)
 fastfile, aab, password = android(work)
@@ -390,14 +419,58 @@ describe('ios lanes', () => {
         {
           type: 'appstore',
           app_identifier: 'net.a2f0.sandbox.rn',
-          username: 'developer@example.com',
-          team_id: 'TEAM123',
+          api_key: 'api-key',
           readonly: false,
+          force: false,
           keychain_name: keychain,
           keychain_password: expect.stringMatching(/^[0-9a-f]{64}$/),
         },
       ],
     });
+  });
+
+  test('profiles creates or renews the profile with the API key in a temporary keychain', () => {
+    const { keychain, ...result } = results.profiles;
+    expect(keychain).toMatch(/^rn-sandbox-fastlane-/);
+    expect(result).toEqual({
+      match: [
+        {
+          type: 'appstore',
+          app_identifier: 'net.a2f0.sandbox.rn',
+          api_key: 'api-key',
+          readonly: false,
+          force: false,
+          keychain_name: keychain,
+          keychain_password: expect.stringMatching(/^[0-9a-f]{64}$/),
+        },
+      ],
+    });
+  });
+
+  test('profiles regenerates the profile with force:true', () => {
+    expect(results.profiles_force.match).toEqual([
+      expect.objectContaining({ readonly: false, force: true }),
+    ]);
+  });
+
+  test('register_identifiers registers a missing bundle ID with the API key', () => {
+    expect(results.register_identifiers).toEqual({
+      api_key: [
+        {
+          key_id: 'KEY123',
+          issuer_id: 'issuer',
+          key_filepath: expect.stringMatching(/AuthKey_KEY123\.p8$/),
+        },
+      ],
+      created: [
+        {
+          name: 'RN Sandbox',
+          platform: 'IOS',
+          identifier: 'net.a2f0.sandbox.rn',
+        },
+      ],
+    });
+    expect(results.register_identifiers_existing.created).toEqual([]);
   });
 
   test('create_app keeps an existing Internal group', () => {
