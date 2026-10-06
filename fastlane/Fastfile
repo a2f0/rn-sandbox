@@ -166,7 +166,8 @@ platform :android do
     sh('sh', File.join(REPO_ROOT, 'scripts/ensureGradleWrapper.sh'))
     gradle(
       project_dir: ANDROID_DIR, task: 'bundleRelease',
-      properties: { 'rnSandboxVersionCode' => version_code }, flags: '--console=plain'
+      properties: { 'rnSandboxVersionCode' => version_code, 'rnSandboxUploadSigning' => true },
+      flags: '--console=plain'
     )
     UI.user_error!("App Bundle was not created: #{ANDROID_RELEASE_AAB}") unless File.file?(ANDROID_RELEASE_AAB)
     UI.success("App Bundle: #{ANDROID_RELEASE_AAB}")
