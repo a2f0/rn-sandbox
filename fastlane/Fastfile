@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-require 'securerandom'
 require 'shellwords'
 require_relative 'lib/play_version_code'
+require_relative 'lib/restored_file'
 require_relative 'lib/secrets'
+require_relative 'lib/signing_keychain'
 
 REPO_ROOT = File.expand_path('..', __dir__)
 APP_NAME = 'RN Sandbox'
@@ -32,22 +33,14 @@ skip_docs
 # the login keychain, so nothing prompts for a keychain password or outlives
 # the lane. The app has no nested targets, so codesign only needs to be pointed
 # at it (ios_build_xcargs); the default keychain stays as it is.
-def with_signing_keychain
-  name = "rn-sandbox-fastlane-#{Process.pid}-#{SecureRandom.hex(4)}"
-  password = SecureRandom.hex(32)
-  create_keychain(
-    name: name, password: password, default_keychain: false, unlock: true,
-    timeout: 0, lock_when_sleeps: true, add_to_search_list: true, require_create: true
-  )
-  yield name, password
-ensure
-  delete_keychain(name: name) if name && signing_keychain_exists?(name)
-end
-
-# Setup can fail before the keychain exists; deleting it then would mask that error.
-def signing_keychain_exists?(name)
-  base = File.join(Dir.home, 'Library', 'Keychains', name)
-  ["#{base}-db", "#{base}.keychain-db", base, "#{base}.keychain"].any? { |path| File.file?(path) }
+def with_signing_keychain(&)
+  create = lambda do |name, password|
+    create_keychain(
+      name: name, password: password, default_keychain: false, unlock: true,
+      timeout: 0, lock_when_sleeps: true, add_to_search_list: true, require_create: true
+    )
+  end
+  SigningKeychain.with_temporary(create: create, delete: ->(name) { delete_keychain(name: name) }, &)
 end
 
 def ios_build_xcargs(build_number, team_id, keychain_name)
@@ -62,16 +55,14 @@ end
 # Pins manual App Store signing on the app target's Release configuration for
 # the duration of the block, then restores the project file.
 def with_manual_ios_signing(team_id, profile_name)
-  pbxproj = File.join(IOS_PROJECT, 'project.pbxproj')
-  original = File.read(pbxproj)
-  update_code_signing_settings(
-    path: IOS_PROJECT, use_automatic_signing: false, team_id: team_id,
-    code_sign_identity: 'Apple Distribution', profile_name: profile_name,
-    targets: [IOS_TARGET], build_configurations: ['Release']
-  )
-  yield
-ensure
-  File.write(pbxproj, original) unless original.nil?
+  RestoredFile.around(File.join(IOS_PROJECT, 'project.pbxproj')) do
+    update_code_signing_settings(
+      path: IOS_PROJECT, use_automatic_signing: false, team_id: team_id,
+      code_sign_identity: 'Apple Distribution', profile_name: profile_name,
+      targets: [IOS_TARGET], build_configurations: ['Release']
+    )
+    yield
+  end
 end
 
 platform :ios do

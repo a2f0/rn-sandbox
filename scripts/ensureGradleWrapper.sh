@@ -4,6 +4,9 @@ set -eu
 # The Gradle wrapper jar is binary, so it is gitignored rather than committed.
 # Regenerate it when missing. Only the jar is written; the committed
 # gradle-wrapper.properties keeps deciding which Gradle version builds run on.
+#
+# With --optional (npm's prepare script), a missing Gradle is a warning, so
+# installing JavaScript dependencies doesn't require it.
 
 REPO_ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)"
 WRAPPER_DIR="$REPO_ROOT/android/gradle/wrapper"
@@ -12,7 +15,11 @@ WRAPPER_JAR="$WRAPPER_DIR/gradle-wrapper.jar"
 [ -f "$WRAPPER_JAR" ] && exit 0
 
 if ! command -v gradle >/dev/null 2>&1; then
-  echo "Error: Gradle is needed to generate the wrapper jar (brew install gradle)." >&2
+  if [ "${1:-}" = "--optional" ]; then
+    echo "Warning: skipped android/gradle/wrapper/gradle-wrapper.jar; install Gradle (mise install) and rerun scripts/ensureGradleWrapper.sh." >&2
+    exit 0
+  fi
+  echo "Error: Gradle is needed to generate the wrapper jar (mise install)." >&2
   exit 1
 fi
 

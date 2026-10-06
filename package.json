@@ -12,7 +12,7 @@
     "lint:shell": "shellcheck -x scripts/*.sh scripts/*/*.sh",
     "start": "react-native start",
     "test": "jest",
-    "prepare": "husky",
+    "prepare": "husky && sh scripts/ensureGradleWrapper.sh --optional",
     "agent-tool": "agent-tool",
     "agents:sync": "agent-tool skills install --apply",
     "agents:check": "agent-tool skills check"
