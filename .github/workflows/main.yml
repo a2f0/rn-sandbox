@@ -39,16 +39,6 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v7.0.1
-      - name: Boot iOS simulator
-        # A new simulator takes minutes to boot on CI, so it boots in the
-        # background while dependencies install and the app builds. Detox's
-        # ios.release.ci configuration picks it by name.
-        run: |
-          udid=$(xcrun simctl create rn-sandbox com.apple.CoreSimulator.SimDeviceType.iPhone-16)
-          echo "SIMULATOR_UDID=$udid" >> "$GITHUB_ENV"
-          boot_args=$(jq -r '.devices["simulator.ci"].bootArgs' .detoxrc.json)
-          nohup sh -c "xcrun simctl boot $udid $boot_args && xcrun simctl bootstatus $udid" \
-            > "$RUNNER_TEMP/simulator-boot.log" 2>&1 &
       - uses: actions/setup-node@v7.0.0
         with:
           node-version-file: .nvmrc
@@ -88,11 +78,11 @@ jobs:
         working-directory: ./ios
         run: bundle exec pod install
       - run: npx detox build --configuration ios.release
-      - name: Wait for iOS simulator
-        timeout-minutes: 10
-        run: |
-          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
-          cat "$RUNNER_TEMP/simulator-boot.log"
+      - name: Create iOS simulator
+        # Detox boots it headless (ios.release.ci). Booting it in the background
+        # earlier competes with installs and the build for the runner's CPU and
+        # disk, and measured slower overall.
+        run: xcrun simctl create rn-sandbox com.apple.CoreSimulator.SimDeviceType.iPhone-16
       - run: npx detox test --configuration ios.release.ci --record-videos all
       - name: Upload Detox artifacts
         if: always()

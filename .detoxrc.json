@@ -31,7 +31,7 @@
     "ios.release": {
       "type": "ios.app",
       "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/sandbox.app",
-      "build": "xcodebuild -workspace ios/sandbox.xcworkspace -scheme sandbox -configuration Release -sdk iphonesimulator -derivedDataPath ios/build"
+      "build": "xcodebuild -workspace ios/sandbox.xcworkspace -scheme sandbox -configuration Release -sdk iphonesimulator -derivedDataPath ios/build ARCHS=$(uname -m)"
     },
     "android": {
       "type": "android.apk",
