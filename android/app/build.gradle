@@ -76,11 +76,13 @@ def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 /**
  * Release builds are signed with the Google Play upload key from .secrets/
  * (gitignored; see the README) only when fastlane asks for it with
- * -PrnSandboxUploadSigning=true. Otherwise they use the debug key, which
- * Detox's debug-signed test APK needs to instrument them.
+ * -PrnSandboxUploadSigning=true, passing the keystore it found as
+ * -PrnSandboxUploadKeystore. Otherwise they use the debug key, which Detox's
+ * debug-signed test APK needs to instrument them.
  */
 def uploadSigning = providers.gradleProperty("rnSandboxUploadSigning").map { it.toBoolean() }.getOrElse(false)
-def uploadKeystore = rootProject.file("../.secrets/rn-sandbox-upload.keystore")
+def uploadKeystore = file(providers.gradleProperty("rnSandboxUploadKeystore")
+    .getOrElse(rootProject.file("../.secrets/rn-sandbox-upload.keystore").path))
 def uploadKeystorePassword = providers.environmentVariable("RN_SANDBOX_ANDROID_KEYSTORE_PASS").getOrNull()
 if (uploadSigning && (!uploadKeystore.isFile() || !uploadKeystorePassword)) {
     throw new GradleException("Upload signing needs ${uploadKeystore} and RN_SANDBOX_ANDROID_KEYSTORE_PASS.")

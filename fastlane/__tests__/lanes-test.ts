@@ -88,7 +88,7 @@ def ios(work, fail_build: false)
   [fastfile, -> { { during_build: during_build, after: File.read(pbxproj) } }]
 end
 
-results = {}
+results = { keystore: KEYSTORE }
 
 write_secrets(secrets)
 fastfile, aab, password = android(work)
@@ -182,6 +182,7 @@ describe('android lanes', () => {
           properties: {
             rnSandboxVersionCode: 10,
             rnSandboxUploadSigning: true,
+            rnSandboxUploadKeystore: results.keystore,
           },
           flags: '--console=plain',
         },
@@ -195,6 +196,7 @@ describe('android lanes', () => {
     expect(results.android_override.gradle[0].properties).toEqual({
       rnSandboxVersionCode: 42,
       rnSandboxUploadSigning: true,
+      rnSandboxUploadKeystore: results.keystore,
     });
     expect(results.android_override.track_lookups).toBe(0);
   });
