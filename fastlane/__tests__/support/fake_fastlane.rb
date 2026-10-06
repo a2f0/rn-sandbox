@@ -19,6 +19,19 @@ module FastlaneCore
   end
 end
 
+# create_app looks the new app up through Spaceship; tests set the finder.
+module Spaceship
+  module ConnectAPI
+    class App
+      class << self
+        attr_accessor :finder
+
+        def find(identifier) = finder.call(identifier)
+      end
+    end
+  end
+end
+
 class FakeFastfile
   attr_reader :calls
 

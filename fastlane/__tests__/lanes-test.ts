@@ -26,6 +26,8 @@ def write_secrets(secrets, android_password: true, keystore: true)
   SECRET_NAMES.each { |name| ENV.delete(name) }
   ENV.delete(PROFILE_ENV)
   File.write(File.join(secrets, "root.env"), <<~ENV)
+    export APPLE_ID=developer@example.com
+    export ITC_TEAM_ID=ITC123
     export APP_STORE_CONNECT_ISSUER_ID=issuer
     export APP_STORE_CONNECT_KEY_ID=KEY123
     export TEAM_ID=TEAM123
@@ -88,7 +90,51 @@ def ios(work, fail_build: false)
   [fastfile, -> { { during_build: during_build, after: File.read(pbxproj) } }]
 end
 
+# A stand-in for the App Store Connect app, recording TestFlight group calls.
+class FakeApp
+  attr_reader :calls
+
+  def initialize(groups) = (@groups = groups) && (@calls = [])
+
+  def get_beta_groups(filter:)
+    @calls << [:get_beta_groups, filter]
+    @groups
+  end
+
+  def create_beta_group(**args)
+    @calls << [:create_beta_group, args]
+  end
+end
+
+def create_app(app)
+  Spaceship::ConnectAPI::App.finder = ->(_identifier) { app }
+  FakeFastfile.new(File.join(ARGV.fetch(0), "Fastfile"),
+    produce: ->(**) {}, create_keychain: ->(**) {}, delete_keychain: ->(**) {}, match: ->(**) {})
+end
+
+def create_app_result(fastfile, app)
+  { error: error_of { fastfile.run_lane(:ios, :create_app) },
+    produce: fastfile.calls_to(:produce), match: fastfile.calls_to(:match),
+    keychain: fastfile.calls_to(:create_keychain).first&.fetch(:name), groups: app&.calls }
+end
+
 results = { keystore: KEYSTORE }
+
+write_secrets(secrets)
+app = FakeApp.new([])
+results[:create_app] = create_app_result(create_app(app), app)
+
+write_secrets(secrets)
+app = FakeApp.new([:existing])
+results[:create_app_existing_group] = create_app_result(create_app(app), app)
+
+write_secrets(secrets)
+results[:create_app_missing_app] = create_app_result(create_app(nil), nil)
+
+write_secrets(secrets)
+File.write(File.join(secrets, "root.env"), File.read(File.join(secrets, "root.env")).sub(/^export APPLE_ID=.*\n/, ""))
+app = FakeApp.new([])
+results[:create_app_no_apple_id] = create_app_result(create_app(app), app)
 
 write_secrets(secrets)
 fastfile, aab, password = android(work)
@@ -310,5 +356,68 @@ describe('ios lanes', () => {
         skip_waiting_for_build_processing: true,
       },
     ]);
+  });
+
+  test('create_app creates the app, an Internal TestFlight group, and the profile', () => {
+    const { keychain, ...result } = results.create_app;
+    expect(keychain).toMatch(/^rn-sandbox-fastlane-/);
+    expect(result).toEqual({
+      error: null,
+      produce: [
+        {
+          username: 'developer@example.com',
+          team_id: 'TEAM123',
+          itc_team_id: 'ITC123',
+          app_identifier: 'net.a2f0.sandbox.rn',
+          app_name: 'RN Sandbox',
+          sku: 'rn-sandbox',
+          language: 'en-US',
+          platforms: ['ios'],
+        },
+      ],
+      groups: [
+        ['get_beta_groups', { name: 'Internal' }],
+        [
+          'create_beta_group',
+          {
+            group_name: 'Internal',
+            is_internal_group: true,
+            has_access_to_all_builds: true,
+          },
+        ],
+      ],
+      match: [
+        {
+          type: 'appstore',
+          app_identifier: 'net.a2f0.sandbox.rn',
+          username: 'developer@example.com',
+          team_id: 'TEAM123',
+          readonly: false,
+          keychain_name: keychain,
+          keychain_password: expect.stringMatching(/^[0-9a-f]{64}$/),
+        },
+      ],
+    });
+  });
+
+  test('create_app keeps an existing Internal group', () => {
+    expect(results.create_app_existing_group.groups).toEqual([
+      ['get_beta_groups', { name: 'Internal' }],
+    ]);
+    expect(results.create_app_existing_group.match).toHaveLength(1);
+  });
+
+  test('create_app stops before signing when setup fails', () => {
+    expect(results.create_app_missing_app).toMatchObject({
+      error: 'No App Store Connect app for net.a2f0.sandbox.rn',
+      match: [],
+    });
+    expect(results.create_app_missing_app.produce).toHaveLength(1);
+    expect(results.create_app_no_apple_id).toMatchObject({
+      error: expect.stringContaining('APPLE_ID is required'),
+      produce: [],
+      match: [],
+      groups: [],
+    });
   });
 });
