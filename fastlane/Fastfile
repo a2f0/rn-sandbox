@@ -1,0 +1,198 @@
+# frozen_string_literal: true
+
+require 'securerandom'
+require 'shellwords'
+require_relative 'lib/play_version_code'
+require_relative 'lib/secrets'
+
+REPO_ROOT = File.expand_path('..', __dir__)
+APP_NAME = 'RN Sandbox'
+APP_IDENTIFIER = 'net.a2f0.sandbox.rn'
+APP_SKU = 'rn-sandbox'
+
+IOS_DIR = File.join(REPO_ROOT, 'ios')
+IOS_PROJECT = File.join(IOS_DIR, 'sandbox.xcodeproj')
+IOS_WORKSPACE = File.join(IOS_DIR, 'sandbox.xcworkspace')
+IOS_SCHEME = 'sandbox'
+IOS_TARGET = 'sandbox'
+IOS_OUTPUT_DIR = File.join(IOS_DIR, 'build/release')
+TESTFLIGHT_INTERNAL_GROUP = 'Internal'
+
+ANDROID_DIR = File.join(REPO_ROOT, 'android')
+ANDROID_KEYSTORE_PATH = File.join(SECRETS_DIR, 'rn-sandbox-upload.keystore')
+ANDROID_RELEASE_AAB = File.join(ANDROID_DIR, 'app/build/outputs/bundle/release/app-release.aab')
+GOOGLE_PLAY_TRACKS = %w[production beta alpha internal].freeze
+
+default_platform(:ios)
+skip_docs
+
+# MARK: - iOS
+
+# match installs the distribution certificate into a throwaway keychain, not
+# the login keychain, so nothing prompts for a keychain password or outlives
+# the lane. The app has no nested targets, so codesign only needs to be pointed
+# at it (ios_build_xcargs); the default keychain stays as it is.
+def with_signing_keychain
+  name = "rn-sandbox-fastlane-#{Process.pid}-#{SecureRandom.hex(4)}"
+  password = SecureRandom.hex(32)
+  create_keychain(
+    name: name, password: password, default_keychain: false, unlock: true,
+    timeout: 0, lock_when_sleeps: true, add_to_search_list: true, require_create: true
+  )
+  yield name, password
+ensure
+  delete_keychain(name: name) if name && signing_keychain_exists?(name)
+end
+
+# Setup can fail before the keychain exists; deleting it then would mask that error.
+def signing_keychain_exists?(name)
+  base = File.join(Dir.home, 'Library', 'Keychains', name)
+  ["#{base}-db", "#{base}.keychain-db", base, "#{base}.keychain"].any? { |path| File.file?(path) }
+end
+
+def ios_build_xcargs(build_number, team_id, keychain_name)
+  keychain_path = FastlaneCore::Helper.keychain_path(keychain_name)
+  [
+    "CURRENT_PROJECT_VERSION=#{build_number}",
+    "DEVELOPMENT_TEAM=#{team_id}",
+    "OTHER_CODE_SIGN_FLAGS=#{Shellwords.escape("--keychain #{keychain_path}")}"
+  ].join(' ')
+end
+
+# Pins manual App Store signing on the app target's Release configuration for
+# the duration of the block, then restores the project file.
+def with_manual_ios_signing(team_id, profile_name)
+  pbxproj = File.join(IOS_PROJECT, 'project.pbxproj')
+  original = File.read(pbxproj)
+  update_code_signing_settings(
+    path: IOS_PROJECT, use_automatic_signing: false, team_id: team_id,
+    code_sign_identity: 'Apple Distribution', profile_name: profile_name,
+    targets: [IOS_TARGET], build_configurations: ['Release']
+  )
+  yield
+ensure
+  File.write(pbxproj, original) unless original.nil?
+end
+
+platform :ios do
+  # Apple has no API for creating App Store Connect apps, and the shared API key
+  # can't create signing profiles, so this lane logs in with your Apple ID
+  # (APPLE_ID) and may ask for a 2FA code. Run it once, in a terminal.
+  desc 'Create the bundle ID, App Store Connect app, TestFlight group, and App Store profile (Apple ID login)'
+  lane :create_app do
+    load_store_secrets(IOS_SECRETS)
+    username = required_env('APPLE_ID')
+    team_id = required_env('TEAM_ID')
+
+    produce(
+      username: username, team_id: team_id, itc_team_id: ENV.fetch('ITC_TEAM_ID', nil),
+      app_identifier: APP_IDENTIFIER, app_name: APP_NAME, sku: APP_SKU, language: 'en-US',
+      platforms: ['ios']
+    )
+
+    # Internal testers in this group get every build once it's processed.
+    app = Spaceship::ConnectAPI::App.find(APP_IDENTIFIER)
+    UI.user_error!("No App Store Connect app for #{APP_IDENTIFIER}") unless app
+    if app.get_beta_groups(filter: { name: TESTFLIGHT_INTERNAL_GROUP }).empty?
+      app.create_beta_group(group_name: TESTFLIGHT_INTERNAL_GROUP, is_internal_group: true, has_access_to_all_builds: true)
+    end
+    UI.success("TestFlight group: #{TESTFLIGHT_INTERNAL_GROUP} (add internal testers in App Store Connect)")
+
+    with_signing_keychain do |keychain_name, keychain_password|
+      match(
+        type: 'appstore', app_identifier: APP_IDENTIFIER, username: username, team_id: team_id,
+        readonly: false, keychain_name: keychain_name, keychain_password: keychain_password
+      )
+    end
+  end
+
+  desc 'Build the App Store IPA, signed with the match profile'
+  lane :build_release do |options|
+    load_store_secrets(IOS_SECRETS)
+    team_id = required_env('TEAM_ID')
+    api_key = app_store_connect_api_key(**app_store_connect_api_key_options)
+    build_number = options[:build_number]&.to_i ||
+                   (latest_testflight_build_number(
+                     api_key: api_key, app_identifier: APP_IDENTIFIER, initial_build_number: 0
+                   ).to_i + 1)
+    UI.message("Building #{APP_IDENTIFIER} build #{build_number}")
+
+    cocoapods(podfile: File.join(IOS_DIR, 'Podfile'))
+    with_signing_keychain do |keychain_name, keychain_password|
+      match(
+        type: 'appstore', app_identifier: APP_IDENTIFIER, api_key: api_key, readonly: true,
+        keychain_name: keychain_name, keychain_password: keychain_password
+      )
+      profile_name = ENV.fetch("sigh_#{APP_IDENTIFIER}_appstore_profile-name")
+      with_manual_ios_signing(team_id, profile_name) do
+        build_app(
+          workspace: IOS_WORKSPACE, scheme: IOS_SCHEME, configuration: 'Release', clean: true,
+          export_method: 'app-store',
+          export_options: {
+            method: 'app-store', signingStyle: 'manual', teamID: team_id,
+            provisioningProfiles: { APP_IDENTIFIER => profile_name },
+            manageAppVersionAndBuildNumber: false, uploadSymbols: true
+          },
+          output_directory: IOS_OUTPUT_DIR, output_name: 'RNSandbox.ipa',
+          xcargs: ios_build_xcargs(build_number, team_id, keychain_name)
+        )
+      end
+    end
+  end
+
+  # Doesn't wait for processing; the Internal group gets the build when it's done.
+  desc 'Build and upload the App Store IPA to TestFlight'
+  lane :beta do |options|
+    ipa = build_release(options)
+    upload_to_testflight(
+      api_key: app_store_connect_api_key(**app_store_connect_api_key_options),
+      app_identifier: APP_IDENTIFIER, ipa: ipa,
+      skip_submission: true, skip_waiting_for_build_processing: true
+    )
+  end
+end
+
+# MARK: - Android
+
+def next_google_play_version_code
+  missing = lambda do |track, error|
+    UI.important("No version codes from the #{track} track (#{error.message.lines.first&.strip})")
+  end
+  PlayVersionCode.next_code(GOOGLE_PLAY_TRACKS, on_missing: missing) do |track|
+    google_play_track_version_codes(package_name: APP_IDENTIFIER, track: track, json_key: GOOGLE_PLAY_JSON_KEY_PATH)
+  end
+end
+
+platform :android do
+  desc 'Build the release App Bundle, signed with the upload key'
+  lane :build_release do |options|
+    load_store_secrets(ANDROID_SECRETS)
+    required_env('RN_SANDBOX_ANDROID_KEYSTORE_PASS')
+    UI.user_error!("Missing upload keystore: #{ANDROID_KEYSTORE_PATH}") unless File.file?(ANDROID_KEYSTORE_PATH)
+
+    version_code = options[:version_code]&.to_i || next_google_play_version_code
+    UI.message("Building #{APP_IDENTIFIER} version code #{version_code}")
+    sh('sh', File.join(REPO_ROOT, 'scripts/ensureGradleWrapper.sh'))
+    gradle(
+      project_dir: ANDROID_DIR, task: 'bundleRelease',
+      properties: { 'rnSandboxVersionCode' => version_code }, flags: '--console=plain'
+    )
+    UI.user_error!("App Bundle was not created: #{ANDROID_RELEASE_AAB}") unless File.file?(ANDROID_RELEASE_AAB)
+    UI.success("App Bundle: #{ANDROID_RELEASE_AAB}")
+    ANDROID_RELEASE_AAB
+  end
+
+  # Rolls the release out to internal testers, with no Play Console step. A new
+  # Play app only accepts draft releases until its first release has been rolled
+  # out by hand; pass release_status:draft to upload one without rolling it out.
+  desc 'Build, upload, and roll out the release App Bundle to Google Play internal testers'
+  lane :internal do |options|
+    aab = build_release(options)
+    upload_to_play_store(
+      package_name: APP_IDENTIFIER, json_key: GOOGLE_PLAY_JSON_KEY_PATH, aab: aab,
+      track: 'internal', release_status: options.fetch(:release_status, 'completed'),
+      skip_upload_apk: true, skip_upload_metadata: true, skip_upload_changelogs: true,
+      skip_upload_images: true, skip_upload_screenshots: true
+    )
+  end
+end

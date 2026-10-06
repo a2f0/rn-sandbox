@@ -1,5 +1,6 @@
 set -e
 
+sh scripts/checks/checkBinaryFiles.sh
 npm run lint
 npm run lint:md
 npm run lint:shell

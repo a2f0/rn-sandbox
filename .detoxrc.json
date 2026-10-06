@@ -37,13 +37,13 @@
       "type": "android.apk",
       "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
       "testBinaryPath": "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
-      "build": "cd android && ./gradlew assembleDebug assembleDebugAndroidTest -PreactNativeArchitectures=${RN_ANDROID_ARCH:-x86_64} && cd .."
+      "build": "sh scripts/ensureGradleWrapper.sh && cd android && ./gradlew assembleDebug assembleDebugAndroidTest -PreactNativeArchitectures=${RN_ANDROID_ARCH:-x86_64} && cd .."
     },
     "android.release": {
       "type": "android.apk",
       "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
       "testBinaryPath": "android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
-      "build": "cd android && ./gradlew assembleRelease assembleDebugAndroidTest -PreactNativeArchitectures=${RN_ANDROID_ARCH:-x86_64} && cd .."
+      "build": "sh scripts/ensureGradleWrapper.sh && cd android && ./gradlew assembleRelease assembleDebugAndroidTest -PreactNativeArchitectures=${RN_ANDROID_ARCH:-x86_64} && cd .."
     }
   },
   "devices": {

@@ -73,6 +73,14 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+/**
+ * Release builds are signed with the Google Play upload key from .secrets/
+ * (gitignored; see the README) when fastlane passes its password. Otherwise
+ * they fall back to the debug key, so Detox can install them.
+ */
+def uploadKeystore = rootProject.file("../.secrets/rn-sandbox-upload.keystore")
+def uploadKeystorePassword = providers.environmentVariable("RN_SANDBOX_ANDROID_KEYSTORE_PASS").getOrNull()
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -80,29 +88,30 @@ android {
 
     namespace "com.sandbox"
     defaultConfig {
-        applicationId "com.sandbox"
+        // Permanent once published on Google Play.
+        applicationId "net.a2f0.sandbox.rn"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        // Release lanes pass the next Play version code with -PrnSandboxVersionCode=<n>.
+        versionCode providers.gradleProperty("rnSandboxVersionCode").map { it.toInteger() }.getOrElse(1)
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+    // Debug builds use the Android Gradle plugin's default debug keystore
+    // (~/.android/debug.keystore), which it creates when missing.
     signingConfigs {
-        debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+        if (uploadKeystore.isFile() && uploadKeystorePassword != null) {
+            upload {
+                storeFile uploadKeystore
+                storePassword uploadKeystorePassword
+                keyAlias "rn-sandbox-upload"
+                keyPassword uploadKeystorePassword
+            }
         }
     }
     buildTypes {
-        debug {
-            signingConfig signingConfigs.debug
-        }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.findByName("upload") ?: signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
@@ -126,3 +135,23 @@ dependencies {
     androidTestImplementation("androidx.test:rules:1.7.0")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
 }
+
+// Launcher icons are generated from the SVGs in assets/ (see
+// scripts/buildAndroidImages.sh) and gitignored. Regenerate them whenever the
+// sources change, before anything reads resources.
+def repoRoot = rootProject.layout.projectDirectory.dir("..")
+def generateImages = tasks.register("generateImages", Exec) {
+    description = "Generates launcher icons from assets/*.svg."
+    inputs.files(
+        repoRoot.file("assets/icon.svg"),
+        repoRoot.file("assets/background.svg"),
+        repoRoot.file("scripts/buildAndroidImages.sh"),
+        repoRoot.file("scripts/lib/images.sh")
+    )
+    def res = layout.projectDirectory.dir("src/main/res")
+    ["mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"].each { density ->
+        outputs.dir(res.dir("mipmap-$density"))
+    }
+    commandLine("sh", repoRoot.file("scripts/buildAndroidImages.sh").asFile.path)
+}
+tasks.named("preBuild") { dependsOn(generateImages) }
