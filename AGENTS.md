@@ -78,5 +78,5 @@ Ship with the `ship-pr` skill. `main` accepts squash merges only, and its
 branch protection requires the `code-quality (20)`, `detox-android (20)`, and
 `detox-macos (20, 3.3)` checks to pass on a head that contains the latest
 `main`. Integrate an updated base with a normal merge. `detox-macos` takes
-about 25 minutes. If the same job fails three times in a row, stop and report
+about 10 minutes. If the same job fails three times in a row, stop and report
 it. Merging deploys nothing.

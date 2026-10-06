@@ -79,8 +79,11 @@ jobs:
         run: bundle exec pod install
       - run: npx detox build --configuration ios.release
       - name: Create iOS simulator
+        # Detox boots it headless (ios.release.ci). Booting it in the background
+        # earlier competes with installs and the build for the runner's CPU and
+        # disk, and measured slower overall.
         run: xcrun simctl create rn-sandbox com.apple.CoreSimulator.SimDeviceType.iPhone-16
-      - run: npx detox test --configuration ios.release --record-videos all
+      - run: npx detox test --configuration ios.release.ci --record-videos all
       - name: Upload Detox artifacts
         if: always()
         uses: actions/upload-artifact@v7.0.1
@@ -99,16 +102,18 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: 'npm'
-      - run: npm ci
       - uses: actions/setup-java@v6.0.1
         with:
           distribution: 'temurin'
           java-version: '17'
+      # Before anything runs Gradle: setup-gradle won't restore its cache once
+      # ~/.gradle exists.
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6.4.0
         with:
           # Generates the gitignored wrapper jar (scripts/ensureGradleWrapper.sh).
           gradle-version: '9.4.1'
+      - run: npm ci
       - name: Install image tools
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y imagemagick librsvg2-bin
       - name: Enable KVM

@@ -6,13 +6,16 @@ set -eu
 # gradle-wrapper.properties keeps deciding which Gradle version builds run on.
 #
 # With --optional (npm's prepare script), a missing Gradle is a warning, so
-# installing JavaScript dependencies doesn't require it.
+# installing JavaScript dependencies doesn't require it. CI skips it entirely:
+# jobs that build Android generate the jar in their build step, and running
+# Gradle before setup-gradle stops it from restoring its cache.
 
 REPO_ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)"
 WRAPPER_DIR="$REPO_ROOT/android/gradle/wrapper"
 WRAPPER_JAR="$WRAPPER_DIR/gradle-wrapper.jar"
 
 [ -f "$WRAPPER_JAR" ] && exit 0
+[ "${1:-}" = "--optional" ] && [ -n "${CI:-}" ] && exit 0
 
 if ! command -v gradle >/dev/null 2>&1; then
   if [ "${1:-}" = "--optional" ]; then
