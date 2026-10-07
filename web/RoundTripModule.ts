@@ -1,5 +1,5 @@
 import type { EventSubscription } from 'react-native';
-import type { Sample, Spec } from '../specs/NativeRoundTrip';
+import type { Priority, Sample, Spec, Suit } from '../specs/NativeRoundTrip';
 import { readFile, removeFile, writeFile } from './opfs';
 
 // The web implementation of specs/NativeRoundTrip.ts. There is no bridge in
@@ -37,56 +37,61 @@ async function io<T>(operation: () => Promise<T>): Promise<T> {
   }
 }
 
-const isString = (value: unknown) => typeof value === 'string';
-const isNumber = (value: unknown) => typeof value === 'number';
-const isBoolean = (value: unknown) => typeof value === 'boolean';
-const isObject = (value: unknown) =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-const isArrayOf = (value: unknown, isItem: (item: unknown) => boolean) =>
-  Array.isArray(value) && value.every(isItem);
-const isPoint = (value: unknown) =>
-  isObject(value) &&
-  isNumber((value as Record<string, unknown>).x) &&
-  isNumber((value as Record<string, unknown>).y);
+type Check = (value: unknown) => boolean;
 
-// What a file must hold to be read back as a Sample. The native modules
-// reject the same files through their typed getters.
-const sampleFields: Record<keyof Sample, (value: unknown) => boolean> = {
+const isString: Check = (value) => typeof value === 'string';
+const isNumber: Check = (value) => typeof value === 'number';
+const isBoolean: Check = (value) => typeof value === 'boolean';
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+const isArrayOf = (value: unknown, isItem: Check) =>
+  Array.isArray(value) && value.every(isItem);
+const oneOf =
+  (...allowed: unknown[]): Check =>
+  (value) =>
+    allowed.includes(value);
+const isPoint: Check = (value) =>
+  isObject(value) && isNumber(value.x) && isNumber(value.y);
+
+// What a file must hold to be read back as a Sample, field by field. Enum
+// values are listed rather than imported: specs/ loads this module through
+// TurboModuleRegistry, so importing it here would be circular.
+const sampleFields: Record<keyof Sample, Check> = {
   text: isString,
   number: isNumber,
   int32: isNumber,
   floatValue: isNumber,
   doubleValue: isNumber,
   flag: isBoolean,
-  stringLiteral: isString,
-  numberLiteral: isNumber,
-  booleanLiteral: isBoolean,
-  stringUnion: isString,
-  numberUnion: isNumber,
-  objectUnion: isObject,
-  stringEnum: isString,
-  numberEnum: isNumber,
+  stringLiteral: oneOf('exact'),
+  numberLiteral: oneOf(42),
+  booleanLiteral: oneOf(true),
+  stringUnion: oneOf('north', 'south'),
+  numberUnion: oneOf(1, 2, 3),
+  objectUnion: (value) =>
+    isObject(value) && (isNumber(value.radius) || isNumber(value.side)),
+  stringEnum: oneOf(...(['hearts', 'spades'] satisfies `${Suit}`[])),
+  numberEnum: oneOf(...([1, 3] satisfies Priority[])),
   nullableText: (value) => value === null || isString(value),
   optionalNumber: (value) => value === undefined || isNumber(value),
   strings: (value) => isArrayOf(value, isString),
   matrix: (value) => isArrayOf(value, (row) => isArrayOf(row, isNumber)),
   points: (value) => isArrayOf(value, isPoint),
   point: isPoint,
-  dictionary: isObject,
+  dictionary: (value) =>
+    isObject(value) && Object.values(value).every(isNumber),
   object: isObject,
 };
 
 function fromJson(json: string): Sample {
   const value: unknown = JSON.parse(json);
-  const invalid =
-    !isObject(value) ||
-    Object.entries(sampleFields).find(
-      ([key, isValid]) => !isValid((value as Record<string, unknown>)[key]),
-    );
-  if (invalid) {
-    throw new Error(
-      `Not a sample${Array.isArray(invalid) ? `: invalid ${invalid[0]}` : ''}`,
-    );
+  if (!isObject(value)) {
+    throw new Error('Not a sample');
+  }
+  for (const [key, isValid] of Object.entries(sampleFields)) {
+    if (!isValid(value[key])) {
+      throw new Error(`Not a sample: invalid ${key}`);
+    }
   }
   return value as Sample;
 }
@@ -159,13 +164,17 @@ const RoundTripModule: Spec = {
     });
   },
   readSample: async (name) => {
-    const bytes = await readFile(samplePath(name));
+    const path = samplePath(name);
+    const bytes = await io(() => readFile(path));
     if (bytes === null) {
       throw rejection('E_NOT_FOUND', `No sample named ${name}`);
     }
     return io(async () => fromJson(new TextDecoder().decode(bytes)));
   },
-  deleteFile: async (name) => removeFile(samplePath(name)),
+  deleteFile: async (name) => {
+    const path = samplePath(name);
+    return io(() => removeFile(path));
+  },
 };
 
 export default RoundTripModule;
