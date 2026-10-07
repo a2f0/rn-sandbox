@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 import createRoundTripCxx, {
   type MainModule,
 } from './wasm/build/roundTripCxx.js';
@@ -10,9 +11,10 @@ export const filesDirectory = '/roundtrip';
 
 let loading: Promise<MainModule> | undefined;
 let loaded: MainModule | undefined;
-// Whether filesDirectory is saved to IndexedDB, and the save under way.
+// Whether filesDirectory is saved to IndexedDB.
 let persistent = false;
-let saving: Promise<void> = Promise.resolve();
+// Orders file operations where the Web Locks API is missing (Jest).
+let queue: Promise<unknown> = Promise.resolve();
 
 function syncfs(module: MainModule, populate: boolean): Promise<void> {
   return new Promise((resolve, reject) =>
@@ -20,6 +22,16 @@ function syncfs(module: MainModule, populate: boolean): Promise<void> {
       error ? reject(error) : resolve(),
     ),
   );
+}
+
+// Runs task while no other task, in this tab or another, holds the files.
+function exclusively<T>(task: () => Promise<T>): Promise<T> {
+  if (typeof navigator !== 'undefined' && navigator.locks) {
+    return navigator.locks.request(`files:${filesDirectory}`, task);
+  }
+  const run = queue.catch(() => {}).then(task);
+  queue = run;
+  return run;
 }
 
 // Loads the module and mounts filesDirectory from IndexedDB. Where
@@ -32,7 +44,7 @@ export function loadCxx(): Promise<MainModule> {
     if (typeof indexedDB !== 'undefined') {
       module.FS.mount(module.IDBFS, {}, filesDirectory);
       try {
-        await syncfs(module, true);
+        await exclusively(() => syncfs(module, true));
         persistent = true;
       } catch (error) {
         module.FS.unmount(filesDirectory);
@@ -52,13 +64,19 @@ export function cxx(): MainModule {
   return loaded;
 }
 
-// Saves filesDirectory to IndexedDB once any earlier save finishes, and
-// rejects if this one fails. Writes and deletes await it before settling.
-export function persist(): Promise<void> {
-  if (!persistent) {
-    return Promise.resolve();
-  }
+// Runs a file operation on the latest saved files and saves its changes,
+// holding a lock that the page's other tabs share. Saving copies this tab's
+// whole file system to IndexedDB, so loading first keeps it from erasing
+// files another tab saved meanwhile. Rejects if loading or saving fails.
+export function withFiles<T>(operation: () => T): Promise<T> {
   const module = cxx();
-  saving = saving.catch(() => {}).then(() => syncfs(module, false));
-  return saving;
+  if (!persistent) {
+    return exclusively(async () => operation());
+  }
+  return exclusively(async () => {
+    await syncfs(module, true);
+    const result = operation();
+    await syncfs(module, false);
+    return result;
+  });
 }

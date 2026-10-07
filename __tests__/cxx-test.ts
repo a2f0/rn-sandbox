@@ -31,14 +31,14 @@ test('a new load restores the files an earlier one saved', async () => {
   const sample = { text: 'saved', number: 4.5 };
   const first = await loadModules();
   await first.roundTripCxx.writeBytes('/roundtrip/reload.bin', bytes.buffer);
-  await first.cxx.persist();
-  first.cxx
-    .cxx()
-    .FS.writeFile(
-      '/roundtrip/reload.json',
-      new TextEncoder().encode(JSON.stringify(sample)),
-    );
-  await first.cxx.persist();
+  await first.cxx.withFiles(() =>
+    first.cxx
+      .cxx()
+      .FS.writeFile(
+        '/roundtrip/reload.json',
+        new TextEncoder().encode(JSON.stringify(sample)),
+      ),
+  );
 
   const second = await loadModules();
   expect(second.cxx.cxx()).not.toBe(first.cxx.cxx());
@@ -46,6 +46,26 @@ test('a new load restores the files an earlier one saved', async () => {
   expect(Array.from(new Uint8Array(restored))).toEqual(Array.from(bytes));
   const json = second.cxx.cxx().FS.readFile('/roundtrip/reload.json');
   expect(JSON.parse(new TextDecoder().decode(json))).toEqual(sample);
+});
+
+test('a tab loaded earlier keeps and sees files another tab saved', async () => {
+  const earlier = await loadModules();
+  const other = await loadModules();
+  await other.roundTripCxx.writeBytes(
+    '/roundtrip/other.bin',
+    Uint8Array.of(1).buffer,
+  );
+  await earlier.roundTripCxx.writeBytes(
+    '/roundtrip/earlier.bin',
+    Uint8Array.of(2).buffer,
+  );
+
+  const bytesOf = async (modules: Modules, path: string) =>
+    Array.from(new Uint8Array(await modules.roundTripCxx.readBytes(path)));
+  expect(await bytesOf(earlier, '/roundtrip/other.bin')).toEqual([1]);
+  const later = await loadModules();
+  expect(await bytesOf(later, '/roundtrip/other.bin')).toEqual([1]);
+  expect(await bytesOf(later, '/roundtrip/earlier.bin')).toEqual([2]);
 });
 
 test('a deleted sample stays deleted after a new load', async () => {
@@ -70,12 +90,13 @@ test('keeps files in memory when IndexedDB fails', async () => {
     },
   };
   try {
-    const { cxx, filesDirectory, persist } = await loadModules().then(
+    const { cxx, filesDirectory, withFiles } = await loadModules().then(
       (modules) => modules.cxx,
     );
     const { FS } = cxx();
-    FS.writeFile(`${filesDirectory}/memory.bin`, Uint8Array.of(1, 2, 3));
-    await persist();
+    await withFiles(() =>
+      FS.writeFile(`${filesDirectory}/memory.bin`, Uint8Array.of(1, 2, 3)),
+    );
     expect(Array.from(FS.readFile(`${filesDirectory}/memory.bin`))).toEqual([
       1, 2, 3,
     ]);
