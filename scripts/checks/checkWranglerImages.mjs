@@ -14,7 +14,7 @@ const emulator = new Miniflare({
     {
       config: {
         name: 'rn-sandbox-local-image-test',
-        compatibilityDate: '2026-10-07',
+        compatibilityDate: '2026-10-06',
         env: { IMAGES: { type: 'images', dev: { remote: false } } },
         manifest: {
           mainModule: 'index.js',

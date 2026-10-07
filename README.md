@@ -102,10 +102,17 @@ The version-scoped Miniflare Sharp override fixes
 The Markdown CLI overrides retain its supported YAML API and fix the TOML parser
 [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
 Remove each override when its owning package resolves the patched dependency
-itself and the local Images binding and Markdown configuration tests still pass.
+itself and the Miniflare Images emulator and Markdown configuration tests still
+pass. The application's Worker has no Images binding; the regression exercises
+the local emulator used by Wrangler.
 `npm audit` also reports unresolved upstream advisories in React Native/Jest,
 Detox, and Markdown math dependencies; latest direct versions do not remove all
 findings. Dependency refreshes must record those remaining findings.
+
+CI uses the officially transferred
+[emscripten-core/setup-emsdk](https://github.com/emscripten-core/setup-emsdk/releases/tag/v16)
+Action at the existing `v16` release, which documents the transfer from
+`mymindstorm/setup-emsdk`. Its Emscripten version still comes from `.mise.toml`.
 
 ### Android
 

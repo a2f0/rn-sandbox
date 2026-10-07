@@ -26,9 +26,10 @@ Its canonical Markdown is excluded from the local Markdown style checker;
 `agents:check` verifies both installed copies instead. Repository-owned skills
 still run through `lint:md`.
 
-The React Native skills, `rn-upgrade-executor` and `update-everything`, live in
-`.agents/skills`, and `.claude/skills` links to them. Use them for React Native
-upgrades and broad dependency refreshes.
+Start dependency refreshes with `update-dependencies`, then use the
+repository's `update-everything` skill to add React Native gates and
+`rn-upgrade-executor` for a native version upgrade. These repository-owned
+skills live in `.agents/skills`, and `.claude/skills` links to them.
 
 ## Binary files
 
