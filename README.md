@@ -109,7 +109,15 @@ aliases `react-native` to `web/reactNative.ts`, which adds a
 ```bash
 npm run web          # dev server
 npm run build:web    # production build in web/build
+npm run deploy:web   # build and deploy to rn-sandbox.a2f0.net
 ```
+
+`deploy:web` deploys `web/build` with
+[Wrangler](https://developers.cloudflare.com/workers/wrangler/) as the
+`rn-sandbox` Worker (`wrangler.jsonc`), which serves it at
+<https://rn-sandbox.a2f0.net>. Wrangler attaches that custom domain on deploy;
+run `npx wrangler login` first, with the Cloudflare account that holds the
+a2f0.net zone.
 
 ### Testing
 

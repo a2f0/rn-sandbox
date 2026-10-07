@@ -81,3 +81,6 @@ yarn-error.log
 # testing
 /coverage
 /artifacts
+
+# Wrangler state
+.wrangler/
