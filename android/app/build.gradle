@@ -104,6 +104,12 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+    // Builds the shared C++ TurboModule; see src/main/jni/CMakeLists.txt.
+    externalNativeBuild {
+        cmake {
+            path "src/main/jni/CMakeLists.txt"
+        }
+    }
     // Debug builds use the Android Gradle plugin's default debug keystore
     // (~/.android/debug.keystore), which it creates when missing.
     signingConfigs {

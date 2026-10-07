@@ -41,10 +41,15 @@ and agent checks; `lint:shell` needs ShellCheck.
 - `npm run lint:md`
 - `npm run lint:shell`
 - `npm run test`
+- `npm run test:web` (Playwright; needs `npx playwright install chromium`)
 - `npm run agents:check`
 
-Changes to native code, native dependencies, or React Native versions also need
-a release Detox build for each affected platform:
+The TurboModule specs in `specs/` have Kotlin, Objective-C++, C++, and
+TypeScript implementations; see the README. A spec change needs every
+implementation updated.
+
+Changes to native code, native dependencies, React Native versions, or `specs/`
+also need a release Detox build for each affected platform:
 
 ```sh
 npx detox build --configuration ios.release
