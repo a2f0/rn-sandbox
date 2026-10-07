@@ -1,11 +1,11 @@
-import { cxx } from './cxx';
+import { cxx, writeStamped } from './cxx';
 
 // Sample files for web/RoundTripModule.ts, in the WebAssembly module's file
 // system (web/cxx.ts), where the C++ module reads and writes too. Run them in
 // withFiles, which loads and saves the files around them.
 
 export function writeFile(path: string, bytes: Uint8Array) {
-  cxx().FS.writeFile(path, bytes);
+  writeStamped(path, () => cxx().FS.writeFile(path, bytes));
 }
 
 // Returns null when the file doesn't exist.

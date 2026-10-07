@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { fullSample } from '../src/roundTrip/fixtures';
+import { fullSample, sparseSample } from '../src/roundTrip/fixtures';
 
 type Cxx = typeof import('../web/cxx');
 type Modules = {
@@ -129,6 +129,32 @@ test('keeps files in memory without Web Locks', async () => {
   await expect(
     later.roundTripCxx.readBytes('/roundtrip/unlocked.bin'),
   ).rejects.toThrow('Could not read /roundtrip/unlocked.bin');
+});
+
+test('a rewrite in the same millisecond is saved', async () => {
+  // IDBFS saves files whose modification time changed; with the clock
+  // stopped, both writes happen in the same millisecond.
+  const now = jest.spyOn(Date, 'now').mockReturnValue(Date.UTC(2026, 9, 7));
+  try {
+    const tab = await loadModules();
+    for (const byte of [1, 2]) {
+      await tab.roundTripCxx.writeBytes(
+        '/roundtrip/clock.bin',
+        Uint8Array.of(byte).buffer,
+      );
+    }
+    await tab.roundTrip.writeSample('clock', sparseSample);
+    await tab.roundTrip.writeSample('clock', fullSample);
+
+    const later = await loadModules();
+    const bytes = await later.roundTripCxx.readBytes('/roundtrip/clock.bin');
+    expect(Array.from(new Uint8Array(bytes))).toEqual([2]);
+    await expect(later.roundTrip.readSample('clock')).resolves.toEqual(
+      fullSample,
+    );
+  } finally {
+    now.mockRestore();
+  }
 });
 
 test('a deleted sample stays deleted after a new load', async () => {

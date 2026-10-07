@@ -82,3 +82,18 @@ export function withFiles<T>(operation: () => T): Promise<T> {
     return result;
   });
 }
+
+// IDBFS saves only files whose modification time changed, compared in
+// milliseconds, so a write gives path a time later than its last one, even
+// within the same millisecond. Writes run in withFiles, after the latest
+// saved files load.
+export function writeStamped<T>(path: string, write: () => T): T {
+  const { FS } = cxx();
+  const previous = FS.analyzePath(path, false).exists
+    ? FS.stat(path, false).mtime.getTime()
+    : 0;
+  const result = write();
+  const time = Math.max(Date.now(), previous + 1);
+  FS.utime(path, time, time, false);
+  return result;
+}

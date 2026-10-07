@@ -1,5 +1,5 @@
 import type { Spec } from '../specs/NativeRoundTripCxx';
-import { cxx, withFiles } from './cxx';
+import { cxx, withFiles, writeStamped } from './cxx';
 
 // The web implementation of specs/NativeRoundTripCxx.ts: the same C++ as on
 // iOS and Android (shared/RoundTripCxxCore.h), compiled to WebAssembly with
@@ -23,7 +23,9 @@ const RoundTripCxxModule: Spec = {
   // the C++ module copies them natively.
   writeBytes: (path, value) => {
     const bytes = value.slice(0);
-    return withFiles(() => unwrap<number>(cxx().writeBytes(path, bytes)));
+    return withFiles(() =>
+      writeStamped(path, () => unwrap<number>(cxx().writeBytes(path, bytes))),
+    );
   },
   readBytes: (path) =>
     withFiles(() => unwrap<ArrayBuffer>(cxx().readBytes(path))),
