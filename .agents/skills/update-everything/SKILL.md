@@ -125,7 +125,7 @@ npm ls react-native react @react-native-community/cli --depth=0
 
 ## Notes
 
-- Prefer small, focused follow-up commits for CI or Gemini feedback to keep
+- Prefer small, focused follow-up commits for CI or review feedback to keep
   upgrade debugging fast.
 - If toolchain support is ambiguous for the target RN version, call out
   uncertainty explicitly and stop before risky guesswork.
