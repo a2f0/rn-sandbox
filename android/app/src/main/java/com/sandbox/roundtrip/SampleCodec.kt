@@ -134,6 +134,58 @@ internal fun encodeSample(json: JSONObject): WritableMap {
   }
 }
 
+// What a sample file must hold, field by field, to be read back as a Sample. org.json's getters
+// coerce types (getString accepts a number), so each field is checked first.
+private val sampleFields: Map<String, (Any?) -> Boolean> =
+    mapOf(
+        "text" to ::isString,
+        "number" to ::isNumber,
+        "int32" to ::isNumber,
+        "floatValue" to ::isNumber,
+        "doubleValue" to ::isNumber,
+        "flag" to { it is Boolean },
+        "stringLiteral" to oneOf("exact"),
+        "numberLiteral" to oneOf(42.0),
+        "booleanLiteral" to { it == true },
+        "stringUnion" to oneOf("north", "south"),
+        "numberUnion" to oneOf(1.0, 2.0, 3.0),
+        "objectUnion" to { it is JSONObject && (isNumber(it.opt("radius")) || isNumber(it.opt("side"))) },
+        "stringEnum" to oneOf("hearts", "spades"),
+        "numberEnum" to oneOf(1.0, 3.0),
+        "nullableText" to { it == JSONObject.NULL || it is String },
+        // opt returns null for a missing key.
+        "optionalNumber" to { it == null || isNumber(it) },
+        "strings" to { isArrayOf(it, ::isString) },
+        "matrix" to { isArrayOf(it) { row -> isArrayOf(row, ::isNumber) } },
+        "points" to { isArrayOf(it, ::isPoint) },
+        "point" to ::isPoint,
+        "dictionary" to { it is JSONObject && it.keys().asSequence().all { key -> isNumber(it.get(key)) } },
+        "object" to { it is JSONObject },
+    )
+
+internal fun requireSample(json: JSONObject): JSONObject {
+  for ((key, isValid) in sampleFields) {
+    require(isValid(json.opt(key))) { "Not a sample: invalid $key" }
+  }
+  return json
+}
+
+private fun isString(value: Any?) = value is String
+
+private fun isNumber(value: Any?) = value is Number
+
+private fun isPoint(value: Any?) =
+    value is JSONObject && isNumber(value.opt("x")) && isNumber(value.opt("y"))
+
+private fun isArrayOf(value: Any?, isItem: (Any?) -> Boolean) =
+    value is JSONArray && (0 until value.length()).all { isItem(value.get(it)) }
+
+private fun oneOf(vararg allowed: String): (Any?) -> Boolean = { it is String && it in allowed }
+
+private fun oneOf(vararg allowed: Double): (Any?) -> Boolean = { value ->
+  value is Number && allowed.any { it == value.toDouble() }
+}
+
 private fun ReadableMap.array(name: String): ReadableArray = requireNotNull(getArray(name))
 
 private fun ReadableMap.map(name: String): ReadableMap = requireNotNull(getMap(name))

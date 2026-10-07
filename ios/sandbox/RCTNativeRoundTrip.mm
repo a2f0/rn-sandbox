@@ -58,6 +58,97 @@ static NSDictionary *SampleDictionary(const Sample &sample)
   return result;
 }
 
+typedef BOOL (^Check)(id value);
+
+static BOOL IsBoolean(id value)
+{
+  return [value isKindOfClass:NSNumber.class] && CFGetTypeID((__bridge CFTypeRef)value) == CFBooleanGetTypeID();
+}
+
+static BOOL IsNumber(id value)
+{
+  return [value isKindOfClass:NSNumber.class] && !IsBoolean(value);
+}
+
+static BOOL IsString(id value)
+{
+  return [value isKindOfClass:NSString.class];
+}
+
+static BOOL IsObject(id value)
+{
+  return [value isKindOfClass:NSDictionary.class];
+}
+
+static BOOL IsArrayOf(id value, Check isItem)
+{
+  if (![value isKindOfClass:NSArray.class]) {
+    return NO;
+  }
+  for (id item in (NSArray *)value) {
+    if (!isItem(item)) {
+      return NO;
+    }
+  }
+  return YES;
+}
+
+// isEqual: treats @YES as @1, so allowed values must also match in kind.
+static Check OneOf(Check isKind, NSArray *allowed)
+{
+  return ^BOOL(id value) {
+    return isKind(value) && [allowed containsObject:value];
+  };
+}
+
+// Why a parsed sample file isn't a Sample, or nil if it is. The codegen
+// struct's accessors convert rather than check, so each field is checked first.
+static NSString *_Nullable SampleProblem(id json)
+{
+  if (!IsObject(json)) {
+    return @"Not a sample";
+  }
+  Check isString = ^BOOL(id value) { return IsString(value); };
+  Check isNumber = ^BOOL(id value) { return IsNumber(value); };
+  Check isPoint = ^BOOL(id value) {
+    return IsObject(value) && IsNumber(value[@"x"]) && IsNumber(value[@"y"]);
+  };
+  NSDictionary<NSString *, Check> *fields = @{
+    @"text" : isString,
+    @"number" : isNumber,
+    @"int32" : isNumber,
+    @"floatValue" : isNumber,
+    @"doubleValue" : isNumber,
+    @"flag" : ^BOOL(id value) { return IsBoolean(value); },
+    @"stringLiteral" : OneOf(isString, @[ @"exact" ]),
+    @"numberLiteral" : OneOf(isNumber, @[ @42 ]),
+    @"booleanLiteral" : ^BOOL(id value) { return IsBoolean(value) && [value boolValue]; },
+    @"stringUnion" : OneOf(isString, @[ @"north", @"south" ]),
+    @"numberUnion" : OneOf(isNumber, @[ @1, @2, @3 ]),
+    @"objectUnion" : ^BOOL(id value) {
+      return IsObject(value) && (IsNumber(value[@"radius"]) || IsNumber(value[@"side"]));
+    },
+    @"stringEnum" : OneOf(isString, @[ @"hearts", @"spades" ]),
+    @"numberEnum" : OneOf(isNumber, @[ @1, @3 ]),
+    @"nullableText" : ^BOOL(id value) { return value == (id)kCFNull || IsString(value); },
+    @"optionalNumber" : ^BOOL(id value) { return value == nil || IsNumber(value); },
+    @"strings" : ^BOOL(id value) { return IsArrayOf(value, isString); },
+    @"matrix" : ^BOOL(id value) {
+      return IsArrayOf(value, ^BOOL(id row) { return IsArrayOf(row, isNumber); });
+    },
+    @"points" : ^BOOL(id value) { return IsArrayOf(value, isPoint); },
+    @"point" : isPoint,
+    @"dictionary" : ^BOOL(id value) { return IsObject(value) && IsArrayOf([value allValues], isNumber); },
+    @"object" : ^BOOL(id value) { return IsObject(value); },
+  };
+  for (NSString *key in fields) {
+    if (!fields[key](json[key])) {
+      return [NSString stringWithFormat:@"Not a sample: invalid %@", key];
+    }
+  }
+  return nil;
+}
+
 @implementation RCTNativeRoundTrip
 
 + (NSString *)moduleName
@@ -294,9 +385,14 @@ static NSDictionary *SampleDictionary(const Sample &sample)
   @try {
     NSError *error;
     NSData *data = [NSData dataWithContentsOfURL:url options:0 error:&error];
-    NSDictionary *json = data == nil ? nil : [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-    if (![json isKindOfClass:NSDictionary.class]) {
-      reject(@"E_IO", error.localizedDescription ?: @"The file isn't a JSON object", error);
+    id json = data == nil ? nil : [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+    if (json == nil) {
+      reject(@"E_IO", error.localizedDescription, error);
+      return;
+    }
+    NSString *problem = SampleProblem(json);
+    if (problem != nil) {
+      reject(@"E_IO", problem, nil);
       return;
     }
     resolve(SampleDictionary(Sample(json)));

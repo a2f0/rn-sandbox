@@ -139,7 +139,7 @@ class NativeRoundTripModule(reactContext: ReactApplicationContext) :
       promise.reject("E_NOT_FOUND", "No sample named $name")
       return
     }
-    settle(promise) { encodeSample(JSONObject(file.readText(Charsets.UTF_8))) }
+    settle(promise) { encodeSample(requireSample(JSONObject(file.readText(Charsets.UTF_8)))) }
   }
 
   override fun deleteFile(name: String, promise: Promise) {

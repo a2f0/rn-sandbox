@@ -74,6 +74,25 @@ const nonFiniteSample: Sample = {
 const cyclic: Record<string, unknown> = { name: 'cyclic' };
 cyclic.self = cyclic;
 
+// Sample files every platform's readSample rejects. Built from sparseSample,
+// whose JSON is ASCII.
+const { text: _text, ...missingText } = sparseSample;
+const malformedSamples: Record<string, unknown> = {
+  'missing field': missingText,
+  'wrong type': { ...sparseSample, flag: 'yes' },
+  'other literal': { ...sparseSample, stringLiteral: 'inexact' },
+  'value outside a union': { ...sparseSample, numberUnion: 4 },
+  'object matching no union member': { ...sparseSample, objectUnion: {} },
+  'unknown enum value': { ...sparseSample, stringEnum: 'clubs' },
+  'number enum member name': { ...sparseSample, numberEnum: 'High' },
+  'non-number dictionary value': {
+    ...sparseSample,
+    dictionary: { one: 'text' },
+  },
+  'null optional field': { ...sparseSample, optionalNumber: null },
+  array: [sparseSample],
+};
+
 function nextSampleEvent(emit: () => void): Promise<Sample> {
   return new Promise((resolve) => {
     const subscription = RoundTrip.onSample((value) => {
@@ -488,6 +507,24 @@ export function createCases(): RoundTripCase[] {
         return rejectionCode(RoundTrip.readSample('empty'));
       },
       expected: 'E_IO',
+    },
+    {
+      group: 'file',
+      name: 'malformed samples',
+      run: async () => {
+        const codes: Record<string, unknown> = {};
+        for (const [name, sample] of Object.entries(malformedSamples)) {
+          await RoundTripCxx.writeBytes(
+            `${filesDirectory}/malformed.json`,
+            asciiBytes(JSON.stringify(sample)),
+          );
+          codes[name] = await rejectionCode(RoundTrip.readSample('malformed'));
+        }
+        return codes;
+      },
+      expected: Object.fromEntries(
+        Object.keys(malformedSamples).map((name) => [name, 'E_IO']),
+      ),
     },
     {
       group: 'c++',
