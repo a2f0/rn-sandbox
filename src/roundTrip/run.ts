@@ -5,6 +5,8 @@ import { deepEqual } from './deepEqual';
 export type RoundTripResult = {
   group: string;
   name: string;
+  description: string;
+  input: unknown;
   passed: boolean;
   expected: unknown;
   actual: unknown;
@@ -17,7 +19,14 @@ const timeoutMs = 5000;
 export async function runRoundTrips(): Promise<RoundTripResult[]> {
   const platform = RoundTrip.getConstants().platform as RoundTripPlatform;
   const results: RoundTripResult[] = [];
-  for (const { group, name, run, ...testCase } of createCases()) {
+  for (const {
+    group,
+    name,
+    description,
+    input,
+    run,
+    ...testCase
+  } of createCases()) {
     const difference = testCase.differences?.[platform];
     const expected = difference ? difference.expected : testCase.expected;
     let actual: unknown;
@@ -29,6 +38,8 @@ export async function runRoundTrips(): Promise<RoundTripResult[]> {
     results.push({
       group,
       name,
+      description,
+      input,
       passed: deepEqual(actual, expected),
       expected,
       actual,

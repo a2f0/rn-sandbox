@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { deepEqual } from './roundTrip/deepEqual';
 import { describe } from './roundTrip/describe';
 import { type RoundTripResult, runRoundTrips } from './roundTrip/run';
 
@@ -139,49 +140,126 @@ export function RoundTripScreen() {
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}>
-        {sorted.map((item) => (
-          <View
-            key={`${item.group}/${item.name}`}
-            style={[
-              styles.row,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
-            <View style={styles.rowHeader}>
-              <Text style={[styles.group, { color: colors.muted }]}>
-                {item.group}
-              </Text>
-              <Text style={[styles.name, { color: colors.text }]}>
-                {item.name}
-              </Text>
-              <Text
-                style={[
-                  styles.verdict,
-                  { color: item.passed ? colors.pass : colors.fail },
-                ]}
-              >
-                {item.passed ? 'pass' : 'fail'}
-              </Text>
-            </View>
-            {item.difference !== undefined && (
-              <Text style={[styles.detail, { color: colors.note }]}>
-                {Platform.OS} differs: {item.difference}
-              </Text>
-            )}
-            {!item.passed && (
-              <Text
-                style={[
-                  styles.detail,
-                  { color: colors.muted, fontFamily: monospace },
-                ]}
-              >
-                expected {describe(item.expected)}
-                {'\n'}actual {describe(item.actual)}
-              </Text>
-            )}
-          </View>
+        {sorted.map((result) => (
+          <ResultRow
+            key={`${result.group}/${result.name}`}
+            result={result}
+            colors={colors}
+          />
         ))}
       </ScrollView>
+    </View>
+  );
+}
+
+// A case's row: tapping it shows or hides what it does and the values it sent
+// and got back. Failures start open, so their values show without a tap.
+function ResultRow({
+  result,
+  colors,
+}: {
+  result: RoundTripResult;
+  colors: typeof light;
+}) {
+  const [open, setOpen] = useState(!result.passed);
+  const testID = `roundtrip-case-${result.group}-${result.name}`;
+  // Most cases expect their input back; show the expected value when it isn't.
+  const showExpected =
+    !result.passed || !deepEqual(result.expected, result.input);
+
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      aria-expanded={open}
+      onPress={() => setOpen((value) => !value)}
+      style={({ pressed }) => [
+        styles.row,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+          opacity: pressed ? 0.7 : 1,
+        },
+      ]}
+    >
+      <View style={styles.rowHeader}>
+        <Text style={[styles.chevron, { color: colors.muted }]}>
+          {open ? '▾' : '▸'}
+        </Text>
+        <Text style={[styles.group, { color: colors.muted }]}>
+          {result.group}
+        </Text>
+        <Text style={[styles.name, { color: colors.text }]}>{result.name}</Text>
+        {result.difference !== undefined && (
+          <Text style={[styles.tag, { color: colors.note }]}>differs</Text>
+        )}
+        <Text
+          style={[
+            styles.verdict,
+            { color: result.passed ? colors.pass : colors.fail },
+          ]}
+        >
+          {result.passed ? 'pass' : 'fail'}
+        </Text>
+      </View>
+      {open && (
+        <View style={styles.details}>
+          <Text
+            testID={`${testID}-description`}
+            style={[styles.description, { color: colors.text }]}
+          >
+            {result.description}
+          </Text>
+          <Value
+            label="Sent"
+            value={
+              result.input === undefined
+                ? 'no arguments'
+                : describe(result.input)
+            }
+            colors={colors}
+          />
+          <Value
+            label="Received"
+            value={describe(result.actual)}
+            colors={colors}
+          />
+          {showExpected && (
+            <Value
+              label="Expected"
+              value={describe(result.expected)}
+              colors={colors}
+            />
+          )}
+          {result.difference !== undefined && (
+            <Text style={[styles.value, { color: colors.note }]}>
+              {Platform.OS} differs: {result.difference}
+            </Text>
+          )}
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+function Value({
+  label,
+  value,
+  colors,
+}: {
+  label: string;
+  value: string;
+  colors: typeof light;
+}) {
+  return (
+    <View style={styles.labeled}>
+      <Text style={[styles.label, { color: colors.muted }]}>{label}</Text>
+      <Text
+        selectable
+        style={[styles.value, { color: colors.text, fontFamily: monospace }]}
+      >
+        {value}
+      </Text>
     </View>
   );
 }
@@ -232,6 +310,10 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     gap: 8,
   },
+  chevron: {
+    fontSize: 12,
+    width: 10,
+  },
   group: {
     fontSize: 12,
     minWidth: 64,
@@ -240,11 +322,31 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
   },
+  tag: {
+    fontSize: 12,
+  },
   verdict: {
     fontSize: 13,
     fontWeight: '600',
   },
-  detail: {
+  details: {
+    gap: 8,
+    marginTop: 6,
+  },
+  description: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  labeled: {
+    gap: 2,
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  value: {
     fontSize: 12,
+    lineHeight: 17,
   },
 });
