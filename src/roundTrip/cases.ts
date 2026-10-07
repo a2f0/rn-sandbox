@@ -595,6 +595,18 @@ export function createCases(): RoundTripCase[] {
     },
     {
       group: 'c++',
+      name: 'bytes copied at call',
+      run: async () => {
+        const bytes = byteRange();
+        const written = RoundTripCxx.writeBytes(bytesPath, bytes);
+        new Uint8Array(bytes).fill(0);
+        await written;
+        return RoundTripCxx.readBytes(bytesPath);
+      },
+      expected: byteRange(),
+    },
+    {
+      group: 'c++',
       name: 'read missing file',
       run: () => rejection(RoundTripCxx.readBytes(missingPath)),
       expected: { message: `Could not read ${missingPath}` },

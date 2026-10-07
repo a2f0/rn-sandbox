@@ -44,8 +44,10 @@ const RoundTripCxxModule: Spec = {
   echoMixed: (value) => copyMixed(value, []),
 
   writeBytes: async (path, value) => {
-    await writeFile(path, new Uint8Array(value));
-    return value.byteLength;
+    // Copied before the first await, as the C++ module copies on the call.
+    const bytes = new Uint8Array(value.slice(0));
+    await writeFile(path, bytes);
+    return bytes.byteLength;
   },
   readBytes: async (path) => {
     const bytes = await readFile(path);
