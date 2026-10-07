@@ -87,9 +87,41 @@ codegen output after `pod install`.
 
 ### Performing Upgrades
 
+Use the shared `update-dependencies` skill, installed for Codex and Claude from
+the pinned agent-tool. The repository's `update-everything` skill adds its
+React Native upgrade gates. Select supported dependency groups: React and its
+renderers, Babel and Metro, Ruby and CocoaPods, and the Android toolchain.
+Registry peer ranges alone do not establish native compatibility.
+
 Use the [upgrade helper](https://react-native-community.github.io/upgrade-helper/)
 for diffs to make manual updates for files that failed during the automatic
 upgrade.
+
+The version-scoped Miniflare Sharp override fixes
+[GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
+The Markdown CLI overrides retain its supported YAML API and fix the TOML parser
+[GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
+Markdownlint CLI merges explicit TOML configuration through `deep-extend`,
+which converts smol-toml 1.9's null-prototype tables into ordinary rule options.
+This preserves nested options, disabled rules, and warning severity without a
+library patch. `npm run test:markdownlint` tests the real npm-installed CLI with
+TOML, JSON, YAML, inherited configuration, and JavaScript class options;
+`lint:md` runs it before checking repository Markdown. The tests also exercise
+many flat TOML keys through the fixed parser. Keep this boundary tested when
+upgrading the CLI or replacing its configuration merger.
+
+Remove each override when its owning package resolves the patched dependency
+itself and the Miniflare Images emulator and Markdown configuration tests still
+pass. The application's Worker has no Images binding; the regression exercises
+the local emulator used by Wrangler.
+`npm audit` also reports unresolved upstream advisories in React Native/Jest,
+Detox, and Markdown math dependencies; latest direct versions do not remove all
+findings. Dependency refreshes must record those remaining findings.
+
+CI uses the officially transferred
+[emscripten-core/setup-emsdk](https://github.com/emscripten-core/setup-emsdk/releases/tag/v16)
+Action at the existing `v16` release, which documents the transfer from
+`mymindstorm/setup-emsdk`. Its Emscripten version still comes from `.mise.toml`.
 
 ### Android
 
@@ -121,9 +153,10 @@ modules share the device's file system. The C++ runs synchronously there, since
 the browser gives WebAssembly no threads without cross-origin isolation.
 
 ```bash
-npm run web          # dev server
-npm run build:web    # production build in web/build
-npm run deploy:web   # build and deploy to rn-sandbox.a2f0.net
+npm run web                 # dev server
+npm run build:web           # production build in web/build
+npm run preview:deploy:web  # build and dry-run assets without deploying
+npm run deploy:web          # build and deploy to rn-sandbox.a2f0.net
 ```
 
 `deploy:web` deploys `web/build` with
@@ -132,6 +165,12 @@ npm run deploy:web   # build and deploy to rn-sandbox.a2f0.net
 <https://rn-sandbox.a2f0.net>. Wrangler attaches that custom domain on deploy;
 run `npx wrangler login` first, with the Cloudflare account that holds the
 a2f0.net zone.
+
+Always run the deployment preview first. Wrangler's dry run checks the local
+assets and configuration; also compare the live account, Worker, routes,
+bindings, resource IDs, and migrations before an authorized deploy. Skip an
+upgrade if it would delete or recreate resources, or its remote effects cannot
+be verified. Push and merge workflows run tests without deploying.
 
 ### Testing
 
