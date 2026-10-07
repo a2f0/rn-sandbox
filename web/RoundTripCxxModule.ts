@@ -1,61 +1,27 @@
 import type { Spec } from '../specs/NativeRoundTripCxx';
-import { readFile, writeFile } from './opfs';
+import { cxx } from './cxx';
 
-const maxDepth = 256;
+// The web implementation of specs/NativeRoundTripCxx.ts: the same C++ as on
+// iOS and Android (shared/RoundTripCxxCore.h), compiled to WebAssembly with
+// the Embind bindings in web/wasm/RoundTripCxxWasm.cpp.
 
-// Copies a JSON-like value the way shared/NativeRoundTripCxx.cpp does,
-// rejecting what it rejects. ancestors holds the objects enclosing value.
-function copyMixed(value: unknown, ancestors: object[]): unknown {
-  if (typeof value !== 'object' || value === null) {
-    if (['function', 'symbol', 'bigint'].includes(typeof value)) {
-      throw new Error('echoMixed accepts only JSON-like values');
-    }
-    return value;
+type Result<T> = { value: T } | { error: string };
+
+function unwrap<T>(result: Result<T>): T {
+  if ('error' in result) {
+    throw new Error(result.error);
   }
-  if (value instanceof ArrayBuffer) {
-    throw new Error('echoMixed accepts only JSON-like values');
-  }
-  if (ancestors.includes(value)) {
-    throw new Error("echoMixed can't copy a cyclic value");
-  }
-  if (ancestors.length === maxDepth) {
-    throw new Error(`echoMixed accepts values nested at most ${maxDepth} deep`);
-  }
-  const enclosing = [...ancestors, value];
-  if (Array.isArray(value)) {
-    return Array.from(value, (item) => copyMixed(item, enclosing));
-  }
-  const copy = {};
-  // for...in matches JSI's getPropertyNames: enumerable, including inherited.
-  for (const key in value) {
-    Object.defineProperty(copy, key, {
-      value: copyMixed((value as Record<string, unknown>)[key], enclosing),
-      writable: true,
-      enumerable: true,
-      configurable: true,
-    });
-  }
-  return copy;
+  return result.value;
 }
 
-// The web implementation of specs/NativeRoundTripCxx.ts.
 const RoundTripCxxModule: Spec = {
-  echoArrayBuffer: (value) => value.slice(0),
-  echoMixed: (value) => copyMixed(value, []),
+  echoArrayBuffer: (value) => unwrap(cxx().echoArrayBuffer(value)),
+  echoMixed: (value) => unwrap(cxx().echoMixed(value)),
 
-  writeBytes: async (path, value) => {
-    // Copied before the first await, as the C++ module copies on the call.
-    const bytes = new Uint8Array(value.slice(0));
-    await writeFile(path, bytes);
-    return bytes.byteLength;
-  },
-  readBytes: async (path) => {
-    const bytes = await readFile(path);
-    if (bytes === null) {
-      throw new Error(`Could not read ${path}`);
-    }
-    return bytes.slice().buffer;
-  },
+  // The C++ runs synchronously, since the browser gives it no threads; it
+  // copies the bytes before returning, as it does natively.
+  writeBytes: async (path, value) => unwrap(cxx().writeBytes(path, value)),
+  readBytes: async (path) => unwrap(cxx().readBytes(path)),
 };
 
 export default RoundTripCxxModule;

@@ -40,12 +40,13 @@ and agent checks; `lint:shell` needs ShellCheck.
 - `npm run lint`
 - `npm run lint:md`
 - `npm run lint:shell`
-- `npm run test`
+- `npm run test` (builds the WebAssembly module, so needs Emscripten from mise)
 - `npm run test:web` (Playwright; needs `npx playwright install chromium`)
 - `npm run agents:check`
 
 The TurboModule specs in `specs/` have Kotlin, Objective-C++, C++, and
-TypeScript implementations; see the README. A spec change needs every
+TypeScript implementations; the C++ binds to JSI on iOS and Android and to
+Embind for WebAssembly on the web. See the README. A spec change needs every
 implementation updated.
 
 Changes to native code, native dependencies, React Native versions, or `specs/`

@@ -11,7 +11,7 @@ including file I/O, and lists each case with its result. See
 ### Getting Started
 
 ```bash
-mise install                 # Ruby, Node, Gradle, ShellCheck, Bun (see .mise.toml)
+mise install                 # Ruby, Node, and the tools in .mise.toml
 brew install imagemagick     # app icon generation
 npm install detox-cli --global
 npm ci
@@ -22,8 +22,10 @@ bundle exec pod install
 
 [mise](https://mise.jdx.dev/) reads Ruby and Node versions from `.ruby-version`
 and `.nvmrc`, which CI also uses; `.mise.toml` adds Gradle (for the wrapper
-jar), [ShellCheck](https://www.shellcheck.net/), and [Bun](https://bun.sh/).
-CI installs ShellCheck from the system package manager.
+jar), [ShellCheck](https://www.shellcheck.net/), [Bun](https://bun.sh/), and
+[Emscripten](https://emscripten.org/) (for the web build of the C++ module).
+CI installs ShellCheck from the system package manager, and Emscripten at the
+version in `.mise.toml`.
 
 Agent guidance is in [AGENTS.md](AGENTS.md). Shared shipping and review skills
 come from the [`@a2f0/agent-tool`](https://github.com/a2f0/agent-tool) dev
@@ -60,12 +62,14 @@ lists the cases the app runs against them at launch:
   constants. `writeSample` serializes a typed object to JSON on disk, and
   `readSample` reads it back. It's implemented in Kotlin
   (`android/app/src/main/java/com/sandbox/roundtrip/`), Objective-C++
-  (`ios/sandbox/RCTNativeRoundTrip.mm`), and TypeScript (`web/RoundTripModule.ts`,
-  storing files in the browser's Origin Private File System).
+  (`ios/sandbox/RCTNativeRoundTrip.mm`), and TypeScript (`web/RoundTripModule.ts`).
 - `NativeRoundTripCxx` covers the types that only C++ TurboModules support,
-  `ArrayBuffer` and `mixed`, and binary file I/O. One C++ implementation
-  (`shared/NativeRoundTripCxx.cpp`) serves iOS and Android; `web/RoundTripCxxModule.ts`
-  serves web.
+  `ArrayBuffer` and `mixed`, and binary file I/O. The same C++ runs on all
+  three platforms: `shared/RoundTripCxxCore.h` holds the rules for copying
+  `mixed` values and the file I/O, independent of the JavaScript engine. On iOS
+  and Android, `shared/NativeRoundTripCxx.cpp` binds it to JSI. On the web,
+  `web/wasm/RoundTripCxxWasm.cpp` binds it with Embind, and Emscripten compiles
+  it to WebAssembly.
 
 Where a platform's bridge changes a value, the case records what that platform
 returns instead and why, and the app shows it. With React Native 0.87.1:
@@ -104,7 +108,17 @@ npm run ios
 [react-native-web](https://necolas.github.io/react-native-web/) and
 [Vite](https://vite.dev/) build the app for the browser from `web/`. Vite
 aliases `react-native` to `web/reactNative.ts`, which adds a
-`TurboModuleRegistry` that returns the TypeScript modules.
+`TurboModuleRegistry` that returns the web modules: `web/RoundTripModule.ts`,
+and `web/RoundTripCxxModule.ts`, which calls the C++ module compiled to
+WebAssembly.
+
+`npm run build:wasm` (`scripts/buildWasm.sh`) compiles that module with
+Emscripten into `web/wasm/build/`, a single ES module with the WebAssembly
+inlined, so Vite and Jest load it alike. The scripts below run it first, and it
+skips the build when the output is current. Both web modules keep their files
+in the module's Emscripten file system, saved to IndexedDB, as the native
+modules share the device's file system. The C++ runs synchronously there, since
+the browser gives WebAssembly no threads without cross-origin isolation.
 
 ```bash
 npm run web          # dev server
@@ -137,7 +151,8 @@ emulator -list-avds
 npm run test
 ```
 
-Jest runs the round-trip cases against the web modules (`jest.setup.ts`).
+Jest runs the round-trip cases against the web modules, including the C++
+module in WebAssembly (`jest.setup.ts`), so it needs Emscripten.
 
 #### Playwright
 
