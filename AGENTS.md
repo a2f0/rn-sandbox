@@ -68,14 +68,11 @@ change to `.nvmrc`, `.ruby-version`, `.java-version`, or the toolchain setup in
 
 ## Review feedback
 
-Gemini Code Assist (`gemini-code-assist`) reviews pull requests. If it has not
-reviewed the current head, comment `/gemini review` on the PR and poll every 30
-seconds for up to 5 minutes; it does not always respond. Fix valid findings,
-then reply in each original thread with
+Fix valid findings from pull request review comments, then reply in each
+original thread with
 `POST /repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies`,
-tagging `@gemini-code-assist` and naming the fixing commit. Do not reply with
-top-level PR comments or `gh pr review`. Resolve a thread only when its finding
-is fully addressed.
+naming the fixing commit. Do not reply with top-level PR comments or
+`gh pr review`. Resolve a thread only when its finding is fully addressed.
 
 ## Shipping
 

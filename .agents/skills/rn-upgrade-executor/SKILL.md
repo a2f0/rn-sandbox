@@ -136,7 +136,7 @@ Re-run only the failed gate plus its prerequisite gate after each fix.
 1. Summarize exact from/to versions and major manual diffs.
 1. Commit focused changes.
 1. Hand off to the `ship-pr` skill. `AGENTS.md` covers the RN upgrade PR
-   notes and Gemini review.
+   notes and review feedback.
 
 ## References
 
