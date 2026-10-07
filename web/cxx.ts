@@ -69,11 +69,12 @@ export function cxx(): MainModule {
 // Runs a file operation on the latest saved files and saves its changes,
 // holding a lock that the site's other tabs share. Saving copies this tab's
 // whole file system to IndexedDB, so loading first keeps it from erasing
-// files another tab saved meanwhile. Rejects if loading or saving fails.
-export function withFiles<T>(operation: () => T): Promise<T> {
+// files another tab saved meanwhile. Rejects if the module isn't loaded, or
+// loading or saving the files fails.
+export async function withFiles<T>(operation: () => T): Promise<T> {
   const module = cxx();
   if (!persistent) {
-    return Promise.resolve().then(operation);
+    return operation();
   }
   return exclusively(async () => {
     await syncfs(module, true);

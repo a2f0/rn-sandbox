@@ -197,3 +197,13 @@ test('keeps files in memory when IndexedDB fails', async () => {
     warn.mockRestore();
   }
 });
+
+test('file operations reject before the module loads', async () => {
+  await jest.isolateModulesAsync(async () => {
+    const module: typeof import('../web/RoundTripCxxModule').default =
+      require('../web/RoundTripCxxModule').default;
+    await expect(module.readBytes('/roundtrip/x.bin')).rejects.toThrow(
+      "The WebAssembly module isn't loaded; await loadCxx().",
+    );
+  });
+});
