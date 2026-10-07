@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 
 // Resolve through Wrangler so this checks its own local Images integration.
 const require = createRequire(new URL('../../package.json', import.meta.url));
@@ -7,6 +9,12 @@ const wrangler = createRequire(require.resolve('wrangler/package.json'));
 const miniflare = createRequire(wrangler.resolve('miniflare'));
 const { Miniflare } = wrangler('miniflare');
 const sharp = miniflare('sharp');
+const sharpVersion = JSON.parse(
+  readFileSync(
+    join(dirname(dirname(miniflare.resolve('sharp'))), 'package.json'),
+  ),
+).version;
+assert.equal(sharpVersion, '0.35.5', 'Miniflare must resolve the fixed Sharp');
 const emulator = new Miniflare({
   cf: false,
   telemetry: { enabled: false },
@@ -42,7 +50,11 @@ try {
     method: 'POST',
     body: svg,
   });
-  assert.equal(response.status, 200, await response.clone().text());
+  assert.equal(
+    response.status,
+    200,
+    response.status === 200 ? undefined : await response.text(),
+  );
   assert.equal(response.headers.get('content-type'), 'image/png');
   const image = sharp(Buffer.from(await response.arrayBuffer()));
   const metadata = await image.metadata();

@@ -1,13 +1,29 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import test from 'node:test';
 
 const require = createRequire(import.meta.url);
 const cli = require.resolve('markdownlint-cli');
+const markdownlint = createRequire(cli);
+
+test('Markdown CLI resolves the fixed TOML parser', () => {
+  const version = JSON.parse(
+    readFileSync(
+      join(dirname(dirname(markdownlint.resolve('smol-toml'))), 'package.json'),
+    ),
+  ).version;
+  assert.equal(version, '1.9.0');
+});
 
 function fixture(t, config, markdown = '# Good\n') {
   const directory = mkdtempSync(join(tmpdir(), 'rn-markdownlint-'));

@@ -153,10 +153,10 @@ modules share the device's file system. The C++ runs synchronously there, since
 the browser gives WebAssembly no threads without cross-origin isolation.
 
 ```bash
-npm run web          # dev server
-npm run build:web    # production build in web/build
-npm run preview:deploy:web # build and bundle without deploying
-npm run deploy:web   # build and deploy to rn-sandbox.a2f0.net
+npm run web                 # dev server
+npm run build:web           # production build in web/build
+npm run preview:deploy:web  # build and dry-run assets without deploying
+npm run deploy:web          # build and deploy to rn-sandbox.a2f0.net
 ```
 
 `deploy:web` deploys `web/build` with
@@ -166,11 +166,11 @@ npm run deploy:web   # build and deploy to rn-sandbox.a2f0.net
 run `npx wrangler login` first, with the Cloudflare account that holds the
 a2f0.net zone.
 
-Always run the deployment preview first. Wrangler's dry run validates the
-bundle; also compare the live account, Worker, routes, bindings, resource IDs,
-and migrations before an authorized deploy. Skip an upgrade if it would delete
-or recreate resources, or its remote effects cannot be verified. Push and
-merge workflows run tests without deploying.
+Always run the deployment preview first. Wrangler's dry run checks the local
+assets and configuration; also compare the live account, Worker, routes,
+bindings, resource IDs, and migrations before an authorized deploy. Skip an
+upgrade if it would delete or recreate resources, or its remote effects cannot
+be verified. Push and merge workflows run tests without deploying.
 
 ### Testing
 
