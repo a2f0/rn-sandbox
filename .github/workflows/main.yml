@@ -15,6 +15,13 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: 'npm'
+      - name: Read the Emscripten version
+        id: emsdk
+        run: echo "version=$(sed -n 's/^emsdk = "\(.*\)"$/\1/p' .mise.toml)" >> "$GITHUB_OUTPUT"
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emsdk@v16
+        with:
+          version: ${{ steps.emsdk.outputs.version }}
       - run: npm ci
       - uses: oven-sh/setup-bun@v2.2.0
         with:
@@ -42,6 +49,13 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: 'npm'
+      - name: Read the Emscripten version
+        id: emsdk
+        run: echo "version=$(sed -n 's/^emsdk = "\(.*\)"$/\1/p' .mise.toml)" >> "$GITHUB_OUTPUT"
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emsdk@v16
+        with:
+          version: ${{ steps.emsdk.outputs.version }}
       - run: npm ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium

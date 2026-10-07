@@ -1,13 +1,13 @@
 import type { EventSubscription } from 'react-native';
 import type { Priority, Sample, Spec, Suit } from '../specs/NativeRoundTrip';
-import { readFile, removeFile, writeFile } from './opfs';
+import { filesDirectory, withFiles } from './cxx';
+import { readFile, removeFile, writeFile } from './files';
 
 // The web implementation of specs/NativeRoundTrip.ts. There is no bridge in
 // the browser, so values are structured-cloned where native code would
-// receive a copy, and samples are stored as JSON on the Origin Private File
-// System.
+// receive a copy. Samples are stored as JSON in the WebAssembly module's file
+// system (web/files.ts), which the C++ module uses too.
 
-const filesDirectory = '/roundtrip';
 const safeName = /^[A-Za-z0-9_-]+$/;
 const listeners = new Set<(value: Sample) => void>();
 
@@ -29,7 +29,7 @@ const echo = <T>(value: T): T => structuredClone(value);
 
 // Like the native modules, rejects with E_IO when a sample can't be written or
 // read. JSON.stringify would write NaN and Infinity as null, so they throw.
-async function io<T>(operation: () => Promise<T>): Promise<T> {
+async function io<T>(operation: () => T | Promise<T>): Promise<T> {
   try {
     return await operation();
   } catch (error) {
@@ -164,21 +164,21 @@ const RoundTripModule: Spec = {
     const path = samplePath(name);
     return io(async () => {
       const bytes = new TextEncoder().encode(toJson(value));
-      await writeFile(path, bytes);
+      await withFiles(() => writeFile(path, bytes));
       return { path, bytes: bytes.byteLength };
     });
   },
   readSample: async (name) => {
     const path = samplePath(name);
-    const bytes = await io(() => readFile(path));
+    const bytes = await io(() => withFiles(() => readFile(path)));
     if (bytes === null) {
       throw rejection('E_NOT_FOUND', `No sample named ${name}`);
     }
-    return io(async () => fromJson(new TextDecoder().decode(bytes)));
+    return io(() => fromJson(new TextDecoder().decode(bytes)));
   },
   deleteFile: async (name) => {
     const path = samplePath(name);
-    return io(() => removeFile(path));
+    return io(() => withFiles(() => removeFile(path)));
   },
 };
 
