@@ -646,10 +646,10 @@ export function createCases(): RoundTripCase[] {
       name: 'mixed nesting limit',
       description:
         'Sends arrays nested 256 and 257 deep; the C++ module copies the first and rejects the second.',
-      input: [256, 257] as const,
+      input: [nested(256), nested(257)] as const,
       run: ([accepted, rejected]) => [
-        RoundTripCxx.echoMixed(nested(accepted)),
-        attempt(() => RoundTripCxx.echoMixed(nested(rejected))),
+        RoundTripCxx.echoMixed(accepted),
+        attempt(() => RoundTripCxx.echoMixed(rejected)),
       ],
       expected: [
         nested(256),

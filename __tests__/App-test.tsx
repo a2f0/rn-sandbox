@@ -30,3 +30,12 @@ test('pressing a case shows and hides what it does and what it sent', async () =
   await fireEvent.press(row);
   expect(screen.queryByText(description)).toBeNull();
 });
+
+test('an expanded case shows a value that contains itself', async () => {
+  await render(<App />);
+  await screen.findByTestId('roundtrip-summary');
+  await fireEvent.press(screen.getByTestId('roundtrip-case-c++-cyclic mixed'));
+  expect(
+    screen.getByText('{name: "cyclic", self: [circular]}'),
+  ).toBeOnTheScreen();
+});
