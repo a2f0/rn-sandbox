@@ -1,4 +1,4 @@
-import { Platform, type RootTag } from 'react-native';
+import { type EventSubscription, Platform, type RootTag } from 'react-native';
 import RoundTrip, {
   Priority,
   type Sample,
@@ -95,14 +95,32 @@ const malformedSamples: Record<string, unknown> = {
   array: [sparseSample],
 };
 
+// Shorter than the runner's timeout, so the subscription is always removed.
+const eventTimeoutMs = 4000;
+
 function nextSampleEvent(emit: () => void): Promise<Sample> {
-  return new Promise((resolve) => {
-    const subscription = RoundTrip.onSample((value) => {
-      subscription.remove();
-      resolve(value);
-    });
+  let subscription: EventSubscription | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  return new Promise<Sample>((resolve, reject) => {
+    subscription = RoundTrip.onSample(resolve);
+    timer = setTimeout(
+      () => reject(new Error('No onSample event arrived')),
+      eventTimeoutMs,
+    );
     emit();
+  }).finally(() => {
+    subscription?.remove();
+    clearTimeout(timer);
   });
+}
+
+// Arrays nested depth deep: [[…[]…]].
+function nested(depth: number): unknown[] {
+  let value: unknown[] = [];
+  for (let level = 1; level < depth; level++) {
+    value = [value];
+  }
+  return value;
 }
 
 function attempt(call: () => unknown) {
@@ -469,12 +487,17 @@ export function createCases(): RoundTripCase[] {
     },
     {
       group: 'file',
-      name: 'unsafe name',
-      run: () => rejection(RoundTrip.writeSample('../escape', sparseSample)),
-      expected: {
+      name: 'unsafe names',
+      run: () =>
+        Promise.all(
+          ['../escape', 'full\n', ''].map((name) =>
+            rejection(RoundTrip.writeSample(name, sparseSample)),
+          ),
+        ),
+      expected: Array(3).fill({
         code: 'E_INVALID_NAME',
         message: 'Sample names may only contain letters, digits, - and _',
-      },
+      }),
     },
     {
       group: 'file',
@@ -548,6 +571,18 @@ export function createCases(): RoundTripCase[] {
       name: 'cyclic mixed',
       run: () => attempt(() => RoundTripCxx.echoMixed(cyclic)),
       expected: { message: "echoMixed can't copy a cyclic value" },
+    },
+    {
+      group: 'c++',
+      name: 'mixed nesting limit',
+      run: () => [
+        RoundTripCxx.echoMixed(nested(256)),
+        attempt(() => RoundTripCxx.echoMixed(nested(257))),
+      ],
+      expected: [
+        nested(256),
+        { message: 'echoMixed accepts values nested at most 256 deep' },
+      ],
     },
     {
       group: 'c++',
