@@ -10,6 +10,7 @@
     "web": "vite",
     "build:web": "vite build",
     "preview:web": "vite preview",
+    "deploy:web": "npm run build:web && wrangler deploy",
     "lint": "biome check .",
     "lint:md": "markdownlint --dot \"**/*.md\" --ignore-path .gitignore --ignore .git --ignore vendor",
     "lint:shell": "shellcheck -x scripts/*.sh scripts/*/*.sh",
@@ -54,7 +55,8 @@
     "test-renderer": "1.2.0",
     "ts-node": "10.9.2",
     "typescript": "6.0.3",
-    "vite": "8.3.3"
+    "vite": "8.3.3",
+    "wrangler": "4.148.0"
   },
   "engines": {
     "node": "^22.13.0 || ^24.3.0 || >=26.0.0"
@@ -64,7 +66,9 @@
     "@parcel/watcher@2.6.0": true,
     "fsevents@2.3.3": true,
     "unrs-resolver@1.12.2": true,
-    "dtrace-provider": false
+    "dtrace-provider": false,
+    "esbuild": false,
+    "workerd": false
   },
   "overrides": {
     "markdownlint-cli": {
