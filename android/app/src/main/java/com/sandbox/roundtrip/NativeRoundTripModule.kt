@@ -123,14 +123,14 @@ class NativeRoundTripModule(reactContext: ReactApplicationContext) :
 
   override fun writeSample(name: String, value: ReadableMap, promise: Promise) {
     val file = sampleFile(name, promise) ?: return
-    val bytes = decodeSample(value).toString().toByteArray(Charsets.UTF_8)
-    file.writeBytes(bytes)
-    promise.resolve(
-        Arguments.createMap().apply {
-          putString("path", file.absolutePath)
-          putInt("bytes", bytes.size)
-        }
-    )
+    settle(promise) {
+      val bytes = decodeSample(value).toString().toByteArray(Charsets.UTF_8)
+      file.writeBytes(bytes)
+      Arguments.createMap().apply {
+        putString("path", file.absolutePath)
+        putInt("bytes", bytes.size)
+      }
+    }
   }
 
   override fun readSample(name: String, promise: Promise) {
@@ -139,12 +139,25 @@ class NativeRoundTripModule(reactContext: ReactApplicationContext) :
       promise.reject("E_NOT_FOUND", "No sample named $name")
       return
     }
-    promise.resolve(encodeSample(JSONObject(file.readText(Charsets.UTF_8))))
+    settle(promise) { encodeSample(JSONObject(file.readText(Charsets.UTF_8))) }
   }
 
   override fun deleteFile(name: String, promise: Promise) {
     val file = sampleFile(name, promise) ?: return
-    promise.resolve(file.delete())
+    settle(promise) { file.delete() }
+  }
+
+  // Rejects with E_IO when reading, writing, or converting a sample throws, as
+  // for a NaN, which JSON can't represent, or a corrupt file.
+  private inline fun settle(promise: Promise, block: () -> Any?) {
+    val result =
+        try {
+          block()
+        } catch (e: Exception) {
+          promise.reject("E_IO", e.message ?: e.toString(), e)
+          return
+        }
+    promise.resolve(result)
   }
 
   private fun sampleFile(name: String, promise: Promise): File? {

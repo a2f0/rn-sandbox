@@ -251,6 +251,9 @@ static NSDictionary *SampleDictionary(const Sample &sample)
   [self emitOnSample:SampleDictionary(value)];
 }
 
+// NSJSONSerialization and the codegen structs raise exceptions for values JSON
+// can't represent, such as NaN, and for files with missing fields; those
+// reject with E_IO.
 - (void)writeSample:(NSString *)name
               value:(Sample &)value
             resolve:(RCTPromiseResolveBlock)resolve
@@ -260,13 +263,22 @@ static NSDictionary *SampleDictionary(const Sample &sample)
   if (url == nil) {
     return;
   }
-  NSError *error;
-  NSData *data = [NSJSONSerialization dataWithJSONObject:SampleDictionary(value) options:0 error:&error];
-  if (data == nil || ![data writeToURL:url options:NSDataWritingAtomic error:&error]) {
-    reject(@"E_IO", error.localizedDescription, error);
-    return;
+  @try {
+    NSDictionary *json = SampleDictionary(value);
+    if (![NSJSONSerialization isValidJSONObject:json]) {
+      reject(@"E_IO", @"The sample can't be represented as JSON", nil);
+      return;
+    }
+    NSError *error;
+    NSData *data = [NSJSONSerialization dataWithJSONObject:json options:0 error:&error];
+    if (data == nil || ![data writeToURL:url options:NSDataWritingAtomic error:&error]) {
+      reject(@"E_IO", error.localizedDescription, error);
+      return;
+    }
+    resolve(@{@"path" : url.path, @"bytes" : @(data.length)});
+  } @catch (NSException *exception) {
+    reject(@"E_IO", exception.reason, nil);
   }
-  resolve(@{@"path" : url.path, @"bytes" : @(data.length)});
 }
 
 - (void)readSample:(NSString *)name resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
@@ -279,14 +291,18 @@ static NSDictionary *SampleDictionary(const Sample &sample)
     reject(@"E_NOT_FOUND", [NSString stringWithFormat:@"No sample named %@", name], nil);
     return;
   }
-  NSError *error;
-  NSData *data = [NSData dataWithContentsOfURL:url options:0 error:&error];
-  NSDictionary *json = data == nil ? nil : [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-  if (![json isKindOfClass:NSDictionary.class]) {
-    reject(@"E_IO", error.localizedDescription, error);
-    return;
+  @try {
+    NSError *error;
+    NSData *data = [NSData dataWithContentsOfURL:url options:0 error:&error];
+    NSDictionary *json = data == nil ? nil : [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+    if (![json isKindOfClass:NSDictionary.class]) {
+      reject(@"E_IO", error.localizedDescription ?: @"The file isn't a JSON object", error);
+      return;
+    }
+    resolve(SampleDictionary(Sample(json)));
+  } @catch (NSException *exception) {
+    reject(@"E_IO", exception.reason, nil);
   }
-  resolve(SampleDictionary(Sample(json)));
 }
 
 - (void)deleteFile:(NSString *)name resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject

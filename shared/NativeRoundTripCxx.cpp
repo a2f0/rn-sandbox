@@ -52,15 +52,33 @@ Mixed toMixed(jsi::Runtime &rt, const jsi::Value &value) {
       auto names = object.getPropertyNames(rt);
       result.kind = Mixed::Kind::Object;
       for (size_t i = 0, size = names.size(rt); i < size; i++) {
-        auto key = names.getValueAtIndex(rt, i).getString(rt).utf8(rt);
-        result.items.push_back(toMixed(rt, object.getProperty(rt, key.c_str())));
-        result.keys.push_back(std::move(key));
+        auto name = names.getValueAtIndex(rt, i).getString(rt);
+        result.items.push_back(toMixed(rt, object.getProperty(rt, jsi::PropNameID::forString(rt, name))));
+        result.keys.push_back(name.utf8(rt));
       }
     }
   } else {
     throw jsi::JSError(rt, "echoMixed accepts only JSON-like values");
   }
   return result;
+}
+
+// Defines an own data property. For a "__proto__" key, setProperty would run
+// Object.prototype's __proto__ setter instead.
+void defineProperty(jsi::Runtime &rt, const jsi::Object &object, const std::string &key, jsi::Value value) {
+  if (key != "__proto__") {
+    object.setProperty(rt, jsi::PropNameID::forUtf8(rt, key), std::move(value));
+    return;
+  }
+  auto descriptor = jsi::Object(rt);
+  descriptor.setProperty(rt, "value", std::move(value));
+  descriptor.setProperty(rt, "writable", true);
+  descriptor.setProperty(rt, "enumerable", true);
+  descriptor.setProperty(rt, "configurable", true);
+  rt.global()
+      .getPropertyAsObject(rt, "Object")
+      .getPropertyAsFunction(rt, "defineProperty")
+      .call(rt, object, jsi::String::createFromUtf8(rt, key), descriptor);
 }
 
 jsi::Value fromMixed(jsi::Runtime &rt, const Mixed &mixed) {
@@ -85,7 +103,7 @@ jsi::Value fromMixed(jsi::Runtime &rt, const Mixed &mixed) {
     case Mixed::Kind::Object: {
       auto object = jsi::Object(rt);
       for (size_t i = 0; i < mixed.keys.size(); i++) {
-        object.setProperty(rt, mixed.keys[i].c_str(), fromMixed(rt, mixed.items[i]));
+        defineProperty(rt, object, mixed.keys[i], fromMixed(rt, mixed.items[i]));
       }
       return object;
     }

@@ -27,6 +27,25 @@ function samplePath(name: string) {
 
 const echo = <T>(value: T): T => structuredClone(value);
 
+// Like the native modules, rejects with E_IO when a sample can't be written or
+// read. JSON.stringify would write NaN and Infinity as null, so they throw.
+async function io<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    throw rejection('E_IO', (error as Error).message);
+  }
+}
+
+function toJson(value: Sample) {
+  return JSON.stringify(value, (_key, item) => {
+    if (typeof item === 'number' && !Number.isFinite(item)) {
+      throw new Error(`${item} can't be represented as JSON`);
+    }
+    return item;
+  });
+}
+
 const RoundTripModule: Spec = {
   getConstants: () => ({ platform: 'web', filesDirectory }),
 
@@ -79,16 +98,18 @@ const RoundTripModule: Spec = {
 
   writeSample: async (name, value) => {
     const path = samplePath(name);
-    const bytes = new TextEncoder().encode(JSON.stringify(value));
-    await writeFile(path, bytes);
-    return { path, bytes: bytes.byteLength };
+    return io(async () => {
+      const bytes = new TextEncoder().encode(toJson(value));
+      await writeFile(path, bytes);
+      return { path, bytes: bytes.byteLength };
+    });
   },
   readSample: async (name) => {
     const bytes = await readFile(samplePath(name));
     if (bytes === null) {
       throw rejection('E_NOT_FOUND', `No sample named ${name}`);
     }
-    return JSON.parse(new TextDecoder().decode(bytes));
+    return io(async () => JSON.parse(new TextDecoder().decode(bytes)));
   },
   deleteFile: async (name) => removeFile(samplePath(name)),
 };

@@ -53,6 +53,10 @@ const mixed: unknown[] = [
   'a\u0000b',
   [1, 'two', [null, undefined]],
   { nested: { nullValue: null, undefinedValue: undefined }, list: [] },
+  // Own properties that a naive copy would lose: one named __proto__, which
+  // JSON.parse creates, and one with a NUL in its name.
+  JSON.parse('{"__proto__": {"own": true}}'),
+  { 'a\u0000b': 1 },
 ];
 
 function nextSampleEvent(emit: () => void): Promise<Sample> {
@@ -81,6 +85,16 @@ async function rejection(promise: Promise<unknown>) {
     const { code, message } = error as { code?: string; message: string };
     return code === undefined ? { message } : { code, message };
   }
+}
+
+async function rejectionCode(promise: Promise<unknown>) {
+  const result = await rejection(promise);
+  return typeof result === 'string' ? result : result.code;
+}
+
+// ASCII only: Hermes has no TextEncoder.
+function asciiBytes(text: string): ArrayBuffer {
+  return Uint8Array.from(text, (char) => char.charCodeAt(0)).buffer;
 }
 
 async function fileRoundTrip(name: string, sample: Sample) {
@@ -416,6 +430,28 @@ export function createCases(): RoundTripCase[] {
         code: 'E_INVALID_NAME',
         message: 'Sample names may only contain letters, digits, - and _',
       },
+    },
+    {
+      group: 'file',
+      name: "Sample JSON can't represent",
+      run: () =>
+        rejectionCode(
+          RoundTrip.writeSample('nan', { ...fullSample, number: Number.NaN }),
+        ),
+      expected: 'E_IO',
+    },
+    {
+      group: 'file',
+      name: 'corrupt file',
+      run: async () => {
+        // Written through the C++ module, which writes any bytes.
+        await RoundTripCxx.writeBytes(
+          `${filesDirectory}/corrupt.json`,
+          asciiBytes('{"text":'),
+        );
+        return rejectionCode(RoundTrip.readSample('corrupt'));
+      },
+      expected: 'E_IO',
     },
     {
       group: 'c++',
