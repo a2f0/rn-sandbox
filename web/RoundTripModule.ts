@@ -37,6 +37,60 @@ async function io<T>(operation: () => Promise<T>): Promise<T> {
   }
 }
 
+const isString = (value: unknown) => typeof value === 'string';
+const isNumber = (value: unknown) => typeof value === 'number';
+const isBoolean = (value: unknown) => typeof value === 'boolean';
+const isObject = (value: unknown) =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+const isArrayOf = (value: unknown, isItem: (item: unknown) => boolean) =>
+  Array.isArray(value) && value.every(isItem);
+const isPoint = (value: unknown) =>
+  isObject(value) &&
+  isNumber((value as Record<string, unknown>).x) &&
+  isNumber((value as Record<string, unknown>).y);
+
+// What a file must hold to be read back as a Sample. The native modules
+// reject the same files through their typed getters.
+const sampleFields: Record<keyof Sample, (value: unknown) => boolean> = {
+  text: isString,
+  number: isNumber,
+  int32: isNumber,
+  floatValue: isNumber,
+  doubleValue: isNumber,
+  flag: isBoolean,
+  stringLiteral: isString,
+  numberLiteral: isNumber,
+  booleanLiteral: isBoolean,
+  stringUnion: isString,
+  numberUnion: isNumber,
+  objectUnion: isObject,
+  stringEnum: isString,
+  numberEnum: isNumber,
+  nullableText: (value) => value === null || isString(value),
+  optionalNumber: (value) => value === undefined || isNumber(value),
+  strings: (value) => isArrayOf(value, isString),
+  matrix: (value) => isArrayOf(value, (row) => isArrayOf(row, isNumber)),
+  points: (value) => isArrayOf(value, isPoint),
+  point: isPoint,
+  dictionary: isObject,
+  object: isObject,
+};
+
+function fromJson(json: string): Sample {
+  const value: unknown = JSON.parse(json);
+  const invalid =
+    !isObject(value) ||
+    Object.entries(sampleFields).find(
+      ([key, isValid]) => !isValid((value as Record<string, unknown>)[key]),
+    );
+  if (invalid) {
+    throw new Error(
+      `Not a sample${Array.isArray(invalid) ? `: invalid ${invalid[0]}` : ''}`,
+    );
+  }
+  return value as Sample;
+}
+
 function toJson(value: Sample) {
   return JSON.stringify(value, (_key, item) => {
     if (typeof item === 'number' && !Number.isFinite(item)) {
@@ -109,7 +163,7 @@ const RoundTripModule: Spec = {
     if (bytes === null) {
       throw rejection('E_NOT_FOUND', `No sample named ${name}`);
     }
-    return io(async () => JSON.parse(new TextDecoder().decode(bytes)));
+    return io(async () => fromJson(new TextDecoder().decode(bytes)));
   },
   deleteFile: async (name) => removeFile(samplePath(name)),
 };

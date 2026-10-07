@@ -59,6 +59,21 @@ const mixed: unknown[] = [
   { 'a\u0000b': 1 },
 ];
 
+// NaN and the infinities can cross the bridge, though JSON can't hold them.
+const nonFinitePoint = {
+  x: Number.NaN,
+  y: Number.NEGATIVE_INFINITY,
+};
+const nonFiniteSample: Sample = {
+  ...fullSample,
+  number: Number.NaN,
+  doubleValue: Number.POSITIVE_INFINITY,
+  point: nonFinitePoint,
+};
+
+const cyclic: Record<string, unknown> = { name: 'cyclic' };
+cyclic.self = cyclic;
+
 function nextSampleEvent(emit: () => void): Promise<Sample> {
   return new Promise((resolve) => {
     const subscription = RoundTrip.onSample((value) => {
@@ -356,6 +371,15 @@ export function createCases(): RoundTripCase[] {
       expected: sparseSample,
     },
     {
+      group: 'sync',
+      name: 'non-finite numbers in objects',
+      run: () => [
+        RoundTrip.echoPoint(nonFinitePoint),
+        RoundTrip.echoSample(nonFiniteSample),
+      ],
+      expected: [nonFinitePoint, nonFiniteSample],
+    },
+    {
       group: 'promise',
       name: 'resolve Sample',
       run: () => RoundTrip.echoSampleAsync(fullSample),
@@ -454,6 +478,18 @@ export function createCases(): RoundTripCase[] {
       expected: 'E_IO',
     },
     {
+      group: 'file',
+      name: 'file missing fields',
+      run: async () => {
+        await RoundTripCxx.writeBytes(
+          `${filesDirectory}/empty.json`,
+          asciiBytes('{}'),
+        );
+        return rejectionCode(RoundTrip.readSample('empty'));
+      },
+      expected: 'E_IO',
+    },
+    {
       group: 'c++',
       name: 'ArrayBuffer',
       run: () =>
@@ -467,6 +503,12 @@ export function createCases(): RoundTripCase[] {
       name: 'mixed',
       run: () => mixed.map((value) => RoundTripCxx.echoMixed(value)),
       expected: mixed,
+    },
+    {
+      group: 'c++',
+      name: 'cyclic mixed',
+      run: () => attempt(() => RoundTripCxx.echoMixed(cyclic)),
+      expected: { message: "echoMixed can't copy a cyclic value" },
     },
     {
       group: 'c++',

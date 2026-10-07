@@ -13,8 +13,8 @@ import java.io.File
 import org.json.JSONObject
 
 /**
- * Echoes every type in specs/NativeRoundTrip.ts back to JS. Samples are decoded field by field into
- * a JSONObject (SampleCodec.kt), which is also what writeSample stores on disk.
+ * Echoes every type in specs/NativeRoundTrip.ts back to JS. writeSample decodes a sample field by
+ * field into a JSONObject (SampleCodec.kt) and stores it; readSample encodes it back.
  */
 class NativeRoundTripModule(reactContext: ReactApplicationContext) :
     NativeRoundTripSpec(reactContext) {
@@ -76,12 +76,12 @@ class NativeRoundTripModule(reactContext: ReactApplicationContext) :
         }
       }
 
-  override fun echoPoint(value: ReadableMap): WritableMap = encodePoint(decodePoint(value))
+  override fun echoPoint(value: ReadableMap): WritableMap = copyPoint(value)
 
   override fun echoPoints(value: ReadableArray): WritableArray =
       Arguments.createArray().apply {
         for (i in 0 until value.size()) {
-          pushMap(encodePoint(decodePoint(requireNotNull(value.getMap(i)))))
+          pushMap(copyPoint(requireNotNull(value.getMap(i))))
         }
       }
 
@@ -99,10 +99,10 @@ class NativeRoundTripModule(reactContext: ReactApplicationContext) :
 
   override fun echoRootTag(value: Double): Double = value
 
-  override fun echoSample(value: ReadableMap): WritableMap = encodeSample(decodeSample(value))
+  override fun echoSample(value: ReadableMap): WritableMap = copySample(value)
 
   override fun echoSampleAsync(value: ReadableMap, promise: Promise) {
-    promise.resolve(encodeSample(decodeSample(value)))
+    promise.resolve(copySample(value))
   }
 
   override fun resolveVoid(promise: Promise) {
@@ -114,11 +114,11 @@ class NativeRoundTripModule(reactContext: ReactApplicationContext) :
   }
 
   override fun echoSampleCallback(value: ReadableMap, callback: Callback) {
-    callback.invoke(encodeSample(decodeSample(value)))
+    callback.invoke(copySample(value))
   }
 
   override fun emitSample(value: ReadableMap) {
-    emitOnSample(encodeSample(decodeSample(value)))
+    emitOnSample(copySample(value))
   }
 
   override fun writeSample(name: String, value: ReadableMap, promise: Promise) {

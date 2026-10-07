@@ -9,8 +9,18 @@ import com.facebook.react.bridge.WritableMap
 import org.json.JSONArray
 import org.json.JSONObject
 
-// Converts between the bridge's ReadableMap/WritableMap and a JSONObject, with a typed getter or
-// setter for each field of the Sample type in specs/NativeRoundTrip.ts.
+// Echoes copy the bridge's values directly, since JSONObject rejects NaN and Infinity.
+
+internal fun copyPoint(map: ReadableMap): WritableMap =
+    Arguments.createMap().apply {
+      putDouble("x", map.getDouble("x"))
+      putDouble("y", map.getDouble("y"))
+    }
+
+internal fun copySample(map: ReadableMap): WritableMap = Arguments.makeNativeMap(map.toHashMap())
+
+// Sample files convert between the bridge's ReadableMap/WritableMap and a JSONObject, with a typed
+// getter or setter for each field of the Sample type in specs/NativeRoundTrip.ts.
 
 internal fun decodePoint(map: ReadableMap): JSONObject =
     JSONObject().put("x", map.getDouble("x")).put("y", map.getDouble("y"))

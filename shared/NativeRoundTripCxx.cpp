@@ -23,7 +23,11 @@ struct Mixed {
   std::vector<std::string> keys;
 };
 
-Mixed toMixed(jsi::Runtime &rt, const jsi::Value &value) {
+// Nesting deeper than this throws instead of overflowing the native stack.
+constexpr size_t kMaxDepth = 256;
+
+// ancestors holds the objects enclosing value, to reject cycles.
+Mixed toMixed(jsi::Runtime &rt, const jsi::Value &value, std::vector<jsi::Object> &ancestors) {
   Mixed result;
   if (value.isUndefined()) {
     result.kind = Mixed::Kind::Undefined;
@@ -40,23 +44,34 @@ Mixed toMixed(jsi::Runtime &rt, const jsi::Value &value) {
     result.string = value.getString(rt).utf8(rt);
   } else if (value.isObject()) {
     auto object = value.getObject(rt);
+    if (object.isFunction(rt) || object.isArrayBuffer(rt)) {
+      throw jsi::JSError(rt, "echoMixed accepts only JSON-like values");
+    }
+    for (const auto &ancestor : ancestors) {
+      if (jsi::Object::strictEquals(rt, ancestor, object)) {
+        throw jsi::JSError(rt, "echoMixed can't copy a cyclic value");
+      }
+    }
+    if (ancestors.size() == kMaxDepth) {
+      throw jsi::JSError(rt, "echoMixed accepts values nested at most " + std::to_string(kMaxDepth) + " deep");
+    }
+    ancestors.push_back(value.getObject(rt));
     if (object.isArray(rt)) {
       auto array = object.getArray(rt);
       result.kind = Mixed::Kind::Array;
       for (size_t i = 0, size = array.size(rt); i < size; i++) {
-        result.items.push_back(toMixed(rt, array.getValueAtIndex(rt, i)));
+        result.items.push_back(toMixed(rt, array.getValueAtIndex(rt, i), ancestors));
       }
-    } else if (object.isFunction(rt) || object.isArrayBuffer(rt)) {
-      throw jsi::JSError(rt, "echoMixed accepts only JSON-like values");
     } else {
       auto names = object.getPropertyNames(rt);
       result.kind = Mixed::Kind::Object;
       for (size_t i = 0, size = names.size(rt); i < size; i++) {
         auto name = names.getValueAtIndex(rt, i).getString(rt);
-        result.items.push_back(toMixed(rt, object.getProperty(rt, jsi::PropNameID::forString(rt, name))));
+        result.items.push_back(toMixed(rt, object.getProperty(rt, jsi::PropNameID::forString(rt, name)), ancestors));
         result.keys.push_back(name.utf8(rt));
       }
     }
+    ancestors.pop_back();
   } else {
     throw jsi::JSError(rt, "echoMixed accepts only JSON-like values");
   }
@@ -122,7 +137,8 @@ jsi::ArrayBuffer NativeRoundTripCxx::echoArrayBuffer(jsi::Runtime &rt, jsi::Arra
 }
 
 jsi::Value NativeRoundTripCxx::echoMixed(jsi::Runtime &rt, jsi::Value value) {
-  return fromMixed(rt, toMixed(rt, value));
+  std::vector<jsi::Object> ancestors;
+  return fromMixed(rt, toMixed(rt, value, ancestors));
 }
 
 // File I/O runs on a detached thread; the promise settles back on the JS
