@@ -14,7 +14,7 @@
     "preview:deploy:web": "npm run build:web && wrangler deploy --dry-run",
     "deploy:web": "npm run build:web && wrangler deploy",
     "lint": "biome check .",
-    "lint:md": "markdownlint --dot \"**/*.md\" --ignore-path .gitignore --ignore .git --ignore vendor --ignore .agents/skills/update-dependencies --ignore .claude/skills/update-dependencies",
+    "lint:md": "npm run -s test:markdownlint && markdownlint --dot \"**/*.md\" --ignore-path .gitignore --ignore .git --ignore vendor --ignore .agents/skills/update-dependencies --ignore .claude/skills/update-dependencies",
     "lint:shell": "shellcheck -x scripts/*.sh scripts/*/*.sh",
     "start": "react-native start",
     "test": "npm run -s build:wasm && jest",
@@ -22,7 +22,8 @@
     "prepare": "husky && sh scripts/ensureGradleWrapper.sh --optional",
     "agent-tool": "agent-tool",
     "agents:sync": "agent-tool skills install --apply",
-    "agents:check": "agent-tool skills check"
+    "agents:check": "agent-tool skills check",
+    "test:markdownlint": "node --test scripts/checks/markdownlintConfig.test.mjs"
   },
   "dependencies": {
     "react": "19.2.8",

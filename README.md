@@ -101,6 +101,15 @@ The version-scoped Miniflare Sharp override fixes
 [GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
 The Markdown CLI overrides retain its supported YAML API and fix the TOML parser
 [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
+Markdownlint CLI merges explicit TOML configuration through `deep-extend`,
+which converts smol-toml 1.9's null-prototype tables into ordinary rule options.
+This preserves nested options, disabled rules, and warning severity without a
+library patch. `npm run test:markdownlint` tests the real npm-installed CLI with
+TOML, JSON, YAML, inherited configuration, and JavaScript class options;
+`lint:md` runs it before checking repository Markdown. The tests also exercise
+many flat TOML keys through the fixed parser. Keep this boundary tested when
+upgrading the CLI or replacing its configuration merger.
+
 Remove each override when its owning package resolves the patched dependency
 itself and the Miniflare Images emulator and Markdown configuration tests still
 pass. The application's Worker has no Images binding; the regression exercises
