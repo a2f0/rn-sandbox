@@ -140,7 +140,7 @@ private val sampleFields: Map<String, (Any?) -> Boolean> =
     mapOf(
         "text" to ::isString,
         "number" to ::isNumber,
-        "int32" to ::isNumber,
+        "int32" to ::isInt32,
         "floatValue" to ::isNumber,
         "doubleValue" to ::isNumber,
         "flag" to { it is Boolean },
@@ -173,6 +173,9 @@ internal fun requireSample(json: JSONObject): JSONObject {
 private fun isString(value: Any?) = value is String
 
 private fun isNumber(value: Any?) = value is Number
+
+private fun isInt32(value: Any?) =
+    value is Number && value.toDouble().let { it == it.toInt().toDouble() }
 
 private fun isPoint(value: Any?) =
     value is JSONObject && isNumber(value.opt("x")) && isNumber(value.opt("y"))

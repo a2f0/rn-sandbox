@@ -80,6 +80,8 @@ const { text: _text, ...missingText } = sparseSample;
 const malformedSamples: Record<string, unknown> = {
   'missing field': missingText,
   'wrong type': { ...sparseSample, flag: 'yes' },
+  'fractional Int32': { ...sparseSample, int32: 1.5 },
+  'Int32 out of range': { ...sparseSample, int32: 2147483648 },
   'other literal': { ...sparseSample, stringLiteral: 'inexact' },
   'value outside a union': { ...sparseSample, numberUnion: 4 },
   'object matching no union member': { ...sparseSample, objectUnion: {} },

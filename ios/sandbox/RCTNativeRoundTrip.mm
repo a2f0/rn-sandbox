@@ -70,6 +70,15 @@ static BOOL IsNumber(id value)
   return [value isKindOfClass:NSNumber.class] && !IsBoolean(value);
 }
 
+static BOOL IsInt32(id value)
+{
+  if (!IsNumber(value)) {
+    return NO;
+  }
+  double number = [value doubleValue];
+  return number >= INT32_MIN && number <= INT32_MAX && number == trunc(number);
+}
+
 static BOOL IsString(id value)
 {
   return [value isKindOfClass:NSString.class];
@@ -116,7 +125,7 @@ static NSString *_Nullable SampleProblem(id json)
   NSDictionary<NSString *, Check> *fields = @{
     @"text" : isString,
     @"number" : isNumber,
-    @"int32" : isNumber,
+    @"int32" : ^BOOL(id value) { return IsInt32(value); },
     @"floatValue" : isNumber,
     @"doubleValue" : isNumber,
     @"flag" : ^BOOL(id value) { return IsBoolean(value); },

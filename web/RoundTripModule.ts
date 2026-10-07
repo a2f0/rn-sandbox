@@ -41,6 +41,8 @@ type Check = (value: unknown) => boolean;
 
 const isString: Check = (value) => typeof value === 'string';
 const isNumber: Check = (value) => typeof value === 'number';
+const isInt32: Check = (value) =>
+  Number.isInteger(value) && (value as number) === ((value as number) | 0);
 const isBoolean: Check = (value) => typeof value === 'boolean';
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -59,7 +61,7 @@ const isPoint: Check = (value) =>
 const sampleFields: Record<keyof Sample, Check> = {
   text: isString,
   number: isNumber,
-  int32: isNumber,
+  int32: isInt32,
   floatValue: isNumber,
   doubleValue: isNumber,
   flag: isBoolean,
@@ -139,8 +141,10 @@ const RoundTripModule: Spec = {
   rejectPromise: async (code, message) => {
     throw rejection(code, message);
   },
+  // Copied when called, as native code converts its arguments then.
   echoSampleCallback: (value, callback) => {
-    queueMicrotask(() => callback(echo(value)));
+    const copy = echo(value);
+    queueMicrotask(() => callback(copy));
   },
 
   onSample: (listener): EventSubscription => {
@@ -148,9 +152,10 @@ const RoundTripModule: Spec = {
     return { remove: () => listeners.delete(listener) };
   },
   emitSample: (value) => {
+    const copy = echo(value);
     queueMicrotask(() => {
       for (const listener of listeners) {
-        listener(echo(value));
+        listener(copy);
       }
     });
   },
