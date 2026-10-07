@@ -1,5 +1,5 @@
 import type { Spec } from '../specs/NativeRoundTripCxx';
-import { cxx } from './cxx';
+import { cxx, persist } from './cxx';
 
 // The web implementation of specs/NativeRoundTripCxx.ts: the same C++ as on
 // iOS and Android (shared/RoundTripCxxCore.h), compiled to WebAssembly with
@@ -19,8 +19,13 @@ const RoundTripCxxModule: Spec = {
   echoMixed: (value) => unwrap(cxx().echoMixed(value)),
 
   // The C++ runs synchronously, since the browser gives it no threads; it
-  // copies the bytes before returning, as it does natively.
-  writeBytes: async (path, value) => unwrap(cxx().writeBytes(path, value)),
+  // copies the bytes before returning, as it does natively. The promise
+  // settles once the file is saved to IndexedDB.
+  writeBytes: async (path, value) => {
+    const written = unwrap<number>(cxx().writeBytes(path, value));
+    await persist();
+    return written;
+  },
   readBytes: async (path) => unwrap(cxx().readBytes(path)),
 };
 

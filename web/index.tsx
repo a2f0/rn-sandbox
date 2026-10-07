@@ -5,7 +5,10 @@ import { name as appName } from '../app.json';
 import { loadCxx } from './cxx';
 
 // The web modules run on the WebAssembly module, so load it before rendering.
-await loadCxx();
+// If it fails, the app still renders, and the C++ cases fail with the reason.
+await loadCxx().catch((error) =>
+  console.error("The WebAssembly module didn't load.", error),
+);
 
 AppRegistry.registerComponent(appName, () => App);
 AppRegistry.runApplication(appName, {

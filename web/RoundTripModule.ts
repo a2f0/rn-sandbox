@@ -1,6 +1,6 @@
 import type { EventSubscription } from 'react-native';
 import type { Priority, Sample, Spec, Suit } from '../specs/NativeRoundTrip';
-import { filesDirectory } from './cxx';
+import { filesDirectory, persist } from './cxx';
 import { readFile, removeFile, writeFile } from './files';
 
 // The web implementation of specs/NativeRoundTrip.ts. There is no bridge in
@@ -162,9 +162,10 @@ const RoundTripModule: Spec = {
 
   writeSample: async (name, value) => {
     const path = samplePath(name);
-    return io(() => {
+    return io(async () => {
       const bytes = new TextEncoder().encode(toJson(value));
       writeFile(path, bytes);
+      await persist();
       return { path, bytes: bytes.byteLength };
     });
   },
@@ -178,7 +179,11 @@ const RoundTripModule: Spec = {
   },
   deleteFile: async (name) => {
     const path = samplePath(name);
-    return io(() => removeFile(path));
+    return io(async () => {
+      const removed = removeFile(path);
+      await persist();
+      return removed;
+    });
   },
 };
 
