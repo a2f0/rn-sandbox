@@ -14,7 +14,11 @@ const sharpVersion = JSON.parse(
     join(dirname(dirname(miniflare.resolve('sharp'))), 'package.json'),
   ),
 ).version;
-assert.equal(sharpVersion, '0.35.5', 'Miniflare must resolve the fixed Sharp');
+assert.match(sharpVersion, /^\d+\.\d+\.\d+$/);
+assert.ok(
+  sharpVersion.localeCompare('0.35.5', 'en', { numeric: true }) >= 0,
+  'Miniflare must resolve a fixed Sharp',
+);
 const emulator = new Miniflare({
   cf: false,
   telemetry: { enabled: false },

@@ -22,7 +22,11 @@ test('Markdown CLI resolves the fixed TOML parser', () => {
       join(dirname(dirname(markdownlint.resolve('smol-toml'))), 'package.json'),
     ),
   ).version;
-  assert.equal(version, '1.9.0');
+  assert.match(version, /^\d+\.\d+\.\d+$/);
+  assert.ok(
+    version.localeCompare('1.9.0', 'en', { numeric: true }) >= 0,
+    'Markdown CLI must resolve a fixed TOML parser',
+  );
 });
 
 function fixture(t, config, markdown = '# Good\n') {
