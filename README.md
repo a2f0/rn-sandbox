@@ -3,7 +3,10 @@
 ## Overview
 
 [React Native](https://reactnative.dev/) sandbox, created with
-`npx react-native init`.
+`npx react-native init`. The app round-trips every data type that New
+Architecture TurboModules support through native code on iOS, Android, and web,
+including file I/O, and lists each case with its result. See
+[Bridge round trip](#bridge-round-trip).
 
 ### Getting Started
 
@@ -47,6 +50,37 @@ Nothing binary is committed; the pre-push hook and CI reject it
 - **Debug builds** are signed with the Android Gradle plugin's default debug
   keystore (`~/.android/debug.keystore`), which it creates when missing.
 
+### Bridge round trip
+
+Two codegen specs in `specs/` define the modules, and `src/roundTrip/cases.ts`
+lists the cases the app runs against them at launch:
+
+- `NativeRoundTrip` covers every type that Java and Objective-C TurboModules
+  accept, through sync returns, promises, callbacks, an event emitter, and
+  constants. `writeSample` serializes a typed object to JSON on disk, and
+  `readSample` reads it back. It's implemented in Kotlin
+  (`android/app/src/main/java/com/sandbox/roundtrip/`), Objective-C++
+  (`ios/sandbox/RCTNativeRoundTrip.mm`), and TypeScript (`web/RoundTripModule.ts`,
+  storing files in the browser's Origin Private File System).
+- `NativeRoundTripCxx` covers the types that only C++ TurboModules support,
+  `ArrayBuffer` and `mixed`, and binary file I/O. One C++ implementation
+  (`shared/NativeRoundTripCxx.cpp`) serves iOS and Android; `web/RoundTripCxxModule.ts`
+  serves web.
+
+Where a platform's bridge changes a value, the case records what that platform
+returns instead and why, and the app shows it. With React Native 0.87.1:
+
+- iOS passes `Float` arguments to Objective-C as doubles, so the `float`
+  parameter reads the double's low 32 bits.
+- iOS and Android convert strings through C strings, which end at the first NUL.
+- iOS drops `null` properties from untyped objects unless
+  `enableModuleArgumentNSNullConversionIOS` is on.
+- Android requires every argument, including optional ones, and resolves an
+  empty promise with `null` rather than `undefined`.
+
+Changing a spec means updating all three implementations; iOS picks up the new
+codegen output after `pod install`.
+
 ### Performing Upgrades
 
 Use the [upgrade helper](https://react-native-community.github.io/upgrade-helper/)
@@ -65,6 +99,18 @@ npm run android
 npm run ios
 ```
 
+### Web
+
+[react-native-web](https://necolas.github.io/react-native-web/) and
+[Vite](https://vite.dev/) build the app for the browser from `web/`. Vite
+aliases `react-native` to `web/reactNative.ts`, which adds a
+`TurboModuleRegistry` that returns the TypeScript modules.
+
+```bash
+npm run web          # dev server
+npm run build:web    # production build in web/build
+```
+
 ### Testing
 
 #### Setup
@@ -81,6 +127,15 @@ emulator -list-avds
 
 ```bash
 npm run test
+```
+
+Jest runs the round-trip cases against the web modules (`jest.setup.ts`).
+
+#### Playwright
+
+```bash
+npx playwright install chromium
+npm run test:web
 ```
 
 #### Detox

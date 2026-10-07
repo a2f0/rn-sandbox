@@ -11,8 +11,11 @@
 		0C80B921A6F3F58F76C31292 /* libPods-sandbox.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-sandbox.a */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.swift */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		67DB8837D74D530B6875D98E /* NativeRoundTripCxx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1FDB7C2CF19BBAB9A5190943 /* NativeRoundTripCxx.cpp */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		A456786F9F36BA7D4FFAD406 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E4EAA075B7B57E0665D4D1C0 /* PrivacyInfo.xcprivacy */; };
+		DB92E0FB72AF34ED1788E2E7 /* NativeRoundTripCxxProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 84100E7CDEB80E79AA74789D /* NativeRoundTripCxxProvider.mm */; };
+		F374F77308B14101A7C3CD6D /* RCTNativeRoundTrip.mm in Sources */ = {isa = PBXBuildFile; fileRef = 42C630F44D85E67D0D325C80 /* RCTNativeRoundTrip.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,10 +36,16 @@
 		13B07FB01A68108700A75B9A /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = sandbox/AppDelegate.swift; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = sandbox/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = sandbox/Info.plist; sourceTree = "<group>"; };
+		1FDB7C2CF19BBAB9A5190943 /* NativeRoundTripCxx.cpp */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.cpp; path = NativeRoundTripCxx.cpp; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-sandbox.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sandbox.debug.xcconfig"; path = "Target Support Files/Pods-sandbox/Pods-sandbox.debug.xcconfig"; sourceTree = "<group>"; };
+		3F6015A43B29B237D9DE9045 /* RCTNativeRoundTrip.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTNativeRoundTrip.h; path = sandbox/RCTNativeRoundTrip.h; sourceTree = "<group>"; };
+		42C630F44D85E67D0D325C80 /* RCTNativeRoundTrip.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTNativeRoundTrip.mm; path = sandbox/RCTNativeRoundTrip.mm; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-sandbox.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sandbox.release.xcconfig"; path = "Target Support Files/Pods-sandbox/Pods-sandbox.release.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-sandbox.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-sandbox.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = sandbox/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		84100E7CDEB80E79AA74789D /* NativeRoundTripCxxProvider.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = NativeRoundTripCxxProvider.mm; path = sandbox/NativeRoundTripCxxProvider.mm; sourceTree = "<group>"; };
+		8EA6005DC968F6749BBBFEEA /* NativeRoundTripCxx.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = NativeRoundTripCxx.h; sourceTree = "<group>"; };
+		D1B3425459A6F16D9AF3501A /* NativeRoundTripCxxProvider.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = NativeRoundTripCxxProvider.h; path = sandbox/NativeRoundTripCxxProvider.h; sourceTree = "<group>"; };
 		E4EAA075B7B57E0665D4D1C0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = sandbox/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -85,6 +94,10 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				E4EAA075B7B57E0665D4D1C0 /* PrivacyInfo.xcprivacy */,
+				3F6015A43B29B237D9DE9045 /* RCTNativeRoundTrip.h */,
+				42C630F44D85E67D0D325C80 /* RCTNativeRoundTrip.mm */,
+				D1B3425459A6F16D9AF3501A /* NativeRoundTripCxxProvider.h */,
+				84100E7CDEB80E79AA74789D /* NativeRoundTripCxxProvider.mm */,
 			);
 			name = sandbox;
 			sourceTree = "<group>";
@@ -109,6 +122,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07FAE1A68108700A75B9A /* sandbox */,
+				D2E5AC0648D2ABB2DEE13DC0 /* shared */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* sandboxTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
@@ -136,6 +150,16 @@
 				5709B34CF0A7D63546082F79 /* Pods-sandbox.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		D2E5AC0648D2ABB2DEE13DC0 /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				8EA6005DC968F6749BBBFEEA /* NativeRoundTripCxx.h */,
+				1FDB7C2CF19BBAB9A5190943 /* NativeRoundTripCxx.cpp */,
+			);
+			name = shared;
+			path = ../shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -369,6 +393,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.swift in Sources */,
+				F374F77308B14101A7C3CD6D /* RCTNativeRoundTrip.mm in Sources */,
+				DB92E0FB72AF34ED1788E2E7 /* NativeRoundTripCxxProvider.mm in Sources */,
+				67DB8837D74D530B6875D98E /* NativeRoundTripCxx.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -568,6 +595,8 @@
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
+					"-DFOLLY_CFG_NO_COROUTINES=1",
+					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				PODFILE_DIR = "$(SRCROOT)";
@@ -644,6 +673,8 @@
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
+					"-DFOLLY_CFG_NO_COROUTINES=1",
+					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 					"-DRCT_REMOVE_LEGACY_ARCH=1",
 				);
 				PODFILE_DIR = "$(SRCROOT)";
