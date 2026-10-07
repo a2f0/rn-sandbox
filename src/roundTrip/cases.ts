@@ -9,16 +9,42 @@ import { byteRange, fullSample, sparseSample } from './fixtures';
 
 export type RoundTripPlatform = 'android' | 'ios' | 'web';
 
+type Differences = Partial<
+  Record<RoundTripPlatform, { expected: unknown; reason: string }>
+>;
+
 export type RoundTripCase = {
   group: string;
   name: string;
+  // One sentence on what the case sends, shown when its row is expanded.
+  description: string;
+  // What the case sends; undefined when it sends no arguments.
+  input: unknown;
   run: () => unknown;
   expected: unknown;
   // What a platform's bridge returns instead, where it changes the value.
-  differences?: Partial<
-    Record<RoundTripPlatform, { expected: unknown; reason: string }>
-  >;
+  differences?: Differences;
 };
+
+type CaseSpec<I> = Omit<RoundTripCase, 'input' | 'run' | 'expected'> & {
+  input?: I;
+  run: (input: I) => unknown;
+  // Defaults to input, since most cases expect their input back.
+  expected?: unknown;
+};
+
+function roundTrip<I = undefined>({
+  input,
+  run,
+  ...spec
+}: CaseSpec<I>): RoundTripCase {
+  return {
+    ...spec,
+    input,
+    run: () => run(input as I),
+    expected: 'expected' in spec ? spec.expected : input,
+  };
+}
 
 const unicode = 'Grüße, 世界 👋🏽 é';
 
@@ -166,24 +192,28 @@ export function createCases(): RoundTripCase[] {
   const missingPath = `${filesDirectory}/missing.bin`;
 
   return [
-    {
+    roundTrip({
       group: 'constants',
       name: 'platform',
+      description:
+        'Reads the constants the native module exports, which name the platform it runs on.',
       run: () => RoundTrip.getConstants().platform,
       expected: Platform.OS,
-    },
-    {
+    }),
+    roundTrip({
       group: 'sync',
       name: 'string',
-      run: () =>
-        ['', 'plain', unicode].map((value) => RoundTrip.echoString(value)),
-      expected: ['', 'plain', unicode],
-    },
-    {
+      description:
+        'Sends empty, ASCII, and non-ASCII strings to a synchronous method that returns them.',
+      input: ['', 'plain', unicode],
+      run: (strings) => strings.map((value) => RoundTrip.echoString(value)),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'string with NUL',
-      run: () => RoundTrip.echoString('a\u0000b'),
-      expected: 'a\u0000b',
+      description: 'Sends a string with a NUL character in the middle.',
+      input: 'a\u0000b',
+      run: (value) => RoundTrip.echoString(value),
       differences: {
         android: {
           expected: 'a',
@@ -195,27 +225,30 @@ export function createCases(): RoundTripCase[] {
           reason: 'ObjCTurboModule converts strings with stringWithUTF8String:',
         },
       },
-    },
-    {
+    }),
+    roundTrip({
       group: 'sync',
       name: 'number',
-      run: () => numbers.map((value) => RoundTrip.echoNumber(value)),
-      expected: numbers,
-    },
-    {
+      description:
+        'Sends numbers as `number`, including -0, the smallest and largest magnitudes, NaN, and the infinities.',
+      input: numbers,
+      run: (values) => values.map((value) => RoundTrip.echoNumber(value)),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'Int32',
-      run: () =>
-        [0, -1, 2147483647, -2147483648].map((value) =>
-          RoundTrip.echoInt32(value),
-        ),
-      expected: [0, -1, 2147483647, -2147483648],
-    },
-    {
+      description:
+        'Sends 0, -1, and the largest and smallest 32-bit integers as `Int32`.',
+      input: [0, -1, 2147483647, -2147483648],
+      run: (values) => values.map((value) => RoundTrip.echoInt32(value)),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'Float',
-      run: () => floats.map((value) => RoundTrip.echoFloat(value)),
-      expected: floats,
+      description:
+        'Sends numbers as `Float`, which Objective-C declares as a 32-bit float and Java as a double.',
+      input: floats,
+      run: (values) => values.map((value) => RoundTrip.echoFloat(value)),
       differences: {
         ios: {
           expected: floats.map(lowFloatBits),
@@ -223,92 +256,89 @@ export function createCases(): RoundTripCase[] {
             'ObjCTurboModule passes the double to the float parameter, which reads its low 32 bits',
         },
       },
-    },
-    {
+    }),
+    roundTrip({
       group: 'sync',
       name: 'Double',
-      run: () =>
-        [0.1 + 0.2, Number.MAX_VALUE, -Number.MIN_VALUE].map((value) =>
-          RoundTrip.echoDouble(value),
-        ),
-      expected: [0.1 + 0.2, Number.MAX_VALUE, -Number.MIN_VALUE],
-    },
-    {
+      description:
+        'Sends doubles that need all 17 significant digits, and the largest and smallest magnitudes, as `Double`.',
+      input: [0.1 + 0.2, Number.MAX_VALUE, -Number.MIN_VALUE],
+      run: (values) => values.map((value) => RoundTrip.echoDouble(value)),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'boolean',
-      run: () => [true, false].map((value) => RoundTrip.echoBoolean(value)),
-      expected: [true, false],
-    },
-    {
+      description: 'Sends true and false.',
+      input: [true, false],
+      run: (values) => values.map((value) => RoundTrip.echoBoolean(value)),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'literals',
-      run: () => [
-        RoundTrip.echoStringLiteral('exact'),
-        RoundTrip.echoNumberLiteral(42),
-        RoundTrip.echoBooleanLiteral(true),
+      description:
+        'Sends a string, a number, and a boolean, each to a method typed with that exact literal.',
+      input: ['exact', 42, true] as const,
+      run: ([text, number, flag]) => [
+        RoundTrip.echoStringLiteral(text),
+        RoundTrip.echoNumberLiteral(number),
+        RoundTrip.echoBooleanLiteral(flag),
       ],
-      expected: ['exact', 42, true],
-    },
-    {
+    }),
+    roundTrip({
       group: 'sync',
       name: 'string union',
-      run: () =>
-        (['north', 'south'] as const).map((value) =>
-          RoundTrip.echoStringUnion(value),
-        ),
-      expected: ['north', 'south'],
-    },
-    {
+      description: 'Sends each member of a union of string literals.',
+      input: ['north', 'south'] as const,
+      run: (values) => values.map((value) => RoundTrip.echoStringUnion(value)),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'number union',
-      run: () =>
-        ([1, 2, 3] as const).map((value) => RoundTrip.echoNumberUnion(value)),
-      expected: [1, 2, 3],
-    },
-    {
+      description: 'Sends each member of a union of number literals.',
+      input: [1, 2, 3] as const,
+      run: (values) => values.map((value) => RoundTrip.echoNumberUnion(value)),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'object union',
-      run: () =>
-        [{ radius: 1.5 }, { side: 2 }].map((value) =>
-          RoundTrip.echoObjectUnion(value),
-        ),
-      expected: [{ radius: 1.5 }, { side: 2 }],
-    },
-    {
+      description: 'Sends one object of each shape in a union of object types.',
+      input: [{ radius: 1.5 }, { side: 2 }],
+      run: (values) => values.map((value) => RoundTrip.echoObjectUnion(value)),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'string enum',
-      run: () =>
-        [Suit.Hearts, Suit.Spades].map((value) =>
-          RoundTrip.echoStringEnum(value),
-        ),
-      expected: ['hearts', 'spades'],
-    },
-    {
+      description: 'Sends the members of a TypeScript string enum.',
+      input: [Suit.Hearts, Suit.Spades],
+      run: (values) => values.map((value) => RoundTrip.echoStringEnum(value)),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'number enum',
-      run: () =>
-        [Priority.Low, Priority.High].map((value) =>
-          RoundTrip.echoNumberEnum(value),
-        ),
-      expected: [1, 3],
-    },
-    {
+      description: 'Sends the members of a TypeScript number enum.',
+      input: [Priority.Low, Priority.High],
+      run: (values) => values.map((value) => RoundTrip.echoNumberEnum(value)),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'nullable',
-      run: () => [
-        RoundTrip.echoNullableString('text'),
-        RoundTrip.echoNullableString(null),
-        RoundTrip.echoNullableNumber(1.5),
-        RoundTrip.echoNullableNumber(null),
-      ],
-      expected: ['text', null, 1.5, null],
-    },
-    {
+      description:
+        'Sends a nullable string and a nullable number, each with a value and as null.',
+      input: { strings: ['text', null], numbers: [1.5, null] },
+      run: ({ strings, numbers: values }) => ({
+        strings: strings.map((value) => RoundTrip.echoNullableString(value)),
+        numbers: values.map((value) => RoundTrip.echoNullableNumber(value)),
+      }),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'optional',
-      run: () => [
-        RoundTrip.echoOptionalString('given'),
-        RoundTrip.echoOptionalString(undefined),
+      description:
+        'Calls a method with an optional argument given, passed as undefined, and then left out.',
+      input: ['given', undefined] as const,
+      run: ([given, missing]) => [
+        RoundTrip.echoOptionalString(given),
+        RoundTrip.echoOptionalString(missing),
         attempt(() => RoundTrip.echoOptionalString()),
       ],
       expected: ['given', null, null],
@@ -326,62 +356,60 @@ export function createCases(): RoundTripCase[] {
             'JavaTurboModule requires every argument; pass undefined for an optional one',
         },
       },
-    },
-    {
+    }),
+    roundTrip({
       group: 'sync',
       name: 'array',
-      run: () =>
-        [[], ['a', '', unicode]].map((value) =>
-          RoundTrip.echoStringArray(value),
-        ),
-      expected: [[], ['a', '', unicode]],
-    },
-    {
+      description: 'Sends an empty and a non-empty array of strings.',
+      input: [[], ['a', '', unicode]],
+      run: (arrays) => arrays.map((value) => RoundTrip.echoStringArray(value)),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'nested array',
-      run: () => RoundTrip.echoMatrix([[1, 2], [], [3.5]]),
-      expected: [[1, 2], [], [3.5]],
-    },
-    {
+      description: 'Sends an array of number arrays, one of them empty.',
+      input: [[1, 2], [], [3.5]],
+      run: (matrix) => RoundTrip.echoMatrix(matrix),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'type alias',
-      run: () => RoundTrip.echoPoint({ x: 1.5, y: -2 }),
-      expected: { x: 1.5, y: -2 },
-    },
-    {
+      description:
+        'Sends an object of a named type, which codegen turns into a native struct.',
+      input: { x: 1.5, y: -2 },
+      run: (point) => RoundTrip.echoPoint(point),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'array of type alias',
-      run: () =>
-        RoundTrip.echoPoints([
-          { x: 0, y: 0 },
-          { x: 1, y: -1 },
-        ]),
-      expected: [
+      description: 'Sends an array of objects of a named type.',
+      input: [
         { x: 0, y: 0 },
         { x: 1, y: -1 },
       ],
-    },
-    {
+      run: (points) => RoundTrip.echoPoints(points),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'dictionary',
-      run: () => RoundTrip.echoDictionary({ a: 1, b: -2.5 }),
-      expected: { a: 1, b: -2.5 },
-    },
-    {
+      description: 'Sends an object with any string keys and number values.',
+      input: { a: 1, b: -2.5 },
+      run: (dictionary) => RoundTrip.echoDictionary(dictionary),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'UnsafeObject',
-      run: () =>
-        RoundTrip.echoObject({
-          nested: { list: [1, 'two', false, null] },
-          empty: {},
-        }),
-      expected: { nested: { list: [1, 'two', false, null] }, empty: {} },
-    },
-    {
+      description:
+        'Sends an untyped object holding nested objects and a mixed array.',
+      input: { nested: { list: [1, 'two', false, null] }, empty: {} },
+      run: (object) => RoundTrip.echoObject(object),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'UnsafeObject null property',
-      run: () => RoundTrip.echoObject({ kept: 1, dropped: null }),
-      expected: { kept: 1, dropped: null },
+      description: 'Sends an untyped object with a property set to null.',
+      input: { kept: 1, dropped: null },
+      run: (object) => RoundTrip.echoObject(object),
       differences: {
         ios: {
           expected: { kept: 1 },
@@ -389,44 +417,55 @@ export function createCases(): RoundTripCase[] {
             'null properties are dropped unless enableModuleArgumentNSNullConversionIOS is on',
         },
       },
-    },
-    {
+    }),
+    roundTrip({
       group: 'sync',
       name: 'RootTag',
+      description:
+        'Sends a root tag, the number React Native uses to identify a root view.',
+      input: 11,
       // RootTag is opaque in TypeScript; at runtime it's a number.
-      run: () => RoundTrip.echoRootTag(11 as unknown as RootTag),
-      expected: 11,
-    },
-    {
+      run: (tag) => RoundTrip.echoRootTag(tag as unknown as RootTag),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'Sample with every field',
-      run: () => RoundTrip.echoSample(fullSample),
-      expected: fullSample,
-    },
-    {
+      description:
+        'Sends an object with a field of every type a typed object can hold.',
+      input: fullSample,
+      run: (sample) => RoundTrip.echoSample(sample),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'sparse Sample',
-      run: () => RoundTrip.echoSample(sparseSample),
-      expected: sparseSample,
-    },
-    {
+      description:
+        'Sends the same type with the optional field left out, the nullable field null, and empty collections.',
+      input: sparseSample,
+      run: (sample) => RoundTrip.echoSample(sample),
+    }),
+    roundTrip({
       group: 'sync',
       name: 'non-finite numbers in objects',
-      run: () => [
-        RoundTrip.echoPoint(nonFinitePoint),
-        RoundTrip.echoSample(nonFiniteSample),
+      description:
+        "Sends NaN and the infinities inside typed objects, which can carry them although JSON can't.",
+      input: [nonFinitePoint, nonFiniteSample] as const,
+      run: ([point, sample]) => [
+        RoundTrip.echoPoint(point),
+        RoundTrip.echoSample(sample),
       ],
-      expected: [nonFinitePoint, nonFiniteSample],
-    },
-    {
+    }),
+    roundTrip({
       group: 'promise',
       name: 'resolve Sample',
-      run: () => RoundTrip.echoSampleAsync(fullSample),
-      expected: fullSample,
-    },
-    {
+      description:
+        'Sends the full sample to a method that returns it by resolving a promise.',
+      input: fullSample,
+      run: (sample) => RoundTrip.echoSampleAsync(sample),
+    }),
+    roundTrip({
       group: 'promise',
       name: 'resolve void',
+      description: 'Calls a method whose promise resolves with no value.',
       run: () => RoundTrip.resolveVoid(),
       expected: undefined,
       differences: {
@@ -435,46 +474,59 @@ export function createCases(): RoundTripCase[] {
           reason: 'promise.resolve(null) arrives as null',
         },
       },
-    },
-    {
+    }),
+    roundTrip({
       group: 'promise',
       name: 'reject',
-      run: () =>
-        rejection(RoundTrip.rejectPromise('E_ROUND_TRIP', 'on purpose')),
-      expected: { code: 'E_ROUND_TRIP', message: 'on purpose' },
-    },
-    {
+      description:
+        "Calls a method that rejects its promise with the code and message it's given.",
+      input: { code: 'E_ROUND_TRIP', message: 'on purpose' },
+      run: ({ code, message }) =>
+        rejection(RoundTrip.rejectPromise(code, message)),
+    }),
+    roundTrip({
       group: 'callback',
       name: 'Sample',
-      run: () =>
-        new Promise((resolve) =>
-          RoundTrip.echoSampleCallback(fullSample, resolve),
-        ),
-      expected: fullSample,
-    },
-    {
+      description:
+        'Sends the full sample to a method that passes it back to a callback.',
+      input: fullSample,
+      run: (sample) =>
+        new Promise((resolve) => RoundTrip.echoSampleCallback(sample, resolve)),
+    }),
+    roundTrip({
       group: 'event',
       name: 'Sample',
-      run: () => nextSampleEvent(() => RoundTrip.emitSample(fullSample)),
-      expected: fullSample,
-    },
-    {
+      description:
+        'Sends the full sample to a method that emits it back as an onSample event.',
+      input: fullSample,
+      run: (sample) => nextSampleEvent(() => RoundTrip.emitSample(sample)),
+    }),
+    roundTrip({
       group: 'file',
       name: 'write and read Sample',
-      run: () => fileRoundTrip('full', fullSample),
+      description:
+        'Has native code write the full sample to a JSON file, then read it back.',
+      input: fullSample,
+      run: (sample) => fileRoundTrip('full', sample),
       expected: { path: true, bytes: true, sample: fullSample },
-    },
-    {
+    }),
+    roundTrip({
       group: 'file',
       name: 'write and read sparse Sample',
-      run: () => fileRoundTrip('sparse', sparseSample),
+      description:
+        'Has native code write the sparse sample to a JSON file, then read it back.',
+      input: sparseSample,
+      run: (sample) => fileRoundTrip('sparse', sample),
       expected: { path: true, bytes: true, sample: sparseSample },
-    },
-    {
+    }),
+    roundTrip({
       group: 'file',
       name: 'delete',
-      run: async () => {
-        await RoundTrip.writeSample('deleted', sparseSample);
+      description:
+        'Writes a sample, deletes its file, and checks that reading it then fails.',
+      input: sparseSample,
+      run: async (sample) => {
+        await RoundTrip.writeSample('deleted', sample);
         return {
           deleted: await RoundTrip.deleteFile('deleted'),
           read: await rejection(RoundTrip.readSample('deleted')),
@@ -484,13 +536,16 @@ export function createCases(): RoundTripCase[] {
         deleted: true,
         read: { code: 'E_NOT_FOUND', message: 'No sample named deleted' },
       },
-    },
-    {
+    }),
+    roundTrip({
       group: 'file',
       name: 'unsafe names',
-      run: () =>
+      description:
+        'Tries to write samples under names that are empty or could leave the folder.',
+      input: ['../escape', 'full\n', ''],
+      run: (names) =>
         Promise.all(
-          ['../escape', 'full\n', ''].map((name) =>
+          names.map((name) =>
             rejection(RoundTrip.writeSample(name, sparseSample)),
           ),
         ),
@@ -498,47 +553,56 @@ export function createCases(): RoundTripCase[] {
         code: 'E_INVALID_NAME',
         message: 'Sample names may only contain letters, digits, - and _',
       }),
-    },
-    {
+    }),
+    roundTrip({
       group: 'file',
       name: "Sample JSON can't represent",
-      run: () =>
-        rejectionCode(
-          RoundTrip.writeSample('nan', { ...fullSample, number: Number.NaN }),
-        ),
+      description:
+        "Tries to write a sample holding NaN, which JSON can't represent, so the write must fail.",
+      input: { ...fullSample, number: Number.NaN },
+      run: (sample) => rejectionCode(RoundTrip.writeSample('nan', sample)),
       expected: 'E_IO',
-    },
-    {
+    }),
+    roundTrip({
       group: 'file',
       name: 'corrupt file',
-      run: async () => {
+      description:
+        'Writes truncated JSON through the C++ module, then reads it as a sample, which must fail.',
+      input: '{"text":',
+      run: async (json) => {
         // Written through the C++ module, which writes any bytes.
         await RoundTripCxx.writeBytes(
           `${filesDirectory}/corrupt.json`,
-          asciiBytes('{"text":'),
+          asciiBytes(json),
         );
         return rejectionCode(RoundTrip.readSample('corrupt'));
       },
       expected: 'E_IO',
-    },
-    {
+    }),
+    roundTrip({
       group: 'file',
       name: 'file missing fields',
-      run: async () => {
+      description:
+        'Writes an empty JSON object through the C++ module, then reads it as a sample, which must fail.',
+      input: '{}',
+      run: async (json) => {
         await RoundTripCxx.writeBytes(
           `${filesDirectory}/empty.json`,
-          asciiBytes('{}'),
+          asciiBytes(json),
         );
         return rejectionCode(RoundTrip.readSample('empty'));
       },
       expected: 'E_IO',
-    },
-    {
+    }),
+    roundTrip({
       group: 'file',
       name: 'malformed samples',
-      run: async () => {
+      description:
+        'Writes files that each break the sample type one way, and checks that reading every one fails.',
+      input: malformedSamples,
+      run: async (samples) => {
         const codes: Record<string, unknown> = {};
-        for (const [name, sample] of Object.entries(malformedSamples)) {
+        for (const [name, sample] of Object.entries(samples)) {
           await RoundTripCxx.writeBytes(
             `${filesDirectory}/malformed.json`,
             asciiBytes(JSON.stringify(sample)),
@@ -550,66 +614,82 @@ export function createCases(): RoundTripCase[] {
       expected: Object.fromEntries(
         Object.keys(malformedSamples).map((name) => [name, 'E_IO']),
       ),
-    },
-    {
+    }),
+    roundTrip({
       group: 'c++',
       name: 'ArrayBuffer',
-      run: () =>
-        [byteRange(), new ArrayBuffer(0)].map((value) =>
-          RoundTripCxx.echoArrayBuffer(value),
-        ),
-      expected: [byteRange(), new ArrayBuffer(0)],
-    },
-    {
+      description:
+        'Sends the bytes 0 to 255, and an empty buffer, to the C++ module, which returns copies.',
+      input: [byteRange(), new ArrayBuffer(0)],
+      run: (buffers) =>
+        buffers.map((value) => RoundTripCxx.echoArrayBuffer(value)),
+    }),
+    roundTrip({
       group: 'c++',
       name: 'mixed',
-      run: () => mixed.map((value) => RoundTripCxx.echoMixed(value)),
-      expected: mixed,
-    },
-    {
+      description:
+        'Sends JSON-like values of every kind to the C++ module, which copies them through C++.',
+      input: mixed,
+      run: (values) => values.map((value) => RoundTripCxx.echoMixed(value)),
+    }),
+    roundTrip({
       group: 'c++',
       name: 'cyclic mixed',
-      run: () => attempt(() => RoundTripCxx.echoMixed(cyclic)),
+      description:
+        'Sends an object that contains itself, which the C++ module must reject.',
+      input: cyclic,
+      run: (value) => attempt(() => RoundTripCxx.echoMixed(value)),
       expected: { message: "echoMixed can't copy a cyclic value" },
-    },
-    {
+    }),
+    roundTrip({
       group: 'c++',
       name: 'mixed nesting limit',
-      run: () => [
-        RoundTripCxx.echoMixed(nested(256)),
-        attempt(() => RoundTripCxx.echoMixed(nested(257))),
+      description:
+        'Sends arrays nested 256 and 257 deep; the C++ module copies the first and rejects the second.',
+      input: [nested(256), nested(257)] as const,
+      run: ([accepted, rejected]) => [
+        RoundTripCxx.echoMixed(accepted),
+        attempt(() => RoundTripCxx.echoMixed(rejected)),
       ],
       expected: [
         nested(256),
         { message: 'echoMixed accepts values nested at most 256 deep' },
       ],
-    },
-    {
+    }),
+    roundTrip({
       group: 'c++',
       name: 'write and read bytes',
-      run: async () => ({
-        written: await RoundTripCxx.writeBytes(bytesPath, byteRange()),
+      description:
+        'Has the C++ module write 256 bytes to a file on a background thread, then read them back.',
+      input: byteRange(),
+      run: async (bytes) => ({
+        written: await RoundTripCxx.writeBytes(bytesPath, bytes),
         read: await RoundTripCxx.readBytes(bytesPath),
       }),
       expected: { written: 256, read: byteRange() },
-    },
-    {
+    }),
+    roundTrip({
       group: 'c++',
       name: 'bytes copied at call',
-      run: async () => {
-        const bytes = byteRange();
-        const written = RoundTripCxx.writeBytes(bytesPath, bytes);
-        new Uint8Array(bytes).fill(0);
+      description:
+        'Overwrites a buffer right after asking the C++ module to write it, which must not change the file.',
+      input: byteRange(),
+      run: async (bytes) => {
+        const buffer = bytes.slice(0);
+        const written = RoundTripCxx.writeBytes(bytesPath, buffer);
+        new Uint8Array(buffer).fill(0);
         await written;
         return RoundTripCxx.readBytes(bytesPath);
       },
-      expected: byteRange(),
-    },
-    {
+    }),
+    roundTrip({
       group: 'c++',
       name: 'read missing file',
-      run: () => rejection(RoundTripCxx.readBytes(missingPath)),
+      description:
+        "Has the C++ module read a file that doesn't exist, which must fail.",
+      input: missingPath,
+      run: (path) => rejection(RoundTripCxx.readBytes(path)),
       expected: { message: `Could not read ${missingPath}` },
-    },
+    }),
   ];
 }
