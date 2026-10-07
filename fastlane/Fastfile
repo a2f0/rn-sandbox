@@ -31,16 +31,22 @@ skip_docs
 
 # match installs the distribution certificate into a throwaway keychain, not
 # the login keychain, so nothing prompts for a keychain password or outlives
-# the lane. The app has no nested targets, so codesign only needs to be pointed
-# at it (ios_build_xcargs); the default keychain stays as it is.
+# the lane. SigningKeychain puts it first in the keychain search list, ahead of
+# any copy of the identity in a login keychain that's locked, as over SSH. The
+# app has no nested targets, so codesign only needs to be pointed at it
+# (ios_build_xcargs); the default keychain stays as it is.
 def with_signing_keychain(&)
   create = lambda do |name, password|
     create_keychain(
       name: name, password: password, default_keychain: false, unlock: true,
-      timeout: 0, lock_when_sleeps: true, add_to_search_list: true, require_create: true
+      timeout: 0, lock_when_sleeps: true, add_to_search_list: false, require_create: true
     )
   end
-  SigningKeychain.with_temporary(create: create, delete: ->(name) { delete_keychain(name: name) }, &)
+  SigningKeychain.with_temporary(
+    create: create, delete: ->(name) { delete_keychain(name: name) },
+    security: ->(*args) { sh('security', *args, log: false) },
+    path: ->(name) { FastlaneCore::Helper.keychain_path(name) }, &
+  )
 end
 
 def ios_build_xcargs(build_number, team_id, keychain_name)

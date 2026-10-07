@@ -64,6 +64,16 @@ def android(work, create_bundle: true)
   [fastfile, aab, -> { password }]
 end
 
+# The security tool, as far as the keychain search list goes.
+def fake_security
+  search_list = ["/keychains/login.keychain-db"]
+  sh = lambda do |*args, **|
+    search_list = args.drop(args.index("-s") + 1) if args.include?("-s")
+    search_list.map { |path| "    \\"#{path}\\"\\n" }.join
+  end
+  [sh, -> { search_list }]
+end
+
 # iOS: TestFlight's latest build is 41; match names the profile as it does.
 def ios(work, fail_build: false)
   project = File.join(work, "sandbox.xcodeproj")
@@ -71,23 +81,31 @@ def ios(work, fail_build: false)
   FileUtils.mkdir_p(project)
   File.write(pbxproj, "original")
   during_build = nil
+  search_during_build = nil
+  security, search_list = fake_security
   fastfile = FakeFastfile.new(File.join(ARGV.fetch(0), "Fastfile"),
     app_store_connect_api_key: ->(**) { "api-key" },
     latest_testflight_build_number: ->(**) { 41 },
     cocoapods: ->(**) {},
     create_keychain: ->(**) {},
     delete_keychain: ->(**) {},
+    sh: security,
     match: ->(**) { ENV[PROFILE_ENV] = "match AppStore net.a2f0.sandbox.rn" },
     update_code_signing_settings: ->(path:, **) { File.write(File.join(path, "project.pbxproj"), "signed") },
     build_app: lambda do |**|
       during_build = File.read(pbxproj)
+      search_during_build = search_list.call
       raise "archive failed" if fail_build
 
       "/out/RNSandbox.ipa"
     end,
     upload_to_testflight: ->(**) {})
   fastfile.set_constant(:IOS_PROJECT, project)
-  [fastfile, -> { { during_build: during_build, after: File.read(pbxproj) } }]
+  project_and_search = lambda do
+    { during_build: during_build, after: File.read(pbxproj),
+      search_during_build: search_during_build, search_after: search_list.call }
+  end
+  [fastfile, project_and_search]
 end
 
 # A stand-in for the App Store Connect app, recording TestFlight group calls.
@@ -110,13 +128,13 @@ def create_app(app)
   Spaceship::ConnectAPI::App.finder = ->(_identifier) { app }
   FakeFastfile.new(File.join(ARGV.fetch(0), "Fastfile"),
     produce: ->(**) {}, app_store_connect_api_key: ->(**) { "api-key" },
-    create_keychain: ->(**) {}, delete_keychain: ->(**) {}, match: ->(**) {})
+    create_keychain: ->(**) {}, delete_keychain: ->(**) {}, match: ->(**) {}, sh: fake_security.first)
 end
 
 def run_profiles(options = {})
   fastfile = FakeFastfile.new(File.join(ARGV.fetch(0), "Fastfile"),
     app_store_connect_api_key: ->(**) { "api-key" },
-    create_keychain: ->(**) {}, delete_keychain: ->(**) {}, match: ->(**) {})
+    create_keychain: ->(**) {}, delete_keychain: ->(**) {}, match: ->(**) {}, sh: fake_security.first)
   fastfile.run_lane(:ios, :profiles, options)
   { match: fastfile.calls_to(:match), keychain: fastfile.calls_to(:create_keychain).first&.fetch(:name) }
 end
@@ -356,10 +374,16 @@ describe('ios lanes', () => {
         xcargs: `CURRENT_PROJECT_VERSION=42 DEVELOPMENT_TEAM=TEAM123 OTHER_CODE_SIGN_FLAGS=--keychain\\ /keychains/${keychain}-db`,
       }),
     ]);
-    // Manual signing applies only while the archive builds.
+    // Manual signing applies, and the signing keychain is searched first,
+    // only while the archive builds.
     expect(results.ios_build.project).toEqual({
       during_build: 'signed',
       after: 'original',
+      search_during_build: [
+        `/keychains/${keychain}-db`,
+        '/keychains/login.keychain-db',
+      ],
+      search_after: ['/keychains/login.keychain-db'],
     });
   });
 
@@ -368,10 +392,18 @@ describe('ios lanes', () => {
     expect(results.ios_override.latest_lookups).toBe(0);
   });
 
-  test('build_release restores the project when the archive fails', () => {
+  test('build_release restores the project and search list when the archive fails', () => {
     expect(results.ios_failed_build).toEqual({
       error: 'archive failed',
-      project: { during_build: 'signed', after: 'original' },
+      project: {
+        during_build: 'signed',
+        after: 'original',
+        search_during_build: [
+          expect.stringMatching(/^\/keychains\/rn-sandbox-fastlane-.+-db$/),
+          '/keychains/login.keychain-db',
+        ],
+        search_after: ['/keychains/login.keychain-db'],
+      },
     });
   });
 
