@@ -22,7 +22,6 @@ jobs:
         uses: mymindstorm/setup-emsdk@v16
         with:
           version: ${{ steps.emsdk.outputs.version }}
-          actions-cache-folder: emsdk-cache
       - run: npm ci
       - uses: oven-sh/setup-bun@v2.2.0
         with:
@@ -57,7 +56,6 @@ jobs:
         uses: mymindstorm/setup-emsdk@v16
         with:
           version: ${{ steps.emsdk.outputs.version }}
-          actions-cache-folder: emsdk-cache
       - run: npm ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
