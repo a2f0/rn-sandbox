@@ -19,7 +19,7 @@ jobs:
         id: emsdk
         run: echo "version=$(sed -n 's/^emsdk = "\(.*\)"$/\1/p' .mise.toml)" >> "$GITHUB_OUTPUT"
       - name: Install Emscripten
-        uses: mymindstorm/setup-emsdk@v16
+        uses: emscripten-core/setup-emsdk@v16
         with:
           version: ${{ steps.emsdk.outputs.version }}
       - run: npm ci
@@ -53,7 +53,7 @@ jobs:
         id: emsdk
         run: echo "version=$(sed -n 's/^emsdk = "\(.*\)"$/\1/p' .mise.toml)" >> "$GITHUB_OUTPUT"
       - name: Install Emscripten
-        uses: mymindstorm/setup-emsdk@v16
+        uses: emscripten-core/setup-emsdk@v16
         with:
           version: ${{ steps.emsdk.outputs.version }}
       - run: npm ci
@@ -62,7 +62,7 @@ jobs:
       - run: npm run test:web
       - name: Upload Playwright artifacts
         if: failure()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: playwright-artifacts
           path: artifacts/playwright/
@@ -121,7 +121,7 @@ jobs:
       - run: npx detox test --configuration ios.release.ci --record-videos all
       - name: Upload Detox artifacts
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: detox-artifacts-ios
           path: artifacts/
@@ -181,7 +181,7 @@ jobs:
           avd-name: rn-sandbox
       - name: Upload Detox artifacts
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: detox-artifacts-android
           path: artifacts/

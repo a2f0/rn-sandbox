@@ -87,9 +87,25 @@ codegen output after `pod install`.
 
 ### Performing Upgrades
 
+Use the shared `update-dependencies` skill, installed for Codex and Claude from
+the pinned agent-tool. The repository's `update-everything` skill adds its
+React Native upgrade gates. Select supported dependency groups: React and its
+renderers, Babel and Metro, Ruby and CocoaPods, and the Android toolchain.
+Registry peer ranges alone do not establish native compatibility.
+
 Use the [upgrade helper](https://react-native-community.github.io/upgrade-helper/)
 for diffs to make manual updates for files that failed during the automatic
 upgrade.
+
+The version-scoped Miniflare Sharp override fixes
+[GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
+The Markdown CLI overrides retain its supported YAML API and fix the TOML parser
+[GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
+Remove each override when its owning package resolves the patched dependency
+itself and the local Images binding and Markdown configuration tests still pass.
+`npm audit` also reports unresolved upstream advisories in React Native/Jest,
+Detox, and Markdown math dependencies; latest direct versions do not remove all
+findings. Dependency refreshes must record those remaining findings.
 
 ### Android
 
@@ -123,6 +139,7 @@ the browser gives WebAssembly no threads without cross-origin isolation.
 ```bash
 npm run web          # dev server
 npm run build:web    # production build in web/build
+npm run preview:deploy:web # build and bundle without deploying
 npm run deploy:web   # build and deploy to rn-sandbox.a2f0.net
 ```
 
@@ -132,6 +149,12 @@ npm run deploy:web   # build and deploy to rn-sandbox.a2f0.net
 <https://rn-sandbox.a2f0.net>. Wrangler attaches that custom domain on deploy;
 run `npx wrangler login` first, with the Cloudflare account that holds the
 a2f0.net zone.
+
+Always run the deployment preview first. Wrangler's dry run validates the
+bundle; also compare the live account, Worker, routes, bindings, resource IDs,
+and migrations before an authorized deploy. Skip an upgrade if it would delete
+or recreate resources, or its remote effects cannot be verified. Push and
+merge workflows run tests without deploying.
 
 ### Testing
 

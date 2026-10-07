@@ -20,6 +20,12 @@ npm installs the CLI in `node_modules/.bin`, which is not on `PATH`. Where the
 skills run `agent-tool <arguments>`, run `npm run -s agent-tool -- <arguments>`
 instead. npm keeps empty arguments, so this also works for `pr merge ''`.
 
+Use the shared `update-dependencies` skill for dependency refreshes, including
+compatibility checks, advisories, and non-destructive deployment previews.
+Its canonical Markdown is excluded from the local Markdown style checker;
+`agents:check` verifies both installed copies instead. Repository-owned skills
+still run through `lint:md`.
+
 The React Native skills, `rn-upgrade-executor` and `update-everything`, live in
 `.agents/skills`, and `.claude/skills` links to them. Use them for React Native
 upgrades and broad dependency refreshes.

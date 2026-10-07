@@ -86,9 +86,13 @@ Run React Native upgrades using strict phases and hard pass/fail gates.
    - `package.json` `engines.node`
    - `Gemfile` / `Gemfile.lock` CocoaPods version
 
-1. Bump CocoaPods gem when a newer stable version exists:
+1. Bump CocoaPods gem when a newer supported stable version exists:
 
    - Check latest stable CocoaPods release (RubyGems).
+   - Check the target RN template, Ruby/Bundler support, and the CocoaPods gems'
+     dependency requirements before selecting a compatible version. Keep
+     framework-managed pods tied to React Native rather than updating them
+     independently. Follow `../update-dependencies/SKILL.md` for the full group.
    - Example check command: `gem list -r '^cocoapods$'`
    - Update `Gemfile` `gem 'cocoapods', '<version>'`.
    - Run `bundle update cocoapods` and commit `Gemfile` + `Gemfile.lock`.

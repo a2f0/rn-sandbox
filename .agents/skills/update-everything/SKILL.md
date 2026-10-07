@@ -14,6 +14,9 @@ then verify the upgrade is shippable.
 
 ## Skill Composition
 
+- Start with `../update-dependencies/SKILL.md` for the full dependency inventory,
+  supported compatibility groups, upstream migrations, advisory audits, and
+  infrastructure safety gates. Keep those gates throughout this workflow.
 - For any React Native version change (major, minor, patch), you MUST invoke
   `../rn-upgrade-executor/SKILL.md` first.
 - `update-everything` is blocked until `rn-upgrade-executor` completes its
@@ -129,3 +132,6 @@ npm ls react-native react @react-native-community/cli --depth=0
   upgrade debugging fast.
 - If toolchain support is ambiguous for the target RN version, call out
   uncertainty explicitly and stop before risky guesswork.
+- Preserve compatible React/renderer, Babel/Metro, Ruby/CocoaPods, and Android
+  toolchain release lines when newer individual dependencies lack framework
+  support. Report the constrained candidates and remaining upstream warnings.
