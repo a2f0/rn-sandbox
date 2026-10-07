@@ -1,6 +1,28 @@
 import 'fake-indexeddb/auto';
 import { fullSample, sparseSample } from '../src/roundTrip/fixtures';
 
+type Locks = { request<T>(name: string, task: () => Promise<T>): Promise<T> };
+const nav = navigator as { locks?: Locks };
+
+// Node 24 has the Web Locks API; Node 22 doesn't. Stand in with one lock
+// manager for every load, as a browser has one for all of a site's tabs.
+if (!nav.locks) {
+  const held = new Map<string, Promise<unknown>>();
+  const locks: Locks = {
+    request(name, task) {
+      const run = (held.get(name) ?? Promise.resolve())
+        .catch(() => {})
+        .then(task);
+      held.set(name, run);
+      return run;
+    },
+  };
+  Object.defineProperty(navigator, 'locks', {
+    value: locks,
+    configurable: true,
+  });
+}
+
 type Cxx = typeof import('../web/cxx');
 type Modules = {
   cxx: Cxx;
@@ -105,6 +127,7 @@ test('overlapping writes from two tabs keep both files', async () => {
 
 test('keeps files in memory without Web Locks', async () => {
   const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  const locks = Object.getOwnPropertyDescriptor(navigator, 'locks');
   Object.defineProperty(navigator, 'locks', {
     value: undefined,
     configurable: true,
@@ -121,7 +144,11 @@ test('keeps files in memory without Web Locks', async () => {
       'Web Locks are unavailable; files stay in memory.',
     );
   } finally {
-    delete (navigator as { locks?: unknown }).locks;
+    if (locks) {
+      Object.defineProperty(navigator, 'locks', locks);
+    } else {
+      delete nav.locks;
+    }
     warn.mockRestore();
   }
   // Not saved, so a new load doesn't have it.
