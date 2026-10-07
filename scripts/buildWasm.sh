@@ -26,7 +26,8 @@ if ! command -v em++ >/dev/null 2>&1; then
 fi
 
 mkdir -p "$out"
-# IDBFS persists the file system to IndexedDB (web/files.ts).
+# IDBFS persists the file system to IndexedDB (web/cxx.ts). --emit-tsd writes
+# relative to the output, so the declarations land beside the module.
 em++ web/wasm/RoundTripCxxWasm.cpp \
   -I shared \
   -std=c++20 \

@@ -1,4 +1,4 @@
-import { cxx, writeStamped } from './cxx';
+import { cxx, removeStamped, writeStamped } from './cxx';
 
 // Sample files for web/RoundTripModule.ts, in the WebAssembly module's file
 // system (web/cxx.ts), where the C++ module reads and writes too. Run them in
@@ -20,6 +20,6 @@ export function removeFile(path: string): boolean {
   if (!FS.analyzePath(path, false).exists) {
     return false;
   }
-  FS.unlink(path);
+  removeStamped(path, () => FS.unlink(path));
   return true;
 }

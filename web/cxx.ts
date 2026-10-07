@@ -85,16 +85,29 @@ export async function withFiles<T>(operation: () => T): Promise<T> {
 }
 
 // IDBFS saves only files whose modification time changed, compared in
-// milliseconds, so a write gives path a time later than its last one, even
-// within the same millisecond. Writes run in withFiles, after the latest
-// saved files load.
-export function writeStamped<T>(path: string, write: () => T): T {
+// milliseconds, so each write gives its file a time later than any it had,
+// even within the same millisecond, and even if it was deleted in between.
+// Writes and deletes run in withFiles, after the latest saved files load.
+const times = new Map<string, number>();
+
+function lastTime(path: string): number {
   const { FS } = cxx();
-  const previous = FS.analyzePath(path, false).exists
+  const current = FS.analyzePath(path, false).exists
     ? FS.stat(path, false).mtime.getTime()
     : 0;
+  return Math.max(current, times.get(path) ?? 0);
+}
+
+export function writeStamped<T>(path: string, write: () => T): T {
+  const previous = lastTime(path);
   const result = write();
   const time = Math.max(Date.now(), previous + 1);
-  FS.utime(path, time, time, false);
+  cxx().FS.utime(path, time, time, false);
+  times.set(path, time);
   return result;
+}
+
+export function removeStamped<T>(path: string, remove: () => T): T {
+  times.set(path, lastTime(path));
+  return remove();
 }

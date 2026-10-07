@@ -184,6 +184,27 @@ test('a rewrite in the same millisecond is saved', async () => {
   }
 });
 
+test('a tab sees a sample deleted and recreated in one millisecond', async () => {
+  const now = jest.spyOn(Date, 'now').mockReturnValue(Date.UTC(2026, 9, 8));
+  try {
+    const creator = await loadModules();
+    await creator.roundTrip.writeSample('again', sparseSample);
+    const reader = await loadModules();
+    await expect(reader.roundTrip.readSample('again')).resolves.toEqual(
+      sparseSample,
+    );
+    // Another tab replaces it, still within the same millisecond.
+    const replacer = await loadModules();
+    await replacer.roundTrip.deleteFile('again');
+    await replacer.roundTrip.writeSample('again', fullSample);
+    await expect(reader.roundTrip.readSample('again')).resolves.toEqual(
+      fullSample,
+    );
+  } finally {
+    now.mockRestore();
+  }
+});
+
 test('a deleted sample stays deleted after a new load', async () => {
   const first = await loadModules();
   await first.roundTrip.writeSample('removed', fullSample);
