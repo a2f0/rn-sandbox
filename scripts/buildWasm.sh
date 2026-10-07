@@ -13,18 +13,11 @@ cd "$(dirname "$0")/.."
 
 out=web/wasm/build
 module="$out/roundTripCxx.js"
-sources="shared/RoundTripCxxCore.h web/wasm/RoundTripCxxWasm.cpp scripts/buildWasm.sh"
 
-if [ -f "$module" ]; then
-  stale=
-  for source in $sources; do
-    if [ "$source" -nt "$module" ]; then
-      stale=1
-    fi
-  done
-  if [ -z "$stale" ]; then
-    exit 0
-  fi
+# find -newer lists the sources changed since the last build.
+if [ -f "$module" ] && [ -z "$(find shared/RoundTripCxxCore.h \
+  web/wasm/RoundTripCxxWasm.cpp scripts/buildWasm.sh -newer "$module")" ]; then
+  exit 0
 fi
 
 if ! command -v em++ >/dev/null 2>&1; then
