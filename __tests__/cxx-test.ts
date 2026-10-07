@@ -1,4 +1,5 @@
 import 'fake-indexeddb/auto';
+import { fullSample } from '../src/roundTrip/fixtures';
 
 type Cxx = typeof import('../web/cxx');
 type Modules = {
@@ -68,9 +69,70 @@ test('a tab loaded earlier keeps and sees files another tab saved', async () => 
   expect(await bytesOf(later, '/roundtrip/earlier.bin')).toEqual([2]);
 });
 
+test('overlapping writes from two tabs keep both files', async () => {
+  const first = await loadModules();
+  const second = await loadModules();
+  // Hold the second tab's save back, so the first tab writes meanwhile.
+  // Unless the lock makes the first tab wait, the second tab's save then
+  // copies its files, which lack the first tab's, over IndexedDB.
+  const { FS } = second.cxx.cxx();
+  const syncfs = FS.syncfs.bind(FS);
+  FS.syncfs = (populate: boolean, callback: (error: unknown) => void) =>
+    populate
+      ? syncfs(populate, callback)
+      : setTimeout(() => syncfs(populate, callback), 100);
+
+  const secondWrite = second.roundTrip.writeSample('second', fullSample);
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  const firstWrite = first.roundTripCxx.writeBytes(
+    '/roundtrip/first.bin',
+    Uint8Array.of(3).buffer,
+  );
+  await Promise.all([secondWrite, firstWrite]);
+
+  const later = await loadModules();
+  expect(
+    Array.from(
+      new Uint8Array(
+        await later.roundTripCxx.readBytes('/roundtrip/first.bin'),
+      ),
+    ),
+  ).toEqual([3]);
+  await expect(later.roundTrip.readSample('second')).resolves.toEqual(
+    fullSample,
+  );
+});
+
+test('keeps files in memory without Web Locks', async () => {
+  const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  Object.defineProperty(navigator, 'locks', {
+    value: undefined,
+    configurable: true,
+  });
+  try {
+    const { cxx, filesDirectory, withFiles } = (await loadModules()).cxx;
+    await withFiles(() =>
+      cxx().FS.writeFile(`${filesDirectory}/unlocked.bin`, Uint8Array.of(5)),
+    );
+    expect(
+      Array.from(cxx().FS.readFile(`${filesDirectory}/unlocked.bin`)),
+    ).toEqual([5]);
+    expect(warn).toHaveBeenCalledWith(
+      'Web Locks are unavailable; files stay in memory.',
+    );
+  } finally {
+    delete (navigator as { locks?: unknown }).locks;
+    warn.mockRestore();
+  }
+  // Not saved, so a new load doesn't have it.
+  const later = await loadModules();
+  await expect(
+    later.roundTripCxx.readBytes('/roundtrip/unlocked.bin'),
+  ).rejects.toThrow('Could not read /roundtrip/unlocked.bin');
+});
+
 test('a deleted sample stays deleted after a new load', async () => {
   const first = await loadModules();
-  const { fullSample } = require('../src/roundTrip/fixtures');
   await first.roundTrip.writeSample('removed', fullSample);
   expect(await first.roundTrip.deleteFile('removed')).toBe(true);
 
