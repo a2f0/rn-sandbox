@@ -81,4 +81,5 @@ branch protection requires the `code-quality (20)`, `detox-android (20)`, and
 `detox-macos (20, 3.3)` checks to pass on a head that contains the latest
 `main`. Integrate an updated base with a normal merge. `detox-macos` takes
 about 10 minutes. If the same job fails three times in a row, stop and report
-it. Merging deploys nothing.
+it. Merging deploys nothing: the fastlane lanes ship the store builds, and
+`npm run deploy:web` the web build (see the README).
