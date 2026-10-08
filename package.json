@@ -13,11 +13,12 @@
     "preview:web": "vite preview",
     "preview:deploy:web": "npm run build:web && wrangler deploy --dry-run",
     "deploy:web": "npm run build:web && wrangler deploy",
+    "auth:provision": "node scripts/auth/provision.mjs",
     "lint": "biome check .",
     "lint:md": "npm run -s test:markdownlint && markdownlint --dot \"**/*.md\" --ignore-path .gitignore --ignore .git --ignore vendor --ignore .agents/skills/update-dependencies --ignore .claude/skills/update-dependencies",
     "lint:shell": "shellcheck -x scripts/*.sh scripts/*/*.sh",
     "start": "react-native start",
-    "test": "npm run -s build:wasm && jest",
+    "test": "npm run -s build:wasm && jest && node --test scripts/auth/*.test.mjs",
     "test:web": "playwright test",
     "prepare": "husky && sh scripts/ensureGradleWrapper.sh --optional",
     "agent-tool": "agent-tool",
@@ -26,6 +27,11 @@
     "test:markdownlint": "node --test scripts/checks/markdownlintConfig.test.mjs"
   },
   "dependencies": {
+    "@firebase/app": "0.16.2",
+    "@firebase/auth": "1.13.6",
+    "@invertase/react-native-apple-authentication": "2.5.1",
+    "@react-native-google-signin/google-signin": "16.1.5",
+    "prop-types": "15.8.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-native": "0.87.1",
@@ -72,7 +78,8 @@
     "unrs-resolver@1.12.2": true,
     "dtrace-provider": false,
     "esbuild": false,
-    "workerd": false
+    "workerd": false,
+    "@firebase/util": false
   },
   "overrides": {
     "markdownlint-cli@0.49.1": {

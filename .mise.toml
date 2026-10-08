@@ -11,3 +11,5 @@ shellcheck = "0.11.0"
 # CI reads this version too.
 emsdk = "6.0.11"
 bun = "1.4.2"
+# Provisions Firebase Authentication (infra/auth, scripts/auth/provision.sh).
+terraform = "1.16.4"

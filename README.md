@@ -22,8 +22,10 @@ bundle exec pod install
 
 [mise](https://mise.jdx.dev/) reads Ruby and Node versions from `.ruby-version`
 and `.nvmrc`, which CI also uses; `.mise.toml` adds Gradle (for the wrapper
-jar), [ShellCheck](https://www.shellcheck.net/), [Bun](https://bun.sh/), and
-[Emscripten](https://emscripten.org/) (for the web build of the C++ module).
+jar), [ShellCheck](https://www.shellcheck.net/), [Bun](https://bun.sh/),
+[Emscripten](https://emscripten.org/) (for the web build of the C++ module),
+and [Terraform](https://developer.hashicorp.com/terraform) (for
+[Sign-in](#sign-in)).
 CI installs ShellCheck from the system package manager, and Emscripten at the
 version in `.mise.toml`.
 
@@ -171,6 +173,82 @@ assets and configuration; also compare the live account, Worker, routes,
 bindings, resource IDs, and migrations before an authorized deploy. Skip an
 upgrade if it would delete or recreate resources, or its remote effects cannot
 be verified. Push and merge workflows run tests without deploying.
+
+### Sign-in
+
+The app signs in with Google or Apple through
+[Firebase Authentication](https://firebase.google.com/docs/auth) with
+Identity Platform, and shows who's signed in above the round-trip cases:
+
+- **iOS:** native Google Sign-In
+  ([`@react-native-google-signin/google-signin`](https://github.com/react-native-google-signin/google-signin))
+  and Sign in with Apple
+  ([`@invertase/react-native-apple-authentication`](https://github.com/invertase/react-native-apple-authentication)).
+- **Android:** native Google Sign-In. Apple has no Android SDK, so Sign in with
+  Apple runs Apple's web flow in a WebView, through the Services ID.
+- **Web:** Firebase's popups for both.
+
+On iOS and Android, `src/auth/session.ts` hands the provider's ID token to
+Firebase; the web uses `src/auth/session.web.ts`. The native session is kept in
+memory, so relaunching the app signs out. Until `src/auth/config.json` holds a
+provisioned project, the bar says sign-in isn't set up.
+
+#### Provisioning
+
+`npm run auth:provision` (`scripts/auth/provision.mjs`) sets up the backend and
+writes the app's config:
+
+1. Terraform (`infra/auth`) creates the `a2f0-rn-sandbox` Google Cloud project,
+   Firebase, Identity Platform and its authorized domains, and the iOS,
+   Android, and web Firebase apps. Its state is in the a2f0.net stack's S3
+   bucket. The Android app lists the SHA-1s of the keys that sign it: Google
+   Play's app signing key, the upload key, and one Mac's debug keystore. Add
+   others to `android_sha1_hashes` in `infra/auth/variables.tf`.
+2. The Firebase CLI turns on Google sign-in, which creates the OAuth consent
+   screen and client IDs. They have no public API.
+3. The Identity Platform API turns on Apple sign-in with the Sign in with Apple
+   key, which Terraform's resource can't take.
+4. It writes `src/auth/config.json`, and adds Google's reversed iOS client ID to
+   `ios/sandbox/Info.plist` as a URL scheme. Commit both, then rebuild.
+
+It reads AWS credentials from `.secrets/root.env`, and the billing account from
+`RN_SANDBOX_GCP_BILLING_ACCOUNT` in `.secrets/rn-sandbox.env`, or uses your only
+open one. Identity Platform needs billing; its free tier covers the sandbox.
+Set `TF_VAR_project_id` if the project ID is taken.
+
+One-time steps that have no API:
+
+1. Log in to Google Cloud as the account that should own the project. Its email
+   becomes the consent screen's support email.
+
+   ```bash
+   gcloud auth login
+   gcloud auth application-default login
+   ```
+
+2. In the Apple Developer portal's
+   [Identifiers](https://developer.apple.com/account/resources/identifiers/list/serviceId),
+   register the Services ID `net.a2f0.sandbox.rn.signin`. Enable Sign in with
+   Apple and configure it with the primary App ID `net.a2f0.sandbox.rn`, the
+   domain `a2f0-rn-sandbox.firebaseapp.com`, and the return URL
+   `https://a2f0-rn-sandbox.firebaseapp.com/__/auth/handler`.
+3. Under [Keys](https://developer.apple.com/account/resources/authkeys/list),
+   create a key with Sign in with Apple for the same App ID. Save it as
+   `.secrets/AuthKey_<key ID>.p8`, and add
+   `RN_SANDBOX_APPLE_SIGN_IN_KEY_ID=<key ID>` to `.secrets/rn-sandbox.env`.
+
+Then run `npm run auth:provision`. Until steps 2 and 3 are done, Apple sign-in
+works on iOS only; run it again after them.
+
+The App ID already has the Sign in with Apple capability, set through the App
+Store Connect API, and the match App Store profile includes it. After changing
+`infra/auth`, check it:
+
+```bash
+terraform fmt -check -recursive infra
+terraform -chdir=infra/auth init -backend=false
+terraform -chdir=infra/auth validate
+```
 
 ### Testing
 
