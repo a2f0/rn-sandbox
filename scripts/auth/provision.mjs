@@ -19,6 +19,8 @@ import {
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { appConfig, parseEnv, plistString } from './appConfig.mjs';
+import { configureApple } from './apple.mjs';
+import { googleApi } from './googleApi.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../..');
 const secretsDir =
@@ -70,25 +72,6 @@ function gcloudToken() {
   }
 }
 
-async function googleApi(method, url, project, body) {
-  const response = await fetch(url, {
-    method,
-    headers: {
-      authorization: `Bearer ${gcloudToken()}`,
-      'content-type': 'application/json',
-      // Bills the request's quota to the project, as user credentials need.
-      'x-goog-user-project': project,
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  if (response.status === 404) return null;
-  const text = await response.text();
-  if (!response.ok) {
-    fail(`${method} ${url} returned ${response.status}: ${text}`);
-  }
-  return text ? JSON.parse(text) : {};
-}
-
 // --- Credentials
 
 step('Checking credentials');
@@ -107,8 +90,9 @@ const root = readSecrets('root.env');
 const sandbox = readSecrets('rn-sandbox.env');
 // The Terraform state is in S3, with the a2f0.net stack's.
 for (const name of ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']) {
-  process.env[name] ??= root[name];
-  if (!process.env[name]) fail(`${name} is missing from .secrets/root.env.`);
+  const value = process.env[name] || root[name];
+  if (!value) fail(`${name} is missing from .secrets/root.env.`);
+  process.env[name] = value;
 }
 
 let billingAccount =
@@ -151,6 +135,7 @@ const project = outputs.project_id.value;
 const firebase = outputs.firebase_config.value;
 const identityPlatform = `https://identitytoolkit.googleapis.com/admin/v2/projects/${project}/defaultSupportedIdpConfigs`;
 const authHandler = `https://${firebase.authDomain}/__/auth/handler`;
+const api = googleApi({ project, token: gcloudToken });
 
 // --- Google
 
@@ -193,11 +178,7 @@ try {
 } finally {
   rmSync(firebaseDir, { recursive: true, force: true });
 }
-const google = await googleApi(
-  'GET',
-  `${identityPlatform}/google.com`,
-  project,
-);
+const google = await api('GET', `${identityPlatform}/google.com`);
 if (!google?.clientId) fail('Google sign-in has no OAuth client.');
 
 // --- Apple
@@ -206,49 +187,14 @@ step('Turning on Apple sign-in');
 const keyId = sandbox.RN_SANDBOX_APPLE_SIGN_IN_KEY_ID;
 const keyPath = keyId ? join(secretsDir, `AuthKey_${keyId}.p8`) : null;
 const hasKey = keyPath !== null && existsSync(keyPath);
-const existingApple = await googleApi(
-  'GET',
-  `${identityPlatform}/apple.com`,
-  project,
-);
-const appleConfig = {
-  enabled: true,
-  clientId: APPLE_SERVICES_ID,
-  appleSignInConfig: {
-    // Native iOS sign-in's tokens are for the app's bundle ID.
-    bundleIds: [APP_ID],
-    // The web and Android sign in through the Services ID, whose code Firebase
-    // exchanges with a client secret it signs with this key.
-    ...(hasKey && {
-      codeFlowConfig: {
-        teamId: APPLE_TEAM_ID,
-        keyId,
-        privateKey: readFileSync(keyPath, 'utf8'),
-      },
-    }),
-  },
-};
-if (existingApple) {
-  // Without the key here, leave the one the project has in place.
-  const fields = hasKey
-    ? 'enabled,clientId,appleSignInConfig'
-    : 'enabled,clientId,appleSignInConfig.bundleIds';
-  await googleApi(
-    'PATCH',
-    `${identityPlatform}/apple.com?updateMask=${fields}`,
-    project,
-    appleConfig,
-  );
-} else {
-  await googleApi(
-    'POST',
-    `${identityPlatform}?idpId=apple.com`,
-    project,
-    appleConfig,
-  );
-}
-const appleOnWeb =
-  hasKey || Boolean(existingApple?.appleSignInConfig?.codeFlowConfig?.keyId);
+const appleOnWeb = await configureApple({
+  api,
+  identityPlatform,
+  appId: APP_ID,
+  teamId: APPLE_TEAM_ID,
+  servicesId: APPLE_SERVICES_ID,
+  key: hasKey ? { id: keyId, privateKey: readFileSync(keyPath, 'utf8') } : null,
+});
 if (!appleOnWeb) {
   console.warn(
     'No Sign in with Apple key yet, so Apple sign-in works on iOS only. See the README.',
@@ -258,10 +204,9 @@ if (!appleOnWeb) {
 // --- App config
 
 step('Writing the app config');
-const iosApp = await googleApi(
+const iosApp = await api(
   'GET',
   `https://firebase.googleapis.com/v1beta1/projects/${project}/iosApps/${outputs.apple_app_id.value}/config`,
-  project,
 );
 if (!iosApp?.configFileContents) fail('The iOS app has no Firebase config.');
 const iosPlist = Buffer.from(iosApp.configFileContents, 'base64').toString(
