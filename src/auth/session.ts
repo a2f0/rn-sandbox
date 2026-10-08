@@ -56,10 +56,12 @@ export async function signIn(provider: Provider): Promise<void> {
   if (credential) await signInWithCredential(auth, credential);
 }
 
+// Signs out of Firebase first, so a failure clearing Google's own session
+// can't leave the app signed in.
 export async function signOut(): Promise<void> {
-  if (googleSupported) await GoogleSignin.signOut();
   const auth = firebaseAuth();
   if (auth) await firebaseSignOut(auth);
+  if (googleSupported) await GoogleSignin.signOut();
 }
 
 async function googleCredential(): Promise<AuthCredential | null> {

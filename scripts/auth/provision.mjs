@@ -206,6 +206,11 @@ step('Turning on Apple sign-in');
 const keyId = sandbox.RN_SANDBOX_APPLE_SIGN_IN_KEY_ID;
 const keyPath = keyId ? join(secretsDir, `AuthKey_${keyId}.p8`) : null;
 const hasKey = keyPath !== null && existsSync(keyPath);
+const existingApple = await googleApi(
+  'GET',
+  `${identityPlatform}/apple.com`,
+  project,
+);
 const appleConfig = {
   enabled: true,
   clientId: APPLE_SERVICES_ID,
@@ -223,10 +228,14 @@ const appleConfig = {
     }),
   },
 };
-if (await googleApi('GET', `${identityPlatform}/apple.com`, project)) {
+if (existingApple) {
+  // Without the key here, leave the one the project has in place.
+  const fields = hasKey
+    ? 'enabled,clientId,appleSignInConfig'
+    : 'enabled,clientId,appleSignInConfig.bundleIds';
   await googleApi(
     'PATCH',
-    `${identityPlatform}/apple.com?updateMask=enabled,clientId,appleSignInConfig`,
+    `${identityPlatform}/apple.com?updateMask=${fields}`,
     project,
     appleConfig,
   );
@@ -238,7 +247,9 @@ if (await googleApi('GET', `${identityPlatform}/apple.com`, project)) {
     appleConfig,
   );
 }
-if (!hasKey) {
+const appleOnWeb =
+  hasKey || Boolean(existingApple?.appleSignInConfig?.codeFlowConfig?.keyId);
+if (!appleOnWeb) {
   console.warn(
     'No Sign in with Apple key yet, so Apple sign-in works on iOS only. See the README.',
   );
@@ -260,7 +271,7 @@ const config = appConfig({
   firebase,
   googleWebClientId: google.clientId,
   iosPlist,
-  apple: hasKey
+  apple: appleOnWeb
     ? { servicesId: APPLE_SERVICES_ID, redirectUri: authHandler }
     : null,
 });
