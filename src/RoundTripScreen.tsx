@@ -9,42 +9,16 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SignInBar } from './auth/SignInBar';
 import { deepEqual } from './roundTrip/deepEqual';
 import { describe } from './roundTrip/describe';
 import { type RoundTripResult, runRoundTrips } from './roundTrip/run';
+import { type Colors, dark, light, monospace } from './theme';
 
 type Run =
   | { state: 'running' }
   | { state: 'done'; results: RoundTripResult[] }
   | { state: 'error'; message: string };
-
-const light = {
-  background: '#f6f7f9',
-  card: '#ffffff',
-  text: '#16181d',
-  muted: '#5e6573',
-  border: '#e2e5ea',
-  pass: '#1a7f37',
-  fail: '#cf222e',
-  note: '#9a6700',
-};
-
-const dark: typeof light = {
-  background: '#0f1115',
-  card: '#181b21',
-  text: '#e8eaee',
-  muted: '#9aa1ad',
-  border: '#2a2f38',
-  pass: '#4ac26b',
-  fail: '#ff7b72',
-  note: '#d29922',
-};
-
-const monospace = Platform.select({
-  ios: 'Menlo',
-  android: 'monospace',
-  default: 'ui-monospace, Menlo, monospace',
-});
 
 export function RoundTripScreen() {
   const colors = useColorScheme() === 'dark' ? dark : light;
@@ -139,6 +113,7 @@ export function RoundTripScreen() {
           <Text style={{ color: colors.text }}>Run again</Text>
         </Pressable>
       </View>
+      <SignInBar colors={colors} />
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}>
         {sorted.map((result) => (
           <ResultRow
@@ -159,7 +134,7 @@ function ResultRow({
   colors,
 }: {
   result: RoundTripResult;
-  colors: typeof light;
+  colors: Colors;
 }) {
   const [open, setOpen] = useState(!result.passed);
   const testID = `roundtrip-case-${result.group}-${result.name}`;
@@ -249,7 +224,7 @@ function Value({
 }: {
   label: string;
   value: string;
-  colors: typeof light;
+  colors: Colors;
 }) {
   return (
     <View style={styles.labeled}>
