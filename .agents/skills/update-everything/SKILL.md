@@ -12,6 +12,11 @@ description: >
 Update dependencies and platform/toolchain configuration for `rn-sandbox`,
 then verify the upgrade is shippable.
 
+Read [Dependency upgrades](../../../docs/dependency-upgrades.md) for active
+constraints. Keep reusable workflow and current constraints there; put this
+run's version inventory, audit, validation, and preview evidence in its PR.
+Update obsolete guidance instead of appending upgrade journals to README or docs.
+
 Use the pinned `agent:run` harness for noisy finite setup, validation, and build
 commands below. Inspect required warnings, timings, and artifacts through bounded
 `npm run -s agent-tool -- logs <log-path>` reads or targeted searches. Run
