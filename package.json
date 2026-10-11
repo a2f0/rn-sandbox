@@ -22,6 +22,7 @@
     "test:web": "playwright test",
     "prepare": "husky && sh scripts/ensureGradleWrapper.sh --optional",
     "agent-tool": "agent-tool",
+    "agent:run": "agent-tool run",
     "agents:sync": "agent-tool skills install --apply",
     "agents:check": "agent-tool skills check",
     "test:markdownlint": "node --test scripts/checks/markdownlintConfig.test.mjs"
@@ -39,7 +40,7 @@
     "react-native-web": "0.21.3"
   },
   "devDependencies": {
-    "@a2f0/agent-tool": "0.1.10",
+    "@a2f0/agent-tool": "0.1.11",
     "@babel/core": "7.29.7",
     "@babel/preset-env": "7.29.7",
     "@babel/runtime": "7.29.10",

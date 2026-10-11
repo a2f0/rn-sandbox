@@ -11,6 +11,11 @@ description: >
 
 Run React Native upgrades using strict phases and hard pass/fail gates.
 
+Use the pinned `agent:run` harness for noisy finite setup, validation, and build
+commands below. Inspect required warnings, timings, and artifacts through bounded
+`npm run -s agent-tool -- logs <log-path>` reads or targeted searches. Run
+interactive tools directly, and keep review verdicts and decision output visible.
+
 ## Phase 0: Baseline Snapshot
 
 1. Capture current versions and branch state:
@@ -53,7 +58,7 @@ Run React Native upgrades using strict phases and hard pass/fail gates.
 
 1. Regenerate and commit lockfile from pinned versions:
 
-   - Run `npm install --package-lock-only`.
+   - Run `npm run -s agent:run -- -- npm install --package-lock-only`.
    - Commit `package-lock.json` in a separate commit tied to the pin commit.
 
 1. Generate and review React Native Upgrade Helper diffs (required):
@@ -95,7 +100,8 @@ Run React Native upgrades using strict phases and hard pass/fail gates.
      independently. Follow `../update-dependencies/SKILL.md` for the full group.
    - Example check command: `gem list -r '^cocoapods$'`
    - Update `Gemfile` `gem 'cocoapods', '<version>'`.
-   - Run `bundle update cocoapods` and commit `Gemfile` + `Gemfile.lock`.
+   - Run `npm run -s agent:run -- -- bundle update cocoapods` and commit
+     `Gemfile` + `Gemfile.lock`.
    - If already at latest stable, note that explicitly in the PR summary.
 
 1. Align CI toolchain setup in `.github/workflows/main.yml`.
@@ -108,17 +114,17 @@ Run React Native upgrades using strict phases and hard pass/fail gates.
 Run in this order and stop on first failure:
 
 ```bash
-npm run lint
-npm run lint:shell
-npm run test
-npx detox build --configuration ios.release
-npx detox build --configuration android.release
+npm run -s agent:run -- -- npm run lint
+npm run -s agent:run -- -- npm run lint:shell
+npm run -s agent:run -- -- npm run test
+npm run -s agent:run -- -- npx detox build --configuration ios.release
+npm run -s agent:run -- -- npx detox build --configuration android.release
 ```
 
 For local Android emulator ABI mismatches, use:
 
 ```bash
-./scripts/detox-android-headless.sh
+npm run -s agent:run -- -- ./scripts/detox-android-headless.sh
 ```
 
 The helper script auto-selects ABI and config for arm64 local emulators.

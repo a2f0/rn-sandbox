@@ -12,6 +12,11 @@ description: >
 Update dependencies and platform/toolchain configuration for `rn-sandbox`,
 then verify the upgrade is shippable.
 
+Use the pinned `agent:run` harness for noisy finite setup, validation, and build
+commands below. Inspect required warnings, timings, and artifacts through bounded
+`npm run -s agent-tool -- logs <log-path>` reads or targeted searches. Run
+interactive tools directly, and keep review verdicts and decision output visible.
+
 ## Skill Composition
 
 - Start with `../update-dependencies/SKILL.md` for the full dependency inventory,
@@ -67,7 +72,7 @@ npm ls react-native react @react-native-community/cli --depth=0
    - Commit the lockfile separately:
 
    ```bash
-   npm install --package-lock-only
+   npm run -s agent:run -- -- npm install --package-lock-only
    git add package-lock.json
    git commit -m "chore(deps): refresh lockfile for pinned versions"
    ```
@@ -95,19 +100,19 @@ npm ls react-native react @react-native-community/cli --depth=0
 1. Reinstall platform dependencies as needed:
 
    ```bash
-   npm ci
-   bundle install
-   (cd ios && bundle exec pod install)
+   npm run -s agent:run -- -- npm ci
+   npm run -s agent:run -- -- bundle install
+   npm run -s agent:run -- -- sh -c 'cd ios && bundle exec pod install'
    ```
 
 1. Validate (repo test suite):
 
    ```bash
-   npm run lint
-   npm run lint:shell
-   npm run test
-   ./scripts/detox-ios-headless.sh --loglevel info
-   ./scripts/detox-android-headless.sh --loglevel info
+   npm run -s agent:run -- -- npm run lint
+   npm run -s agent:run -- -- npm run lint:shell
+   npm run -s agent:run -- -- npm run test
+   npm run -s agent:run -- -- ./scripts/detox-ios-headless.sh --loglevel info
+   npm run -s agent:run -- -- ./scripts/detox-android-headless.sh --loglevel info
    ```
 
    - If a headless Detox script fails, debug and rerun the same script until
@@ -115,8 +120,8 @@ npm ls react-native react @react-native-community/cli --depth=0
    - For quick isolation while debugging, you may run:
 
    ```bash
-   npx detox build --configuration ios.release
-   npx detox build --configuration android.release
+   npm run -s agent:run -- -- npx detox build --configuration ios.release
+   npm run -s agent:run -- -- npx detox build --configuration android.release
    ```
 
 1. Review and prepare PR:
