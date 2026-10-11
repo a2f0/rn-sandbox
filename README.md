@@ -29,25 +29,7 @@ and [Terraform](https://developer.hashicorp.com/terraform) (for
 CI installs ShellCheck from the system package manager, and Emscripten at the
 version in `.mise.toml`.
 
-Agent guidance is in [AGENTS.md](AGENTS.md). Shared shipping and review skills
-come from the [`@a2f0/agent-tool`](https://github.com/a2f0/agent-tool) dev
-dependency, whose CLI runs under Bun. The pre-push hook checks for binary
-files and runs the lint and agent checks.
-
-Agents can capture verbose checks with the pinned command harness:
-
-```bash
-npm run -s agent:run -- --label tests -- npm run test
-npm run -s agent:run -- --label web-tests -- npm run test:web
-npm run -s agent-tool -- logs /path/from/receipt/output.log
-```
-
-The harness preserves command exit status and saves full stdout and stderr in a
-private temporary log. Successful commands print a compact receipt; failures add
-a bounded excerpt. Inspect required warnings and artifacts with bounded log reads
-or targeted searches. Remove task logs after investigation. Keep review verdicts
-and structured decision output visible, and run interactive tools and persistent
-servers directly.
+Agent guidance and validation commands are in [AGENTS.md](AGENTS.md).
 
 ### No binary files
 
@@ -104,41 +86,8 @@ codegen output after `pod install`.
 
 ### Performing Upgrades
 
-Use the shared `update-dependencies` skill, installed for Codex and Claude from
-the pinned agent-tool. The repository's `update-everything` skill adds its
-React Native upgrade gates. Select supported dependency groups: React and its
-renderers, Babel and Metro, Ruby and CocoaPods, and the Android toolchain.
-Registry peer ranges alone do not establish native compatibility.
-
-Use the [upgrade helper](https://react-native-community.github.io/upgrade-helper/)
-for diffs to make manual updates for files that failed during the automatic
-upgrade.
-
-The version-scoped Miniflare Sharp override fixes
-[GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
-The Markdown CLI overrides retain its supported YAML API and fix the TOML parser
-[GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
-Markdownlint CLI merges explicit TOML configuration through `deep-extend`,
-which converts smol-toml 1.9's null-prototype tables into ordinary rule options.
-This preserves nested options, disabled rules, and warning severity without a
-library patch. `npm run test:markdownlint` tests the real npm-installed CLI with
-TOML, JSON, YAML, inherited configuration, and JavaScript class options;
-`lint:md` runs it before checking repository Markdown. The tests also exercise
-many flat TOML keys through the fixed parser. Keep this boundary tested when
-upgrading the CLI or replacing its configuration merger.
-
-Remove each override when its owning package resolves the patched dependency
-itself and the Miniflare Images emulator and Markdown configuration tests still
-pass. The application's Worker has no Images binding; the regression exercises
-the local emulator used by Wrangler.
-`npm audit` also reports unresolved upstream advisories in React Native/Jest,
-Detox, and Markdown math dependencies; latest direct versions do not remove all
-findings. Dependency refreshes must record those remaining findings.
-
-CI uses the officially transferred
-[emscripten-core/setup-emsdk](https://github.com/emscripten-core/setup-emsdk/releases/tag/v16)
-Action at the existing `v16` release, which documents the transfer from
-`mymindstorm/setup-emsdk`. Its Emscripten version still comes from `.mise.toml`.
+See [Dependency upgrades](docs/dependency-upgrades.md) for the upgrade workflow,
+compatibility gates, and security override removal conditions.
 
 ### Android
 

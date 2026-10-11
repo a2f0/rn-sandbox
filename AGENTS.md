@@ -39,6 +39,13 @@ repository's `update-everything` skill to add React Native gates and
 `rn-upgrade-executor` for a native version upgrade. These repository-owned
 skills live in `.agents/skills`, and `.claude/skills` links to them.
 
+Keep README focused on purpose, setup, and normal usage. Store reusable upgrade
+guidance and active compatibility or security constraints in
+[docs/dependency-upgrades.md](docs/dependency-upgrades.md), updating or removing
+obsolete guidance. Put each run's version inventory, audit findings, validation,
+and deployment preview evidence in its PR; do not accumulate upgrade journals in
+README or maintenance docs.
+
 ## Binary files
 
 Do not commit binary files. Generate them from text sources instead, as the app
