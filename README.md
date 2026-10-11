@@ -34,6 +34,21 @@ come from the [`@a2f0/agent-tool`](https://github.com/a2f0/agent-tool) dev
 dependency, whose CLI runs under Bun. The pre-push hook checks for binary
 files and runs the lint and agent checks.
 
+Agents can capture verbose checks with the pinned command harness:
+
+```bash
+npm run -s agent:run -- --label tests -- npm run test
+npm run -s agent:run -- --label web-tests -- npm run test:web
+npm run -s agent-tool -- logs /path/from/receipt/output.log
+```
+
+The harness preserves command exit status and saves full stdout and stderr in a
+private temporary log. Successful commands print a compact receipt; failures add
+a bounded excerpt. Inspect required warnings and artifacts with bounded log reads
+or targeted searches. Remove task logs after investigation. Keep review verdicts
+and structured decision output visible, and run interactive tools and persistent
+servers directly.
+
 ### No binary files
 
 Nothing binary is committed; the pre-push hook and CI reject it

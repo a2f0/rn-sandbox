@@ -20,6 +20,14 @@ npm installs the CLI in `node_modules/.bin`, which is not on `PATH`. Where the
 skills run `agent-tool <arguments>`, run `npm run -s agent-tool -- <arguments>`
 instead. npm keeps empty arguments, so this also works for `pr merge ''`.
 
+Capture noisy finite commands with `npm run -s agent:run -- --label <name> --
+<command> <arguments>`. The harness preserves exit status and full private logs,
+returning a compact receipt and a bounded failure excerpt. Inspect more evidence
+with `npm run -s agent-tool -- logs <log-path>` or a targeted search; review
+required warnings, timings, and artifacts before accepting a check. Keep review
+verdicts and structured decision output visible. Run interactive tools and
+persistent servers directly.
+
 Use the shared `update-dependencies` skill for dependency refreshes, including
 compatibility checks, advisories, and non-destructive deployment previews.
 Its canonical Markdown is excluded from the local Markdown style checker;
@@ -43,13 +51,15 @@ icons (`assets/*.svg`, `scripts/buildImages.sh`) and the Gradle wrapper jar
 Run these checks before shipping. The pre-push hook runs the binary file, lint,
 and agent checks; `lint:shell` needs ShellCheck.
 
-- `sh scripts/checks/checkBinaryFiles.sh`
-- `npm run lint`
-- `npm run lint:md`
-- `npm run lint:shell`
-- `npm run test` (builds the WebAssembly module, so needs Emscripten from mise)
-- `npm run test:web` (Playwright; needs `npx playwright install chromium`)
+- `npm run -s agent:run -- -- sh scripts/checks/checkBinaryFiles.sh`
+- `npm run -s agent:run -- -- npm run lint`
+- `npm run -s agent:run -- -- npm run lint:md`
+- `npm run -s agent:run -- -- npm run lint:shell`
+- `npm run -s agent:run -- -- npm run test` (builds WebAssembly; needs Emscripten)
+- `npm run -s agent:run -- -- npm run test:web` (Playwright; needs Chromium)
 - `npm run agents:check`
+
+Install Chromium with `npm run -s agent:run -- -- npx playwright install chromium`.
 
 The TurboModule specs in `specs/` have Kotlin, Objective-C++, C++, and
 TypeScript implementations; the C++ binds to JSI on iOS and Android and to
@@ -60,8 +70,8 @@ Changes to native code, native dependencies, React Native versions, or `specs/`
 also need a release Detox build for each affected platform:
 
 ```sh
-npx detox build --configuration ios.release
-npx detox build --configuration android.release
+npm run -s agent:run -- -- npx detox build --configuration ios.release
+npm run -s agent:run -- -- npx detox build --configuration android.release
 ```
 
 ## Pull requests
