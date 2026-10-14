@@ -5,7 +5,8 @@
 [React Native](https://reactnative.dev/) sandbox, created with
 `npx react-native init`. The app round-trips every data type that New
 Architecture TurboModules support through native code on iOS, Android, and web,
-including file I/O, and lists each case with its result. See
+including file I/O, and lists each case with its result. The web version is
+available at <https://rn-sandbox.a2f0.net>. See
 [Bridge round trip](#bridge-round-trip).
 
 ### Getting Started
