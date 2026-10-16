@@ -10,7 +10,10 @@ terraform {
 
   # State lives in this project's own Cloudflare R2 bucket (S3-compatible).
   # scripts/auth/provision.mjs maps the prod tier's TF_STATE_* credentials to
-  # the AWS variables the backend reads.
+  # the AWS variables the backend reads. The stack was never applied while its
+  # backend was the a2f0.net stack's AWS bucket, so there is no state to move:
+  # a working directory initialized against that bucket needs
+  # `init -reconfigure`, not `-migrate-state`.
   backend "s3" {
     bucket = "rn-sandbox-terraform-state"
     key    = "auth/terraform.tfstate"
