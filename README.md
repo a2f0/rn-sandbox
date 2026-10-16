@@ -165,10 +165,11 @@ writes the app's config:
 
 1. Terraform (`infra/auth`) creates the `a2f0-rn-sandbox` Google Cloud project,
    Firebase, Identity Platform and its authorized domains, and the iOS,
-   Android, and web Firebase apps. Its state is in the a2f0.net stack's S3
-   bucket. The Android app lists the SHA-1s of the keys that sign it: Google
-   Play's app signing key, the upload key, and one Mac's debug keystore. Add
-   others to `android_sha1_hashes` in `infra/auth/variables.tf`.
+   Android, and web Firebase apps. Its state is in this project's Cloudflare
+   R2 bucket, `rn-sandbox-terraform-state`. The Android app lists the SHA-1s
+   of the keys that sign it: Google Play's app signing key, the upload key,
+   and one Mac's debug keystore. Add others to `android_sha1_hashes` in
+   `infra/auth/variables.tf`.
 2. The Firebase CLI turns on Google sign-in, which creates the OAuth consent
    screen and client IDs. They have no public API.
 3. The Identity Platform API turns on Apple sign-in with the Sign in with Apple
@@ -176,10 +177,13 @@ writes the app's config:
 4. It writes `src/auth/config.json`, and adds Google's reversed iOS client ID to
    `ios/sandbox/Info.plist` as a URL scheme. Commit both, then rebuild.
 
-It reads AWS credentials from `.secrets/prod/shared.env`, and the billing
-account from `RN_SANDBOX_GCP_BILLING_ACCOUNT` in `.secrets/prod/app.env`, or
-uses your only open one. Identity Platform needs billing; its free tier covers
-the sandbox. Set `TF_VAR_project_id` if the project ID is taken.
+It reads the R2 state key, `TF_STATE_ACCESS_KEY_ID` and
+`TF_STATE_SECRET_ACCESS_KEY`, from `.secrets/prod/app.env` and passes it to
+Terraform alone, as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` without
+`AWS_PROFILE` or `AWS_SESSION_TOKEN`. It reads the billing account from
+`RN_SANDBOX_GCP_BILLING_ACCOUNT` in `.secrets/prod/app.env`, or uses your only
+open one. Identity Platform needs billing; its free tier covers the sandbox.
+Set `TF_VAR_project_id` if the project ID is taken.
 
 One-time steps that have no API:
 
@@ -271,9 +275,9 @@ managed and backed up from [a2f0/matrix](https://github.com/a2f0/matrix)
 (`docs/secrets.md`). `prod/` holds the App Store Connect API key, Google Play
 service account, Android upload key (`rn-sandbox-upload.keystore`),
 `shared.env` (fastlane match settings and other shared values), and `app.env`
-(this app's own, such as the upload key's password), which wins over
-`shared.env`. `RN_SANDBOX_SECRETS_DIR` names a folder to use instead of
-`.secrets/prod`.
+(this app's own, such as the upload key's password and the Terraform state
+key), which wins over `shared.env`. `RN_SANDBOX_SECRETS_DIR` names a folder to
+use instead of `.secrets/prod`.
 
 Lanes:
 

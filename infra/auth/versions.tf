@@ -8,12 +8,22 @@ terraform {
     }
   }
 
-  # The same bucket as the a2f0.net stack, under its own key. The state holds
-  # the Sign in with Apple private key.
+  # State lives in this project's own Cloudflare R2 bucket (S3-compatible).
+  # scripts/auth/provision.mjs maps the prod tier's TF_STATE_* credentials to
+  # the AWS variables the backend reads.
   backend "s3" {
-    bucket       = "resume-terraform"
-    key          = "rn-sandbox/auth/terraform.tfstate"
-    region       = "us-east-1"
-    use_lockfile = true
+    bucket = "rn-sandbox-terraform-state"
+    key    = "auth/terraform.tfstate"
+    region = "auto"
+    endpoints = {
+      s3 = "https://0be508e6c4caa573595c5f94e11900e4.r2.cloudflarestorage.com"
+    }
+    use_lockfile                = true
+    use_path_style              = true
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    skip_region_validation      = true
+    skip_requesting_account_id  = true
+    skip_s3_checksum            = true
   }
 }

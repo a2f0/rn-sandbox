@@ -1,5 +1,5 @@
 # Firebase Authentication with Identity Platform for the app on iOS, Android,
-# and the web. scripts/auth/provision.ts applies this, then turns on the Google
+# and the web. scripts/auth/provision.mjs applies this, then turns on the Google
 # and Apple providers, which Terraform can't fully configure, and writes the
 # app's config. See the README.
 
