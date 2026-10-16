@@ -65,7 +65,7 @@ yarn-error.log
 **/fastlane/test_output
 **/fastlane/README.md
 
-# Symlink to the shared store credentials (see README)
+# Symlink to this project's folder in ../matrix-secrets (see README)
 .secrets
 
 # Bundle artifact

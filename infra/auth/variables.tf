@@ -34,7 +34,7 @@ variable "android_sha1_hashes" {
   default = [
     # Google Play app signing key: Play re-signs the uploaded App Bundle.
     "ab2ab3d4bb1d224f95c21572e4aba466fc0752e1",
-    # Upload key (.secrets/rn-sandbox-upload.keystore).
+    # Upload key (.secrets/prod/rn-sandbox-upload.keystore).
     "acdce782cb90fefd9d3085e78f7927d5ca010b95",
     # This Mac's ~/.android/debug.keystore, which signs debug and local
     # release builds. Each machine's differs.
