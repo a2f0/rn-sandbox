@@ -1,7 +1,7 @@
 // Pure helpers for provision.mjs, tested in appConfig.test.mjs.
 
 // Reads KEY=value lines, optionally prefixed with export and quoted, as the
-// .secrets env files are written.
+// .secrets/prod env files (shared.env and app.env) are written.
 export function parseEnv(text) {
   const values = {};
   for (const line of text.split('\n')) {

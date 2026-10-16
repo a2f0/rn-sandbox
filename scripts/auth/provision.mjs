@@ -23,8 +23,11 @@ import { configureApple } from './apple.mjs';
 import { googleApi } from './googleApi.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../..');
+// .secrets links to this project's folder in matrix-secrets (see the README),
+// and this reads its prod tier. RN_SANDBOX_SECRETS_DIR names another tier
+// folder in place of .secrets/prod.
 const secretsDir =
-  process.env.RN_SANDBOX_SECRETS_DIR ?? join(repoRoot, '.secrets');
+  process.env.RN_SANDBOX_SECRETS_DIR ?? join(repoRoot, '.secrets/prod');
 const infraDir = join(repoRoot, 'infra/auth');
 const configPath = join(repoRoot, 'src/auth/config.json');
 const infoPlistPath = join(repoRoot, 'ios/sandbox/Info.plist');
@@ -86,17 +89,18 @@ try {
 const account = output('gcloud', ['config', 'get', 'account']);
 console.log(`Google account: ${account}`);
 
-const root = readSecrets('root.env');
-const sandbox = readSecrets('rn-sandbox.env');
+// shared.env holds values copied from the shared root, and app.env this
+// project's own, which win.
+const secrets = { ...readSecrets('shared.env'), ...readSecrets('app.env') };
 // The Terraform state is in S3, with the a2f0.net stack's.
 for (const name of ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']) {
-  const value = process.env[name] || root[name];
-  if (!value) fail(`${name} is missing from .secrets/root.env.`);
+  const value = process.env[name] || secrets[name];
+  if (!value) fail(`${name} is missing from .secrets/prod/shared.env.`);
   process.env[name] = value;
 }
 
 let billingAccount =
-  process.env.TF_VAR_billing_account ?? sandbox.RN_SANDBOX_GCP_BILLING_ACCOUNT;
+  process.env.TF_VAR_billing_account ?? secrets.RN_SANDBOX_GCP_BILLING_ACCOUNT;
 if (!billingAccount) {
   const accounts = output('gcloud', [
     'billing',
@@ -110,7 +114,7 @@ if (!billingAccount) {
     .map((name) => name.replace(/^billingAccounts\//, ''));
   if (accounts.length !== 1) {
     fail(
-      `Found ${accounts.length} open billing accounts. Set RN_SANDBOX_GCP_BILLING_ACCOUNT in .secrets/rn-sandbox.env.`,
+      `Found ${accounts.length} open billing accounts. Set RN_SANDBOX_GCP_BILLING_ACCOUNT in .secrets/prod/app.env.`,
     );
   }
   billingAccount = accounts[0];
@@ -184,7 +188,7 @@ if (!google?.clientId) fail('Google sign-in has no OAuth client.');
 // --- Apple
 
 step('Turning on Apple sign-in');
-const keyId = sandbox.RN_SANDBOX_APPLE_SIGN_IN_KEY_ID;
+const keyId = secrets.RN_SANDBOX_APPLE_SIGN_IN_KEY_ID;
 const keyPath = keyId ? join(secretsDir, `AuthKey_${keyId}.p8`) : null;
 const hasKey = keyPath !== null && existsSync(keyPath);
 const appleOnWeb = await configureApple({

@@ -25,7 +25,7 @@ PROFILE_ENV = "sigh_net.a2f0.sandbox.rn_appstore_profile-name"
 def write_secrets(secrets, android_password: true, keystore: true)
   SECRET_NAMES.each { |name| ENV.delete(name) }
   ENV.delete(PROFILE_ENV)
-  File.write(File.join(secrets, "root.env"), <<~ENV)
+  File.write(File.join(secrets, "shared.env"), <<~ENV)
     export APPLE_ID=developer@example.com
     export ITC_TEAM_ID=ITC123
     export APP_STORE_CONNECT_ISSUER_ID=issuer
@@ -34,7 +34,7 @@ def write_secrets(secrets, android_password: true, keystore: true)
     UNRELATED=ignored
   ENV
   File.write(File.join(secrets, "AuthKey_KEY123.p8"), "key")
-  File.write(File.join(secrets, "rn-sandbox.env"), android_password ? "RN_SANDBOX_ANDROID_KEYSTORE_PASS=upload-pass\\n" : "")
+  File.write(File.join(secrets, "app.env"), android_password ? "RN_SANDBOX_ANDROID_KEYSTORE_PASS=upload-pass\\n" : "")
   keystore ? File.write(KEYSTORE, "keystore") : FileUtils.rm_f(KEYSTORE)
 end
 
@@ -167,9 +167,19 @@ write_secrets(secrets)
 results[:create_app_missing_app] = create_app_result(create_app(nil), nil)
 
 write_secrets(secrets)
-File.write(File.join(secrets, "root.env"), File.read(File.join(secrets, "root.env")).sub(/^export APPLE_ID=.*\n/, ""))
+File.write(File.join(secrets, "shared.env"), File.read(File.join(secrets, "shared.env")).sub(/^export APPLE_ID=.*\n/, ""))
 app = FakeApp.new([])
 results[:create_app_no_apple_id] = create_app_result(create_app(app), app)
+
+# app.env is loaded after shared.env, so its values win.
+write_secrets(secrets)
+File.write(File.join(secrets, "app.env"), "APPLE_ID=app@example.com\\n", mode: "a")
+app = FakeApp.new([])
+results[:create_app_app_env] = create_app_result(create_app(app), app)
+
+write_secrets(secrets)
+FileUtils.rm_f(File.join(secrets, "shared.env"))
+results[:register_identifiers_no_shared_env] = { error: error_of { run_register_identifiers(nil) } }
 
 write_secrets(secrets)
 results[:profiles] = run_profiles
@@ -510,6 +520,19 @@ describe('ios lanes', () => {
       ['get_beta_groups', { name: 'Internal' }],
     ]);
     expect(results.create_app_existing_group.match).toHaveLength(1);
+  });
+
+  test('lanes read app.env after shared.env, so app.env wins', () => {
+    expect(results.create_app_app_env).toMatchObject({
+      error: null,
+      produce: [expect.objectContaining({ username: 'app@example.com' })],
+    });
+  });
+
+  test('lanes stop when a tier env file is missing', () => {
+    expect(results.register_identifiers_no_shared_env.error).toMatch(
+      /^Missing .+\/shared\.env\. Is the \.secrets symlink set up\?$/,
+    );
   });
 
   test('create_app stops before signing when setup fails', () => {

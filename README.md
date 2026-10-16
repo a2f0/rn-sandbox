@@ -176,10 +176,10 @@ writes the app's config:
 4. It writes `src/auth/config.json`, and adds Google's reversed iOS client ID to
    `ios/sandbox/Info.plist` as a URL scheme. Commit both, then rebuild.
 
-It reads AWS credentials from `.secrets/root.env`, and the billing account from
-`RN_SANDBOX_GCP_BILLING_ACCOUNT` in `.secrets/rn-sandbox.env`, or uses your only
-open one. Identity Platform needs billing; its free tier covers the sandbox.
-Set `TF_VAR_project_id` if the project ID is taken.
+It reads AWS credentials from `.secrets/prod/shared.env`, and the billing
+account from `RN_SANDBOX_GCP_BILLING_ACCOUNT` in `.secrets/prod/app.env`, or
+uses your only open one. Identity Platform needs billing; its free tier covers
+the sandbox. Set `TF_VAR_project_id` if the project ID is taken.
 
 One-time steps that have no API:
 
@@ -199,8 +199,8 @@ One-time steps that have no API:
    `https://a2f0-rn-sandbox.firebaseapp.com/__/auth/handler`.
 3. Under [Keys](https://developer.apple.com/account/resources/authkeys/list),
    create a key with Sign in with Apple for the same App ID. Save it as
-   `.secrets/AuthKey_<key ID>.p8`, and add
-   `RN_SANDBOX_APPLE_SIGN_IN_KEY_ID=<key ID>` to `.secrets/rn-sandbox.env`.
+   `.secrets/prod/AuthKey_<key ID>.p8`, and add
+   `RN_SANDBOX_APPLE_SIGN_IN_KEY_ID=<key ID>` to `.secrets/prod/app.env`.
 
 Then run `npm run auth:provision`. Until steps 2 and 3 are done, Apple sign-in
 works on iOS only; run it again after them.
@@ -265,11 +265,15 @@ npx detox test --configuration android.release
 ### Releasing
 
 IDs: `net.a2f0.sandbox.rn` (app, both stores), named "RN Sandbox". Store
-credentials come from `.secrets/`, a gitignored symlink to
-`../tearleads-shared/.secrets` (`ln -s ../tearleads-shared/.secrets .secrets`):
-the App Store Connect API key, Google Play service account, fastlane match
-settings, and the Android upload key (`rn-sandbox-upload.keystore`, password in
-`rn-sandbox.env`). Back up the upload key.
+credentials come from `.secrets/prod/`. `.secrets` is a gitignored symlink to
+`../matrix-secrets/rn-sandbox` (`ln -s ../matrix-secrets/rn-sandbox .secrets`),
+managed and backed up from [a2f0/matrix](https://github.com/a2f0/matrix)
+(`docs/secrets.md`). `prod/` holds the App Store Connect API key, Google Play
+service account, Android upload key (`rn-sandbox-upload.keystore`),
+`shared.env` (fastlane match settings and other shared values), and `app.env`
+(this app's own, such as the upload key's password), which wins over
+`shared.env`. `RN_SANDBOX_SECRETS_DIR` names a folder to use instead of
+`.secrets/prod`.
 
 Lanes:
 

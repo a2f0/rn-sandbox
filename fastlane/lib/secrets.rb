@@ -2,37 +2,39 @@
 
 require 'dotenv'
 
-# .secrets is a gitignored symlink to the store credentials shared with
-# tearleads and nc (see the README). RN_SANDBOX_SECRETS_DIR points elsewhere,
-# as the lane tests do.
-SECRETS_DIR = ENV.fetch('RN_SANDBOX_SECRETS_DIR') { File.expand_path('../../.secrets', __dir__) }
+# .secrets is a gitignored symlink to this project's folder in matrix-secrets
+# (see the README), and the lanes read its prod tier. RN_SANDBOX_SECRETS_DIR
+# names another tier folder in place of .secrets/prod, as the lane tests do.
+SECRETS_DIR = ENV.fetch('RN_SANDBOX_SECRETS_DIR') { File.expand_path('../../.secrets/prod', __dir__) }
 
-# Only what each platform's lanes need: root.env also holds unrelated secrets.
-IOS_SECRETS = {
-  'root.env' => %w[
-    APPLE_ID
-    APP_STORE_CONNECT_ISSUER_ID
-    APP_STORE_CONNECT_KEY_ID
-    ITC_TEAM_ID
-    MATCH_GIT_BASIC_AUTHORIZATION
-    MATCH_GIT_URL
-    MATCH_PASSWORD
-    TEAM_ID
-  ]
-}.freeze
-ANDROID_SECRETS = { 'rn-sandbox.env' => %w[RN_SANDBOX_ANDROID_KEYSTORE_PASS] }.freeze
+# Loaded in order, so app.env (this project's own values) wins over shared.env
+# (values copied from the shared root).
+SECRETS_ENV_FILES = %w[shared.env app.env].freeze
+
+# Only what each platform's lanes need.
+IOS_SECRETS = %w[
+  APPLE_ID
+  APP_STORE_CONNECT_ISSUER_ID
+  APP_STORE_CONNECT_KEY_ID
+  ITC_TEAM_ID
+  MATCH_GIT_BASIC_AUTHORIZATION
+  MATCH_GIT_URL
+  MATCH_PASSWORD
+  TEAM_ID
+].freeze
+ANDROID_SECRETS = %w[RN_SANDBOX_ANDROID_KEYSTORE_PASS].freeze
 
 GOOGLE_PLAY_JSON_KEY_PATH = File.join(SECRETS_DIR, 'google-play-service-account-admin.json')
 
 # Values already in the environment win, so any of them can be overridden.
-def load_store_secrets(secret_names)
-  secret_names.each do |file, names|
+def load_store_secrets(names)
+  values = SECRETS_ENV_FILES.each_with_object({}) do |file, merged|
     path = File.join(SECRETS_DIR, file)
     UI.user_error!("Missing #{path}. Is the .secrets symlink set up?") unless File.file?(path)
 
-    values = Dotenv.parse(path)
-    names.each { |name| ENV[name] ||= values[name] if values.key?(name) }
+    merged.merge!(Dotenv.parse(path))
   end
+  names.each { |name| ENV[name] ||= values[name] if values.key?(name) }
 end
 
 def required_env(name)
