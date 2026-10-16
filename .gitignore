@@ -85,7 +85,7 @@ yarn-error.log
 # Wrangler state
 .wrangler/
 
-# Terraform working files; state lives in S3 (infra/auth/versions.tf)
+# Terraform working files; state lives in Cloudflare R2 (infra/auth/versions.tf)
 .terraform/
 *.tfplan
 *.tfstate

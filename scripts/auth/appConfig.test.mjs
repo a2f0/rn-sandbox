@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { appConfig, parseEnv, plistString } from './appConfig.mjs';
+import {
+  appConfig,
+  parseEnv,
+  plistString,
+  terraformEnv,
+} from './appConfig.mjs';
 
 const plist = `<?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0">
@@ -25,6 +30,60 @@ test('parseEnv reads plain, exported, and quoted values', () => {
   assert.deepEqual(
     parseEnv('# comment\nA=1\nexport B="two words"\nC=\'3\'\n\nnot a line\n'),
     { A: '1', B: 'two words', C: '3' },
+  );
+});
+
+test('terraformEnv maps the R2 state key to the AWS variables', () => {
+  const env = {
+    PATH: '/bin',
+    AWS_ACCESS_KEY_ID: 'ambient-id',
+    AWS_SECRET_ACCESS_KEY: 'ambient-secret',
+    AWS_PROFILE: 'ambient',
+    AWS_SESSION_TOKEN: 'ambient-token',
+  };
+  const secrets = {
+    TF_STATE_ACCESS_KEY_ID: 'r2-id',
+    TF_STATE_SECRET_ACCESS_KEY: 'r2-secret',
+  };
+  assert.deepEqual(terraformEnv(env, secrets), {
+    PATH: '/bin',
+    AWS_ACCESS_KEY_ID: 'r2-id',
+    AWS_SECRET_ACCESS_KEY: 'r2-secret',
+  });
+  // The caller's environment is left alone.
+  assert.equal(env.AWS_PROFILE, 'ambient');
+});
+
+test('terraformEnv prefers the R2 state key from the environment', () => {
+  assert.deepEqual(
+    terraformEnv(
+      { TF_STATE_ACCESS_KEY_ID: 'env-id' },
+      {
+        TF_STATE_ACCESS_KEY_ID: 'file-id',
+        TF_STATE_SECRET_ACCESS_KEY: 'file-secret',
+      },
+    ),
+    {
+      TF_STATE_ACCESS_KEY_ID: 'env-id',
+      AWS_ACCESS_KEY_ID: 'env-id',
+      AWS_SECRET_ACCESS_KEY: 'file-secret',
+    },
+  );
+});
+
+test('terraformEnv names a missing R2 state key', () => {
+  assert.throws(() => terraformEnv({}, { TF_STATE_ACCESS_KEY_ID: 'r2-id' }), {
+    message: 'Missing TF_STATE_SECRET_ACCESS_KEY.',
+  });
+  assert.throws(
+    () =>
+      terraformEnv(
+        { AWS_ACCESS_KEY_ID: 'aws-id', AWS_SECRET_ACCESS_KEY: 'aws-secret' },
+        { TF_STATE_ACCESS_KEY_ID: '' },
+      ),
+    {
+      message: 'Missing TF_STATE_ACCESS_KEY_ID and TF_STATE_SECRET_ACCESS_KEY.',
+    },
   );
 });
 

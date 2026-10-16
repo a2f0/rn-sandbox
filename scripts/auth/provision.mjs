@@ -18,7 +18,13 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { appConfig, parseEnv, plistString } from './appConfig.mjs';
+import {
+  appConfig,
+  parseEnv,
+  plistString,
+  TF_STATE_KEYS,
+  terraformEnv,
+} from './appConfig.mjs';
 import { configureApple } from './apple.mjs';
 import { googleApi } from './googleApi.mjs';
 
@@ -92,11 +98,15 @@ console.log(`Google account: ${account}`);
 // shared.env holds values copied from the shared root, and app.env this
 // project's own, which win.
 const secrets = { ...readSecrets('shared.env'), ...readSecrets('app.env') };
-// The Terraform state is in S3, with the a2f0.net stack's.
-for (const name of ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']) {
-  const value = process.env[name] || secrets[name];
-  if (!value) fail(`${name} is missing from .secrets/prod/shared.env.`);
-  process.env[name] = value;
+// The Terraform state is in this project's Cloudflare R2 bucket
+// (infra/auth/versions.tf). Only Terraform gets its key.
+let stateEnv;
+try {
+  stateEnv = terraformEnv(process.env, secrets);
+} catch (error) {
+  fail(
+    `${error.message} The Terraform state backend needs ${TF_STATE_KEYS.join(' and ')} in ${join(secretsDir, 'app.env')}.`,
+  );
 }
 
 let billingAccount =
@@ -128,7 +138,7 @@ step('Applying infra/auth');
 const terraform = ['exec', '--', 'terraform', `-chdir=${infraDir}`];
 const terraformOptions = {
   cwd: repoRoot,
-  env: { ...process.env, TF_VAR_billing_account: billingAccount },
+  env: { ...stateEnv, TF_VAR_billing_account: billingAccount },
 };
 run('mise', [...terraform, 'init', '-input=false'], terraformOptions);
 run('mise', [...terraform, 'apply'], terraformOptions);
