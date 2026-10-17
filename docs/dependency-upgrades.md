@@ -81,6 +81,14 @@ workflows run tests without deploying.
 The following tool dependencies currently lack a compatible owner update.
 Re-audit them on every refresh; advisory counts belong in the PR.
 
+- Gradle 9.4.1 is affected by the three high-severity advisories fixed in
+  [Gradle 9.8.1](https://docs.gradle.org/9.8.1/release-notes.html).
+  React Native 0.88's included Gradle settings plugin pins Kotlin 2.2.0, which
+  cannot compile against Gradle 9.8.1's Kotlin 2.4 metadata. The public 8.14.6
+  fix is below the Android Gradle plugin's minimum Gradle version. Revisit when
+  React Native ships a compatible plugin or a supported public fix becomes
+  available; require wrapper generation, Android release build, and headless
+  Detox checks. Do not bypass Kotlin metadata compatibility checks.
 - Metro, React Native CLI, and Jest use Micromatch/Braces. The latest Braces
   release is affected by [nested-pattern stack exhaustion](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
   Revisit when a patched release exists; validate bundling and both test runners.
