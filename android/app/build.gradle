@@ -149,22 +149,23 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
 }
 
-// Launcher icons are generated from the SVGs in assets/ (see
-// scripts/buildAndroidImages.sh) and gitignored. Regenerate them whenever the
-// sources change, before anything reads resources.
+// Launcher icons are rendered from assets/brand/*.svg by agent-tool, as the
+// android target in agent-tool.json declares (see scripts/buildImages.sh), and
+// gitignored. Regenerate them whenever the sources, the declaration, or the
+// renderer change, before anything reads resources.
 def repoRoot = rootProject.layout.projectDirectory.dir("..")
 def generateImages = tasks.register("generateImages", Exec) {
-    description = "Generates launcher icons from assets/*.svg."
+    description = "Generates launcher icons from assets/brand/*.svg."
     inputs.files(
-        repoRoot.file("assets/icon.svg"),
-        repoRoot.file("assets/background.svg"),
-        repoRoot.file("scripts/buildAndroidImages.sh"),
-        repoRoot.file("scripts/lib/images.sh")
+        repoRoot.file("agent-tool.json"),
+        repoRoot.file("scripts/buildImages.sh"),
+        repoRoot.file("node_modules/@a2f0/agent-tool/package.json"),
+        fileTree(repoRoot.dir("assets/brand")) { include("*.svg") }
     )
     def res = layout.projectDirectory.dir("src/main/res")
     ["mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"].each { density ->
         outputs.dir(res.dir("mipmap-$density"))
     }
-    commandLine("sh", repoRoot.file("scripts/buildAndroidImages.sh").asFile.path)
+    commandLine("sh", repoRoot.file("scripts/buildImages.sh").asFile.path, "android")
 }
 tasks.named("preBuild") { dependsOn(generateImages) }

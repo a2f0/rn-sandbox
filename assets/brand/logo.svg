@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- The app's mark, centered on a transparent square. Plain filled shapes only:
-     ImageMagick's built-in SVG renderer skips strokes and transforms, so each
-     orbit is an even-odd ring of two ellipses, rotated with the arc's own
-     x-axis-rotation instead of a transform. -->
+<!-- The app's mark, centered on a transparent square. agent-tool renders the
+     app icons from it (agent-tool.json); strokes, transforms, and gradients
+     work, but it must stay plain static SVG, with any text converted to paths.
+     Each orbit is an even-odd ring of two ellipses, rotated with the arc's own
+     x-axis-rotation rather than a transform, which ImageMagick's renderer once
+     required. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
   <path fill="#61dafb" fill-rule="evenodd" d="M162 512a350 148 0 1 0 700 0a350 148 0 1 0 -700 0zM202 512a310 108 0 1 0 620 0a310 108 0 1 0 -620 0z"/>
   <path fill="#61dafb" fill-rule="evenodd" d="M337 208.9a350 148 60 1 0 350 606.2a350 148 60 1 0 -350 -606.2zM357 243.5a310 108 60 1 0 310 536.9a310 108 60 1 0 -310 -536.9z"/>
