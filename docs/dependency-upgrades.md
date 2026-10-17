@@ -34,6 +34,57 @@ remote effects. Skip an upgrade if it would delete or recreate resources, or
 those effects cannot be verified. Store the evidence in the PR; push and merge
 workflows run tests without deploying.
 
+## Compatibility constraints
+
+- React Native owns the React renderer, Babel 7 preset, Metro, Hermes, native
+  pods, and Android toolchain. Keep Gradle, AGP, Kotlin, SDK, and NDK on the
+  selected release's [template](https://github.com/react-native-community/rn-diff-purge)
+  and Gradle plugin versions until both release builds and headless Detox suites
+  validate a newer supported combination. React Native 0.88 still supports this
+  app's existing AppDelegate lifecycle; its new SceneDelegate template is an
+  optional lifecycle migration, which needs launch and URL callback tests before
+  adoption.
+- Keep TypeScript 6 while Jest's TypeScript configuration loads through
+  `ts-node` and its JavaScript compiler API. [TypeScript 7](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/)
+  uses the native compiler. Revisit when the configuration loader supports that
+  compiler, and verify both Jest and Detox configuration loading.
+- Firebase's Node requirement is now 24.12 or newer. Keep `.nvmrc` on the
+  maintained Node 24 LTS line and the package engine consistent with Firebase's
+  [published manifests](https://registry.npmjs.org/@firebase/app/latest).
+- CocoaPods Core requires ActiveSupport below 8. Keep Ruby on the supported
+  3.3 lane and ActiveSupport 7 until CocoaPods' [dependency requirements](https://rubygems.org/gems/cocoapods-core)
+  and native builds support the newer combination.
+- Terraform/provider and Wrangler upgrades need the real-state and live-resource
+  checks above. Fastlane's store lanes create identifiers/profiles, manage
+  signing keychains, and publish builds; do not execute them as an upgrade test.
+  Hold store-tool upgrades without an equivalent non-destructive preview of the
+  affected operations.
+
+## Outstanding upstream advisories
+
+The following tool dependencies currently lack a compatible owner update.
+Re-audit them on every refresh; advisory counts belong in the PR.
+
+- Metro, React Native CLI, and Jest use Micromatch/Braces. The latest Braces
+  release is affected by [nested-pattern stack exhaustion](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
+  Revisit when a patched release exists; validate bundling and both test runners.
+- Jest's Istanbul configuration loader uses js-yaml 3, Argparse, and sprintf-js.
+  sprintf-js has [unbounded precision handling](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)
+  with no patched release. Revisit an upstream loader update and test coverage
+  configuration parsing before changing that parser chain.
+- Markdownlint's math extension restricts KaTeX to its 0.16 line, below the
+  [prototype-pollution gadget fix](https://github.com/advisories/GHSA-238p-pmpm-9mq7)
+  in 0.18.2. The advisory requires prior prototype pollution and rendered output
+  inserted into a page; this dependency is used by the Markdown linter. Remove
+  the constraint when the owning extension accepts a fixed release and Markdown
+  regression checks pass.
+- Detox and its logger use stream-json 1, while fixes for
+  [nested filtering](https://github.com/advisories/GHSA-528h-pc64-c93x),
+  [JSONC parsing](https://github.com/advisories/GHSA-hqr4-qq8f-hg3x), and
+  [prototype injection](https://github.com/advisories/GHSA-mjw6-4jj6-33hc)
+  require the 3.6 line or newer. Do not force the incompatible major into Detox;
+  revisit its owner releases and run both native suites.
+
 ## Security overrides
 
 The version-scoped overrides in [package.json](../package.json) preserve the

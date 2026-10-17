@@ -72,7 +72,7 @@ lists the cases the app runs against them at launch:
   it to WebAssembly.
 
 Where a platform's bridge changes a value, the case records what that platform
-returns instead and why, and the app shows it. With React Native 0.87.1:
+returns instead and why, and the app shows it. With React Native 0.88.0:
 
 - iOS passes `Float` arguments to Objective-C as doubles, so the `float`
   parameter reads the double's low 32 bits.
