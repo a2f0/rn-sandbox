@@ -111,15 +111,10 @@ Re-audit them on every refresh; advisory counts belong in the PR.
 
 ## Security overrides
 
-The version-scoped overrides in [package.json](../package.json) preserve the
-fixes and compatibility decisions documented in
-[PR #58](https://github.com/a2f0/rn-sandbox/pull/58):
+The version-scoped Markdown CLI overrides in [package.json](../package.json)
+preserve the fixes and compatibility decisions documented in
+[PR #58](https://github.com/a2f0/rn-sandbox/pull/58).
 
-- Miniflare's Sharp override fixes
-  [GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
-  `node scripts/checks/checkWranglerImages.mjs` checks the resolved version and
-  exercises Wrangler's actual local Images emulator. The application's Worker
-  has no Images binding.
 - The Markdown CLI overrides retain its supported YAML API and fix the TOML
   parser's
   [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
@@ -131,5 +126,10 @@ fixes and compatibility decisions documented in
   this boundary tested when upgrading the CLI or replacing its merger.
 
 Remove an override when its owning package resolves the patched dependency
-itself and the corresponding Images emulator or Markdown configuration tests
-still pass. Update this section to describe the remaining active constraints.
+itself and the Markdown configuration tests still pass. Update this section to
+describe the remaining active constraints.
+
+Wrangler now resolves patched Sharp through its own Miniflare dependency.
+Keep `node scripts/checks/checkWranglerImages.mjs` as the regression check for
+the resolved version and actual local Images emulator, even though the
+application's Worker has no Images binding.
