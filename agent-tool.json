@@ -8,5 +8,67 @@
     ]
   },
   "versions": { "lockfile": null },
-  "pr": { "rejectClaudeBranding": true }
+  "pr": { "rejectClaudeBranding": true },
+  "images": {
+    "targets": {
+      "ios": {
+        "dir": "ios/sandbox/Images.xcassets",
+        "outputs": [
+          {
+            "path": "AppIcon.appiconset/AppIcon.png",
+            "size": 1024,
+            "opaque": true,
+            "layers": [
+              { "source": "background", "fit": "cover" },
+              { "source": "logo" }
+            ]
+          }
+        ]
+      },
+      "android": {
+        "dir": "android/app/src/main/res",
+        "outputs": [
+          {
+            "path": "mipmap-{variant}/ic_launcher_background.png",
+            "size": 108,
+            "variants": "android",
+            "opaque": true,
+            "layers": [{ "source": "background", "fit": "cover" }]
+          },
+          {
+            "path": "mipmap-{variant}/ic_launcher_foreground.png",
+            "size": 108,
+            "variants": "android",
+            "layers": [{ "source": "logo", "size": 72 }]
+          },
+          {
+            "path": "mipmap-{variant}/ic_launcher_monochrome.png",
+            "size": 108,
+            "variants": "android",
+            "layers": [{ "source": "logo", "size": 72, "tint": "#ffffff" }]
+          },
+          {
+            "path": "mipmap-{variant}/ic_launcher.png",
+            "size": 48,
+            "variants": "android",
+            "opaque": true,
+            "layers": [
+              { "source": "background", "fit": "cover" },
+              { "source": "logo" }
+            ]
+          },
+          {
+            "path": "mipmap-{variant}/ic_launcher_round.png",
+            "size": 48,
+            "variants": "android",
+            "mask": "circle",
+            "layers": [
+              { "source": "background", "fit": "cover" },
+              { "source": "logo" }
+            ]
+          }
+        ]
+      }
+    }
+  }
 }

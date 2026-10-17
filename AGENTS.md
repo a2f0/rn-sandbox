@@ -49,7 +49,7 @@ README or maintenance docs.
 ## Binary files
 
 Do not commit binary files. Generate them from text sources instead, as the app
-icons (`assets/*.svg`, `scripts/buildImages.sh`) and the Gradle wrapper jar
+icons (`assets/brand/*.svg`, `scripts/buildImages.sh`) and the Gradle wrapper jar
 (`scripts/ensureGradleWrapper.sh`) are; see the README. Tool versions come from
 `.mise.toml`, `.ruby-version`, and `.nvmrc`.
 
