@@ -110,7 +110,7 @@ jobs:
           bun-version: 1.4.3
       - name: run pod install
         working-directory: ./ios
-        run: bundle exec pod install
+        run: bundle exec pod install --deployment
       - run: npx detox build --configuration ios.release
       - name: Create iOS simulator
         # Detox boots it headless (ios.release.ci). Booting it in the background

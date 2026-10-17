@@ -215,11 +215,6 @@ export function createCases(): RoundTripCase[] {
       input: 'a\u0000b',
       run: (value) => RoundTrip.echoString(value),
       differences: {
-        android: {
-          expected: 'a',
-          reason:
-            'JavaTurboModule converts strings with NewStringUTF(…c_str())',
-        },
         ios: {
           expected: 'a',
           reason: 'ObjCTurboModule converts strings with stringWithUTF8String:',

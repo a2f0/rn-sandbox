@@ -23,6 +23,22 @@ review template changes for the exact from/to versions, preserving the
 repository's native customizations. Keep local toolchain files and CI aligned;
 the Emscripten version comes from `.mise.toml`.
 
+After changing React Native, refresh its cached prebuilt podspecs with
+`cd ios && bundle exec pod update React-Core-prebuilt hermes-engine --no-repo-update`.
+These pods take their versions from the installed React Native package; do not
+select their versions independently. Check the prebuilt core version and Hermes
+runtime version in `Podfile.lock`, then run `bundle exec pod install --deployment`
+to verify the committed lock agrees with the installed framework. CI uses this
+frozen install too; an ordinary install can retain a stale prebuilt core or
+silently rewrite an inconsistent lock.
+
+Hermes' external-source `:tag` is a CocoaPods cache key read from React Native's
+`sdks/.hermesv1version`, not the runtime artifact version. The framework's
+[setup helper](https://github.com/facebook/react-native/blob/v0.88.0/packages/react-native/scripts/cocoapods/jsengine.rb)
+documents this distinction. Verify `sdks/hermes-engine/version.properties` and
+the generated Hermes podspec's download URL; do not rewrite the tag to match
+the runtime version when upstream ships different values.
+
 Rerun the advisory audits for every refresh and record remaining findings and
 unsupported candidates in the PR. Earlier findings and upgrade decisions are
 recorded in [PR #58](https://github.com/a2f0/rn-sandbox/pull/58); they are not a
