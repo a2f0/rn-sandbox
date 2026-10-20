@@ -58,8 +58,17 @@ for React Native, Metro, Jest, and code generation. Do not force those tools ont
 Bun's runtime with `--bun`.
 
 `trustedDependencies` explicitly allows lifecycle scripts for Detox, Parcel's
-watcher, fsevents, and unrs-resolver. Review changes to that list alongside
-package upgrades; all other dependency lifecycle scripts remain blocked.
+watcher, fsevents, and unrs-resolver. Bun matches these approvals by package name,
+so its trust list alone does not require approval again when a version changes.
+The currently reviewed versions are Detox 20.51.4, `@parcel/watcher` 2.6.0,
+fsevents 2.3.3, and unrs-resolver 1.12.2.
+
+Before installing or accepting a refreshed lockfile, compare every trusted
+package's version in `bun.lock` with these reviewed versions. If any changes,
+review that release's lifecycle scripts and explicitly approve the new version
+in the upgrade PR, then update the reviewed version here. Do this even when
+`trustedDependencies` itself is unchanged. Keep frozen installs in CI; all other
+dependency lifecycle scripts remain blocked.
 Keep the parent-scoped Markdown CLI overrides intact when updating the lockfile.
 The provisioning script retains npm's `npx` for its separate Firebase deployment
 CLI, whose lifecycle is outside the application's dependency install.

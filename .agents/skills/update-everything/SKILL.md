@@ -19,7 +19,7 @@ Update obsolete guidance instead of appending upgrade journals to README or docs
 
 Use the pinned `agent:run` harness for noisy finite setup, validation, and build
 commands below. Inspect required warnings, timings, and artifacts through bounded
-`bun run agent-tool logs <log-path>` reads or targeted searches. Run
+`bun run --silent agent-tool logs <log-path>` reads or targeted searches. Run
 interactive tools directly, and keep review verdicts and decision output visible.
 
 ## Skill Composition
@@ -77,7 +77,7 @@ bun pm ls
    - Commit the lockfile separately:
 
    ```bash
-   bun run agent:run -- bun install --lockfile-only
+   bun run --silent agent:run --label check -- bun install --lockfile-only
    git add bun.lock
    git commit -m "chore(deps): refresh lockfile for pinned versions"
    ```
@@ -105,19 +105,22 @@ bun pm ls
 1. Reinstall platform dependencies as needed:
 
    ```bash
-   bun run agent:run -- bun install --frozen-lockfile
-   bun run agent:run -- bundle install
-   bun run agent:run -- sh -c 'cd ios && bundle exec pod install'
+   bun run --silent agent:run --label check -- bun install --frozen-lockfile
+   bun run --silent agent:run --label check -- bundle install
+   bun run --silent agent:run --label check -- \
+     sh -c 'cd ios && bundle exec pod install'
    ```
 
 1. Validate (repo test suite):
 
    ```bash
-   bun run agent:run -- bun run lint
-   bun run agent:run -- bun run lint:shell
-   bun run agent:run -- bun run test
-   bun run agent:run -- ./scripts/detox-ios-headless.sh --loglevel info
-   bun run agent:run -- ./scripts/detox-android-headless.sh --loglevel info
+   bun run --silent agent:run --label check -- bun run lint
+   bun run --silent agent:run --label check -- bun run lint:shell
+   bun run --silent agent:run --label check -- bun run test
+   bun run --silent agent:run --label check -- \
+     ./scripts/detox-ios-headless.sh --loglevel info
+   bun run --silent agent:run --label check -- \
+     ./scripts/detox-android-headless.sh --loglevel info
    ```
 
    - If a headless Detox script fails, debug and rerun the same script until
@@ -125,8 +128,10 @@ bun pm ls
    - For quick isolation while debugging, you may run:
 
    ```bash
-   bun run agent:run -- bunx detox build --configuration ios.release
-   bun run agent:run -- bunx detox build --configuration android.release
+   bun run --silent agent:run --label check -- \
+     bunx detox build --configuration ios.release
+   bun run --silent agent:run --label check -- \
+     bunx detox build --configuration android.release
    ```
 
 1. Review and prepare PR:

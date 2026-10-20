@@ -1,7 +1,8 @@
 # RN Upgrade Failure Playbook
 
-Capture noisy finite commands with `bun run agent:run -- <command> <args>`.
-Inspect complete logs with bounded `bun run agent-tool logs <log-path>`
+Capture noisy finite commands with `bun run --silent agent:run --label check --
+<command> <args>`.
+Inspect complete logs with bounded `bun run --silent agent-tool logs <log-path>`
 reads or targeted searches for the signatures below. Keep interactive tools
 direct. These commands preserve their original working directories.
 
@@ -16,9 +17,11 @@ Actions:
 
 1. Re-check `.nvmrc`, `.ruby-version`, `.java-version`, `package.json` engines.
 1. Re-check `.github/workflows/main.yml` for matching setup versions.
-1. Re-run `bun run agent:run -- bun install --frozen-lockfile` and
-   `bun run agent:run -- bundle install`, then
-   `bun run agent:run -- sh -c 'cd ios && bundle exec pod install'`.
+1. Re-run `bun run --silent agent:run --label check -- bun install
+  --frozen-lockfile` and
+   `bun run --silent agent:run --label check -- bundle install`, then
+   `bun run --silent agent:run --label check -- sh -c 'cd ios && bundle exec pod
+   install'`.
 
 ## Android ABI Install Failure
 
@@ -43,7 +46,8 @@ Actions:
 
 1. Capture crash logs and identify crashing native/lib component.
 1. If release-only crash on arm64 emulator, test debug config locally:
-   - `DETOX_CONFIG=android bun run agent:run -- ./scripts/detox-android-headless.sh`
+   - `DETOX_CONFIG=android bun run --silent agent:run --label check --
+     ./scripts/detox-android-headless.sh`
 1. Keep release path for CI unless CI reproduces same crash.
 
 ## iOS Build/Runtime Failure
@@ -55,8 +59,9 @@ Symptoms:
 
 Actions:
 
-1. `bun run agent:run -- bundle install`
-1. `bun run agent:run -- sh -c 'cd ios && bundle exec pod install'`
+1. `bun run --silent agent:run --label check -- bundle install`
+1. `bun run --silent agent:run --label check -- sh -c 'cd ios && bundle exec pod
+  install'`
 1. Clean derived data if needed and rebuild detox iOS.
 
 ## Detox Bootstrap Failure

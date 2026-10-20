@@ -17,13 +17,13 @@ together. The CLI runs under Bun, so Bun must be on `PATH`. Title and required
 CI policy is in `agent-tool.json`.
 
 Bun adds `node_modules/.bin` to the script PATH. Where the skills run
-`agent-tool <arguments>`, run `bun run agent-tool <arguments>` instead.
+`agent-tool <arguments>`, run `bun run --silent agent-tool <arguments>` instead.
 Pass an explicit title when merging a PR.
 
-Capture noisy finite commands with `bun run agent:run --label <name> --
+Capture noisy finite commands with `bun run --silent agent:run --label <name> --
 <command> <arguments>`. The harness preserves exit status and full private logs,
 returning a compact receipt and a bounded failure excerpt. Inspect more evidence
-with `bun run agent-tool logs <log-path>` or a targeted search; review
+with `bun run --silent agent-tool logs <log-path>` or a targeted search; review
 required warnings, timings, and artifacts before accepting a check. Keep review
 verdicts and structured decision output visible. Run interactive tools and
 persistent servers directly.
@@ -58,15 +58,19 @@ icons (`assets/brand/*.svg`, `scripts/buildImages.sh`) and the Gradle wrapper ja
 Run these checks before shipping. The pre-push hook runs the binary file, lint,
 and agent checks; `lint:shell` needs ShellCheck.
 
-- `bun run agent:run -- sh scripts/checks/checkBinaryFiles.sh`
-- `bun run agent:run -- bun run lint`
-- `bun run agent:run -- bun run lint:md`
-- `bun run agent:run -- bun run lint:shell`
-- `bun run agent:run -- bun run test` (builds WebAssembly; needs Emscripten)
-- `bun run agent:run -- bun run test:web` (Playwright; needs Chromium)
+- `bun run --silent agent:run --label check -- sh
+  scripts/checks/checkBinaryFiles.sh`
+- `bun run --silent agent:run --label check -- bun run lint`
+- `bun run --silent agent:run --label check -- bun run lint:md`
+- `bun run --silent agent:run --label check -- bun run lint:shell`
+- `bun run --silent agent:run --label check -- bun run test` (builds
+  WebAssembly; needs Emscripten)
+- `bun run --silent agent:run --label check -- bun run test:web` (Playwright;
+  needs Chromium)
 - `bun run agents:check`
 
-Install Chromium with `bun run agent:run -- bunx playwright install chromium`.
+Install Chromium with `bun run --silent agent:run --label check -- bunx
+playwright install chromium`.
 
 The TurboModule specs in `specs/` have Kotlin, Objective-C++, C++, and
 TypeScript implementations; the C++ binds to JSI on iOS and Android and to
@@ -77,8 +81,10 @@ Changes to native code, native dependencies, React Native versions, or `specs/`
 also need a release Detox build for each affected platform:
 
 ```sh
-bun run agent:run -- bunx detox build --configuration ios.release
-bun run agent:run -- bunx detox build --configuration android.release
+bun run --silent agent:run --label check -- \
+  bunx detox build --configuration ios.release
+bun run --silent agent:run --label check -- \
+  bunx detox build --configuration android.release
 ```
 
 ## Pull requests

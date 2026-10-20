@@ -18,7 +18,7 @@ Update obsolete guidance instead of appending upgrade journals to README or docs
 
 Use the pinned `agent:run` harness for noisy finite setup, validation, and build
 commands below. Inspect required warnings, timings, and artifacts through bounded
-`bun run agent-tool logs <log-path>` reads or targeted searches. Run
+`bun run --silent agent-tool logs <log-path>` reads or targeted searches. Run
 interactive tools directly, and keep review verdicts and decision output visible.
 
 ## Phase 0: Baseline Snapshot
@@ -63,7 +63,8 @@ interactive tools directly, and keep review verdicts and decision output visible
 
 1. Regenerate and commit lockfile from pinned versions:
 
-   - Run `bun run agent:run -- bun install --lockfile-only`.
+   - Run `bun run --silent agent:run --label check -- bun install
+     --lockfile-only`.
    - Commit `bun.lock` in a separate commit tied to the pin commit.
 
 1. Generate and review React Native Upgrade Helper diffs (required):
@@ -105,7 +106,8 @@ interactive tools directly, and keep review verdicts and decision output visible
      independently. Follow `../update-dependencies/SKILL.md` for the full group.
    - Example check command: `gem list -r '^cocoapods$'`
    - Update `Gemfile` `gem 'cocoapods', '<version>'`.
-   - Run `bun run agent:run -- bundle update cocoapods` and commit
+   - Run `bun run --silent agent:run --label check -- bundle update cocoapods`
+     and commit
      `Gemfile` + `Gemfile.lock`.
    - If already at latest stable, note that explicitly in the PR summary.
 
@@ -119,17 +121,19 @@ interactive tools directly, and keep review verdicts and decision output visible
 Run in this order and stop on first failure:
 
 ```bash
-bun run agent:run -- bun run lint
-bun run agent:run -- bun run lint:shell
-bun run agent:run -- bun run test
-bun run agent:run -- bunx detox build --configuration ios.release
-bun run agent:run -- bunx detox build --configuration android.release
+bun run --silent agent:run --label check -- bun run lint
+bun run --silent agent:run --label check -- bun run lint:shell
+bun run --silent agent:run --label check -- bun run test
+bun run --silent agent:run --label check -- \
+  bunx detox build --configuration ios.release
+bun run --silent agent:run --label check -- \
+  bunx detox build --configuration android.release
 ```
 
 For local Android emulator ABI mismatches, use:
 
 ```bash
-bun run agent:run -- ./scripts/detox-android-headless.sh
+bun run --silent agent:run --label check -- ./scripts/detox-android-headless.sh
 ```
 
 The helper script auto-selects ABI and config for arm64 local emulators.
