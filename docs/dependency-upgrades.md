@@ -50,6 +50,15 @@ remote effects. Skip an upgrade if it would delete or recreate resources, or
 those effects cannot be verified. Store the evidence in the PR; push and merge
 workflows run tests without deploying.
 
+## Package management
+
+Use `npm ci` with the committed `package-lock.json` for application dependencies.
+The `allowScripts` policy approves dependency lifecycle scripts for exact
+versions. Bun's `trustedDependencies` approves package names across versions;
+keep npm while that version-specific approval requirement applies. Bun remains
+the runtime for agent-tool and image generation, with its version pinned in
+`.mise.toml` and installed through mise in CI.
+
 ## Compatibility constraints
 
 - React Native owns the React renderer, Babel 7 preset, Metro, Hermes, native

@@ -96,9 +96,10 @@ npm ls react-native react @react-native-community/cli --depth=0
 
 1. Align GitHub Actions with toolchain changes:
 
-   - Update `.github/workflows/main.yml` so `actions/setup-node`,
-     `ruby/setup-ruby`, and `actions/setup-java` match local toolchain
-     choices.
+   - Keep `.nvmrc` and `.mise.toml` aligned with the target toolchain;
+     `jdx/mise-action` reads them for Node, Bun, and ShellCheck in CI.
+   - Keep `ruby/setup-ruby` and `actions/setup-java` aligned with the local
+     Ruby and Java choices in `.github/workflows/main.yml`.
    - Keep Detox jobs (`detox-macos`, `detox-android`) runnable with the
      upgraded stack.
 

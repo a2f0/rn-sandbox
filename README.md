@@ -26,8 +26,11 @@ jar), [ShellCheck](https://www.shellcheck.net/), [Bun](https://bun.sh/),
 [Emscripten](https://emscripten.org/) (for the web build of the C++ module),
 and [Terraform](https://developer.hashicorp.com/terraform) (for
 [Sign-in](#sign-in)).
-CI installs ShellCheck from the system package manager, and Emscripten at the
-version in `.mise.toml`.
+CI uses mise for Node, Bun, and ShellCheck. Emscripten reads its version from
+`.mise.toml` through its dedicated setup action; Ruby, Java, and Gradle retain
+their platform setup actions. npm remains the application package manager to
+preserve version-specific dependency script approvals; see
+[Dependency upgrades](docs/dependency-upgrades.md#package-management).
 
 Agent guidance and validation commands are in [AGENTS.md](AGENTS.md).
 
