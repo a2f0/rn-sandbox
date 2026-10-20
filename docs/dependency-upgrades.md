@@ -68,7 +68,10 @@ package's version in `bun.lock` with these reviewed versions. If any changes,
 review that release's lifecycle scripts and explicitly approve the new version
 in the upgrade PR, then update the reviewed version here. Do this even when
 `trustedDependencies` itself is unchanged. Keep frozen installs in CI; all other
-dependency lifecycle scripts remain blocked.
+dependency lifecycle scripts remain blocked. The original version-specific
+`allowScripts` entries also remain for developers who accidentally run npm;
+Bun uses `trustedDependencies` and the frozen lockfile instead.
+
 Keep the parent-scoped Markdown CLI overrides intact when updating the lockfile.
 The provisioning script retains npm's `npx` for its separate Firebase deployment
 CLI, whose lifecycle is outside the application's dependency install.

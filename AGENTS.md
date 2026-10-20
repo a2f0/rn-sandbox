@@ -58,19 +58,23 @@ icons (`assets/brand/*.svg`, `scripts/buildImages.sh`) and the Gradle wrapper ja
 Run these checks before shipping. The pre-push hook runs the binary file, lint,
 and agent checks; `lint:shell` needs ShellCheck.
 
-- `bun run --silent agent:run --label check -- sh
-  scripts/checks/checkBinaryFiles.sh`
-- `bun run --silent agent:run --label check -- bun run lint`
-- `bun run --silent agent:run --label check -- bun run lint:md`
-- `bun run --silent agent:run --label check -- bun run lint:shell`
-- `bun run --silent agent:run --label check -- bun run test` (builds
-  WebAssembly; needs Emscripten)
-- `bun run --silent agent:run --label check -- bun run test:web` (Playwright;
-  needs Chromium)
-- `bun run agents:check`
+```sh
+bun run --silent agent:run --label binary-files -- \
+  sh scripts/checks/checkBinaryFiles.sh
+bun run --silent agent:run --label lint -- bun run lint
+bun run --silent agent:run --label markdown -- bun run lint:md
+bun run --silent agent:run --label shellcheck -- bun run lint:shell
+bun run --silent agent:run --label tests -- bun run test
+bun run --silent agent:run --label web-tests -- bun run test:web
+bun run agents:check
+```
 
-Install Chromium with `bun run --silent agent:run --label check -- bunx
-playwright install chromium`.
+The unit tests build WebAssembly and need Emscripten. Playwright needs Chromium;
+install it with:
+
+```sh
+bun run --silent agent:run --label chromium -- bunx playwright install chromium
+```
 
 The TurboModule specs in `specs/` have Kotlin, Objective-C++, C++, and
 TypeScript implementations; the C++ binds to JSI on iOS and Android and to
@@ -81,9 +85,9 @@ Changes to native code, native dependencies, React Native versions, or `specs/`
 also need a release Detox build for each affected platform:
 
 ```sh
-bun run --silent agent:run --label check -- \
+bun run --silent agent:run --label detox-ios -- \
   bunx detox build --configuration ios.release
-bun run --silent agent:run --label check -- \
+bun run --silent agent:run --label detox-android -- \
   bunx detox build --configuration android.release
 ```
 

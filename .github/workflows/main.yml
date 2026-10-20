@@ -16,6 +16,13 @@ jobs:
           version: 2026.10.15
           install_args: node bun shellcheck
           cache: true
+      - name: Cache Bun downloads
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
       - name: Read the Emscripten version
         id: emsdk
         run: echo "version=$(sed -n 's/^emsdk = "\(.*\)"$/\1/p' .mise.toml)" >> "$GITHUB_OUTPUT"
@@ -46,6 +53,13 @@ jobs:
           version: 2026.10.15
           install_args: node bun
           cache: true
+      - name: Cache Bun downloads
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
       - name: Read the Emscripten version
         id: emsdk
         run: echo "version=$(sed -n 's/^emsdk = "\(.*\)"$/\1/p' .mise.toml)" >> "$GITHUB_OUTPUT"
@@ -76,6 +90,13 @@ jobs:
           version: 2026.10.15
           install_args: node bun
           cache: true
+      - name: Cache Bun downloads
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
       - uses: ruby/setup-ruby@v1.329.0
         with:
           ruby-version: '3.3.12'
@@ -131,6 +152,13 @@ jobs:
           version: 2026.10.15
           install_args: node bun
           cache: true
+      - name: Cache Bun downloads
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
       - uses: actions/setup-java@v6.1.0
         with:
           distribution: 'temurin'

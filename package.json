@@ -98,5 +98,15 @@
     "@parcel/watcher",
     "fsevents",
     "unrs-resolver"
-  ]
+  ],
+  "allowScripts": {
+    "detox@20.51.4": true,
+    "@parcel/watcher@2.6.0": true,
+    "fsevents@2.3.3": true,
+    "unrs-resolver@1.12.2": true,
+    "dtrace-provider": false,
+    "esbuild": false,
+    "workerd": false,
+    "@firebase/util": false
+  }
 }

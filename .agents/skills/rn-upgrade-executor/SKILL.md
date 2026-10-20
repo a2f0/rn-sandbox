@@ -63,8 +63,12 @@ interactive tools directly, and keep review verdicts and decision output visible
 
 1. Regenerate and commit lockfile from pinned versions:
 
-   - Run `bun run --silent agent:run --label check -- bun install
-     --lockfile-only`.
+   - Refresh the lockfile:
+
+     ```sh
+     bun run --silent agent:run --label lockfile -- bun install --lockfile-only
+     ```
+
    - Commit `bun.lock` in a separate commit tied to the pin commit.
 
 1. Generate and review React Native Upgrade Helper diffs (required):
@@ -106,9 +110,12 @@ interactive tools directly, and keep review verdicts and decision output visible
      independently. Follow `../update-dependencies/SKILL.md` for the full group.
    - Example check command: `gem list -r '^cocoapods$'`
    - Update `Gemfile` `gem 'cocoapods', '<version>'`.
-   - Run `bun run --silent agent:run --label check -- bundle update cocoapods`
-     and commit
-     `Gemfile` + `Gemfile.lock`.
+   - Update CocoaPods, then commit `Gemfile` and `Gemfile.lock`:
+
+     ```sh
+     bun run --silent agent:run --label cocoapods -- bundle update cocoapods
+     ```
+
    - If already at latest stable, note that explicitly in the PR summary.
 
 1. Align CI toolchain setup in `.github/workflows/main.yml`.
@@ -121,12 +128,12 @@ interactive tools directly, and keep review verdicts and decision output visible
 Run in this order and stop on first failure:
 
 ```bash
-bun run --silent agent:run --label check -- bun run lint
-bun run --silent agent:run --label check -- bun run lint:shell
-bun run --silent agent:run --label check -- bun run test
-bun run --silent agent:run --label check -- \
+bun run --silent agent:run --label lint -- bun run lint
+bun run --silent agent:run --label shellcheck -- bun run lint:shell
+bun run --silent agent:run --label tests -- bun run test
+bun run --silent agent:run --label detox-ios -- \
   bunx detox build --configuration ios.release
-bun run --silent agent:run --label check -- \
+bun run --silent agent:run --label detox-android -- \
   bunx detox build --configuration android.release
 ```
 

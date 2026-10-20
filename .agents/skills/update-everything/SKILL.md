@@ -77,7 +77,7 @@ bun pm ls
    - Commit the lockfile separately:
 
    ```bash
-   bun run --silent agent:run --label check -- bun install --lockfile-only
+   bun run --silent agent:run --label lockfile -- bun install --lockfile-only
    git add bun.lock
    git commit -m "chore(deps): refresh lockfile for pinned versions"
    ```
@@ -105,21 +105,21 @@ bun pm ls
 1. Reinstall platform dependencies as needed:
 
    ```bash
-   bun run --silent agent:run --label check -- bun install --frozen-lockfile
-   bun run --silent agent:run --label check -- bundle install
-   bun run --silent agent:run --label check -- \
+   bun run --silent agent:run --label dependencies -- bun install --frozen-lockfile
+   bun run --silent agent:run --label gems -- bundle install
+   bun run --silent agent:run --label pods -- \
      sh -c 'cd ios && bundle exec pod install'
    ```
 
 1. Validate (repo test suite):
 
    ```bash
-   bun run --silent agent:run --label check -- bun run lint
-   bun run --silent agent:run --label check -- bun run lint:shell
-   bun run --silent agent:run --label check -- bun run test
-   bun run --silent agent:run --label check -- \
+   bun run --silent agent:run --label lint -- bun run lint
+   bun run --silent agent:run --label shellcheck -- bun run lint:shell
+   bun run --silent agent:run --label tests -- bun run test
+   bun run --silent agent:run --label detox-ios -- \
      ./scripts/detox-ios-headless.sh --loglevel info
-   bun run --silent agent:run --label check -- \
+   bun run --silent agent:run --label detox-android -- \
      ./scripts/detox-android-headless.sh --loglevel info
    ```
 
@@ -128,9 +128,9 @@ bun pm ls
    - For quick isolation while debugging, you may run:
 
    ```bash
-   bun run --silent agent:run --label check -- \
+   bun run --silent agent:run --label detox-ios -- \
      bunx detox build --configuration ios.release
-   bun run --silent agent:run --label check -- \
+   bun run --silent agent:run --label detox-android -- \
      bunx detox build --configuration android.release
    ```
 
