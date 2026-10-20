@@ -50,6 +50,20 @@ remote effects. Skip an upgrade if it would delete or recreate resources, or
 those effects cannot be verified. Store the evidence in the PR; push and merge
 workflows run tests without deploying.
 
+## Package management
+
+Use the Bun version in `.mise.toml` and `package.json` with the committed
+`bun.lock`; CI installs with `bun install --frozen-lockfile`. Keep Node installed
+for React Native, Metro, Jest, and code generation. Do not force those tools onto
+Bun's runtime with `--bun`.
+
+`trustedDependencies` explicitly allows lifecycle scripts for Detox, Parcel's
+watcher, fsevents, and unrs-resolver. Review changes to that list alongside
+package upgrades; all other dependency lifecycle scripts remain blocked.
+Keep the parent-scoped Markdown CLI overrides intact when updating the lockfile.
+The provisioning script retains npm's `npx` for its separate Firebase deployment
+CLI, whose lifecycle is outside the application's dependency install.
+
 ## Compatibility constraints
 
 - React Native owns the React renderer, Babel 7 preset, Metro, Hermes, native
@@ -120,7 +134,7 @@ preserve the fixes and compatibility decisions documented in
   [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
   Markdownlint CLI merges explicit TOML configuration through `deep-extend`,
   converting smol-toml's null-prototype tables into ordinary rule options.
-  `npm run test:markdownlint` checks the installed CLI with nested TOML options,
+  `bun run test:markdownlint` checks the installed CLI with nested TOML options,
   disabled rules, severity, inherited configuration, YAML, JSON, JavaScript class
   options, and many flat TOML keys. `lint:md` runs these regressions first. Keep
   this boundary tested when upgrading the CLI or replacing its merger.
