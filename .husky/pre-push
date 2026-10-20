@@ -1,7 +1,7 @@
 set -e
 
 sh scripts/checks/checkBinaryFiles.sh
-bun run lint
-bun run lint:md
-bun run lint:shell
-bun run agents:check
+npm run lint
+npm run lint:md
+npm run lint:shell
+npm run agents:check

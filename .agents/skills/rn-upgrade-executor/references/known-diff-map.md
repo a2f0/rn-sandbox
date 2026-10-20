@@ -6,7 +6,7 @@ clean:
 - `package.json`
   - `react-native`, `react`, CLI package versions
   - `engines.node`
-- `bun.lock`
+- `package-lock.json`
 - `.nvmrc`
 - `.ruby-version`
 - `.java-version`

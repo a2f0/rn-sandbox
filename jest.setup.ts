@@ -1,6 +1,6 @@
 // Jest runs the app against the web implementations of its native modules, as
 // web/reactNative.ts does in the browser, including the C++ module compiled to
-// WebAssembly (bun run build:wasm), which jest.setupAfterEnv.ts loads.
+// WebAssembly (npm run build:wasm), which jest.setupAfterEnv.ts loads.
 
 jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => {
   const actual = jest.requireActual(

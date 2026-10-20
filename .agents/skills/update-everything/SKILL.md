@@ -19,7 +19,7 @@ Update obsolete guidance instead of appending upgrade journals to README or docs
 
 Use the pinned `agent:run` harness for noisy finite setup, validation, and build
 commands below. Inspect required warnings, timings, and artifacts through bounded
-`bun run --silent agent-tool logs <log-path>` reads or targeted searches. Run
+`npm run -s agent-tool -- logs <log-path>` reads or targeted searches. Run
 interactive tools directly, and keep review verdicts and decision output visible.
 
 ## Skill Composition
@@ -44,11 +44,11 @@ node -v
 cat .nvmrc
 cat .ruby-version
 cat .java-version
-bun pm ls
+npm ls react-native react @react-native-community/cli --depth=0
 ```
 
 - Ensure required tooling is present
-  (`node`, `bun`, `bundle`, CocoaPods, Android SDK).
+  (`node`, `npm`, `bundle`, CocoaPods, Android SDK).
 
 ## Workflow
 
@@ -73,12 +73,12 @@ bun pm ls
 
 1. Recreate lockfile from pinned versions:
 
-   - Regenerate `bun.lock` using the pinned `package.json`.
+   - Regenerate `package-lock.json` using the pinned `package.json`.
    - Commit the lockfile separately:
 
    ```bash
-   bun run --silent agent:run --label lockfile -- bun install --lockfile-only
-   git add bun.lock
+   npm run -s agent:run -- -- npm install --package-lock-only
+   git add package-lock.json
    git commit -m "chore(deps): refresh lockfile for pinned versions"
    ```
 
@@ -96,7 +96,7 @@ bun pm ls
 
 1. Align GitHub Actions with toolchain changes:
 
-   - Update `.github/workflows/main.yml` so `jdx/mise-action`,
+   - Update `.github/workflows/main.yml` so `actions/setup-node`,
      `ruby/setup-ruby`, and `actions/setup-java` match local toolchain
      choices.
    - Keep Detox jobs (`detox-macos`, `detox-android`) runnable with the
@@ -105,22 +105,19 @@ bun pm ls
 1. Reinstall platform dependencies as needed:
 
    ```bash
-   bun run --silent agent:run --label dependencies -- bun install --frozen-lockfile
-   bun run --silent agent:run --label gems -- bundle install
-   bun run --silent agent:run --label pods -- \
-     sh -c 'cd ios && bundle exec pod install'
+   npm run -s agent:run -- -- npm ci
+   npm run -s agent:run -- -- bundle install
+   npm run -s agent:run -- -- sh -c 'cd ios && bundle exec pod install'
    ```
 
 1. Validate (repo test suite):
 
    ```bash
-   bun run --silent agent:run --label lint -- bun run lint
-   bun run --silent agent:run --label shellcheck -- bun run lint:shell
-   bun run --silent agent:run --label tests -- bun run test
-   bun run --silent agent:run --label detox-ios -- \
-     ./scripts/detox-ios-headless.sh --loglevel info
-   bun run --silent agent:run --label detox-android -- \
-     ./scripts/detox-android-headless.sh --loglevel info
+   npm run -s agent:run -- -- npm run lint
+   npm run -s agent:run -- -- npm run lint:shell
+   npm run -s agent:run -- -- npm run test
+   npm run -s agent:run -- -- ./scripts/detox-ios-headless.sh --loglevel info
+   npm run -s agent:run -- -- ./scripts/detox-android-headless.sh --loglevel info
    ```
 
    - If a headless Detox script fails, debug and rerun the same script until
@@ -128,10 +125,8 @@ bun pm ls
    - For quick isolation while debugging, you may run:
 
    ```bash
-   bun run --silent agent:run --label detox-ios -- \
-     bunx detox build --configuration ios.release
-   bun run --silent agent:run --label detox-android -- \
-     bunx detox build --configuration android.release
+   npm run -s agent:run -- -- npx detox build --configuration ios.release
+   npm run -s agent:run -- -- npx detox build --configuration android.release
    ```
 
 1. Review and prepare PR:

@@ -60,7 +60,7 @@ fi
 CONFIG=${DETOX_CONFIG:-$DEFAULT_CONFIG}
 
 if [ "${SKIP_BUILD:-0}" != "1" ]; then
-  bunx detox build --configuration "$CONFIG"
+  npx detox build --configuration "$CONFIG"
 fi
 
-bunx detox test --configuration "$CONFIG" --headless "$@"
+npx detox test --configuration "$CONFIG" --headless "$@"

@@ -52,29 +52,12 @@ workflows run tests without deploying.
 
 ## Package management
 
-Use the Bun version in `.mise.toml` and `package.json` with the committed
-`bun.lock`; CI installs with `bun install --frozen-lockfile`. Keep Node installed
-for React Native, Metro, Jest, and code generation. Do not force those tools onto
-Bun's runtime with `--bun`.
-
-`trustedDependencies` explicitly allows lifecycle scripts for Detox, Parcel's
-watcher, fsevents, and unrs-resolver. Bun matches these approvals by package name,
-so its trust list alone does not require approval again when a version changes.
-The currently reviewed versions are Detox 20.51.4, `@parcel/watcher` 2.6.0,
-fsevents 2.3.3, and unrs-resolver 1.12.2.
-
-Before installing or accepting a refreshed lockfile, compare every trusted
-package's version in `bun.lock` with these reviewed versions. If any changes,
-review that release's lifecycle scripts and explicitly approve the new version
-in the upgrade PR, then update the reviewed version here. Do this even when
-`trustedDependencies` itself is unchanged. Keep frozen installs in CI; all other
-dependency lifecycle scripts remain blocked. The original version-specific
-`allowScripts` entries also remain for developers who accidentally run npm;
-Bun uses `trustedDependencies` and the frozen lockfile instead.
-
-Keep the parent-scoped Markdown CLI overrides intact when updating the lockfile.
-The provisioning script retains npm's `npx` for its separate Firebase deployment
-CLI, whose lifecycle is outside the application's dependency install.
+Use `npm ci` with the committed `package-lock.json` for application dependencies.
+The `allowScripts` policy approves dependency lifecycle scripts for exact
+versions. Bun's `trustedDependencies` approves package names across versions;
+keep npm while that version-specific approval requirement applies. Bun remains
+the runtime for agent-tool and image generation, with its version pinned in
+`.mise.toml` and installed through mise in CI.
 
 ## Compatibility constraints
 
@@ -146,7 +129,7 @@ preserve the fixes and compatibility decisions documented in
   [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
   Markdownlint CLI merges explicit TOML configuration through `deep-extend`,
   converting smol-toml's null-prototype tables into ordinary rule options.
-  `bun run test:markdownlint` checks the installed CLI with nested TOML options,
+  `npm run test:markdownlint` checks the installed CLI with nested TOML options,
   disabled rules, severity, inherited configuration, YAML, JSON, JavaScript class
   options, and many flat TOML keys. `lint:md` runs these regressions first. Keep
   this boundary tested when upgrading the CLI or replacing its merger.

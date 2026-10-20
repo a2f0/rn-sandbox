@@ -5,7 +5,7 @@ set -eu
 # Regenerate it when missing. Only the jar is written; the committed
 # gradle-wrapper.properties keeps deciding which Gradle version builds run on.
 #
-# With --optional (Bun's prepare script), a missing Gradle is a warning, so
+# With --optional (npm's prepare script), a missing Gradle is a warning, so
 # installing JavaScript dependencies doesn't require it. CI skips it entirely:
 # jobs that build Android generate the jar in their build step, and running
 # Gradle before setup-gradle stops it from restoring its cache.

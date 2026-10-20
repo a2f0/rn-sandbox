@@ -15,7 +15,7 @@ PATH="$PATH:$HOME/.bun/bin:$HOME/.local/share/mise/shims:/opt/homebrew/bin:/usr/
 export PATH
 
 if [ ! -x "$AGENT_TOOL" ]; then
-  echo "Error: $AGENT_TOOL not found. Run bun install --frozen-lockfile first." >&2
+  echo "Error: $AGENT_TOOL not found. Run npm ci first." >&2
   exit 1
 fi
 if ! command -v bun >/dev/null 2>&1; then

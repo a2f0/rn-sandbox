@@ -1,12 +1,7 @@
 # RN Upgrade Failure Playbook
 
-Capture noisy finite commands with the labeled harness:
-
-```sh
-bun run --silent agent:run --label <check> -- <command> <args>
-```
-
-Inspect complete logs with bounded `bun run --silent agent-tool logs <log-path>`
+Capture noisy finite commands with `npm run -s agent:run -- -- <command> <args>`.
+Inspect complete logs with bounded `npm run -s agent-tool -- logs <log-path>`
 reads or targeted searches for the signatures below. Keep interactive tools
 direct. These commands preserve their original working directories.
 
@@ -21,14 +16,9 @@ Actions:
 
 1. Re-check `.nvmrc`, `.ruby-version`, `.java-version`, `package.json` engines.
 1. Re-check `.github/workflows/main.yml` for matching setup versions.
-1. Reinstall JavaScript, Ruby, and CocoaPods dependencies:
-
-   ```sh
-   bun run --silent agent:run --label dependencies -- bun install --frozen-lockfile
-   bun run --silent agent:run --label gems -- bundle install
-   bun run --silent agent:run --label pods -- \
-     sh -c 'cd ios && bundle exec pod install'
-   ```
+1. Re-run `npm run -s agent:run -- -- npm ci` and
+   `npm run -s agent:run -- -- bundle install`, then
+   `npm run -s agent:run -- -- sh -c 'cd ios && bundle exec pod install'`.
 
 ## Android ABI Install Failure
 
@@ -53,12 +43,7 @@ Actions:
 
 1. Capture crash logs and identify crashing native/lib component.
 1. If release-only crash on arm64 emulator, test debug config locally:
-
-   ```sh
-   DETOX_CONFIG=android bun run --silent agent:run --label detox-android -- \
-     ./scripts/detox-android-headless.sh
-   ```
-
+   - `DETOX_CONFIG=android npm run -s agent:run -- -- ./scripts/detox-android-headless.sh`
 1. Keep release path for CI unless CI reproduces same crash.
 
 ## iOS Build/Runtime Failure
@@ -70,14 +55,8 @@ Symptoms:
 
 Actions:
 
-1. Refresh Ruby and CocoaPods dependencies:
-
-   ```sh
-   bun run --silent agent:run --label gems -- bundle install
-   bun run --silent agent:run --label pods -- \
-     sh -c 'cd ios && bundle exec pod install'
-   ```
-
+1. `npm run -s agent:run -- -- bundle install`
+1. `npm run -s agent:run -- -- sh -c 'cd ios && bundle exec pod install'`
 1. Clean derived data if needed and rebuild detox iOS.
 
 ## Detox Bootstrap Failure
