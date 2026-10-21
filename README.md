@@ -120,7 +120,9 @@ WebAssembly.
 `bun run build:wasm` (`scripts/buildWasm.sh`) compiles that module with
 Emscripten into `web/wasm/build/`, a single ES module with the WebAssembly
 inlined, so Vite and Jest load it alike. The scripts below run it first, and it
-skips the build when the output is current. Both web modules keep their files
+reuses the build when its sources and active compiler version are unchanged.
+Emscripten must be on `PATH` even for cached output, so the script can verify
+which compiler is active. Both web modules keep their files
 in the module's Emscripten file system, saved to IndexedDB, as the native
 modules share the device's file system. The C++ runs synchronously there, since
 the browser gives WebAssembly no threads without cross-origin isolation.

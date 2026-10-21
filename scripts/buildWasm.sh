@@ -4,8 +4,8 @@
 # Embind bindings (web/wasm/RoundTripCxxWasm.cpp) as WebAssembly for the web.
 # Writes web/wasm/build/roundTripCxx.js, an ES module with the WebAssembly
 # inlined so Vite and Jest load it alike, and its TypeScript declarations.
-# Skips the build when the output is newer than its sources. Needs Emscripten
-# (emsdk in .mise.toml).
+# Reuses output only when its sources and active compiler version are unchanged.
+# Needs Emscripten on PATH even for cached output (emsdk in .mise.toml).
 
 set -eu
 
