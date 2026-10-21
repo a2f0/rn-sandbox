@@ -16,13 +16,13 @@ jobs:
           version: 2026.10.15
           install_args: node bun shellcheck
           cache: true
-      - name: Cache npm downloads
+      - name: Cache Bun downloads
         uses: actions/cache@v6.1.0
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
-            ${{ runner.os }}-npm-
+            ${{ runner.os }}-${{ runner.arch }}-bun-
       - name: Read the Emscripten version
         id: emsdk
         run: echo "version=$(sed -n 's/^emsdk = "\(.*\)"$/\1/p' .mise.toml)" >> "$GITHUB_OUTPUT"
@@ -30,18 +30,18 @@ jobs:
         uses: emscripten-core/setup-emsdk@v16
         with:
           version: ${{ steps.emsdk.outputs.version }}
-      - run: npm ci
+      - run: bun install --frozen-lockfile
       - name: Verify agent-tool
         run: |
-          npm run agent-tool -- --version
-          npm run agent-tool -- config show
-          npm run agents:check
+          bun run agent-tool --version
+          bun run agent-tool config show
+          bun run agents:check
       - name: Check for binary files
         run: sh scripts/checks/checkBinaryFiles.sh --all
-      - run: npm run lint
-      - run: npm run lint:md
-      - run: npm run lint:shell
-      - run: npm run test
+      - run: bun run lint
+      - run: bun run lint:md
+      - run: bun run lint:shell
+      - run: bun run test
   web:
     name: web
     runs-on: ubuntu-latest
@@ -51,15 +51,15 @@ jobs:
       - uses: jdx/mise-action@v5.2.1
         with:
           version: 2026.10.15
-          install_args: node
+          install_args: node bun
           cache: true
-      - name: Cache npm downloads
+      - name: Cache Bun downloads
         uses: actions/cache@v6.1.0
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
-            ${{ runner.os }}-npm-
+            ${{ runner.os }}-${{ runner.arch }}-bun-
       - name: Read the Emscripten version
         id: emsdk
         run: echo "version=$(sed -n 's/^emsdk = "\(.*\)"$/\1/p' .mise.toml)" >> "$GITHUB_OUTPUT"
@@ -67,10 +67,10 @@ jobs:
         uses: emscripten-core/setup-emsdk@v16
         with:
           version: ${{ steps.emsdk.outputs.version }}
-      - run: npm ci
+      - run: bun install --frozen-lockfile
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - run: npm run test:web
+        run: bunx playwright install --with-deps chromium
+      - run: bun run test:web
       - name: Upload Playwright artifacts
         if: failure()
         uses: actions/upload-artifact@v7.0.2
@@ -85,19 +85,18 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v7.0.1
-      # Native builds render app icons with agent-tool, which runs under Bun.
       - uses: jdx/mise-action@v5.2.1
         with:
           version: 2026.10.15
           install_args: node bun
           cache: true
-      - name: Cache npm downloads
+      - name: Cache Bun downloads
         uses: actions/cache@v6.1.0
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
-            ${{ runner.os }}-npm-
+            ${{ runner.os }}-${{ runner.arch }}-bun-
       - uses: ruby/setup-ruby@v1.329.0
         with:
           ruby-version: '3.3.12'
@@ -118,7 +117,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2.24
         with:
           key: ${{ runner.os }}-ccache
-      - run: npm ci
+      - run: bun install --frozen-lockfile
       - name: Install AppleSimUtils
         run: |
           brew tap wix/brew
@@ -127,13 +126,13 @@ jobs:
       - name: run pod install
         working-directory: ./ios
         run: bundle exec pod install --deployment
-      - run: npx detox build --configuration ios.release
+      - run: bunx detox build --configuration ios.release
       - name: Create iOS simulator
         # Detox boots it headless (ios.release.ci). Booting it in the background
         # earlier competes with installs and the build for the runner's CPU and
         # disk, and measured slower overall.
         run: xcrun simctl create rn-sandbox com.apple.CoreSimulator.SimDeviceType.iPhone-16
-      - run: npx detox test --configuration ios.release.ci --record-videos all
+      - run: bunx detox test --configuration ios.release.ci --record-videos all
       - name: Upload Detox artifacts
         if: always()
         uses: actions/upload-artifact@v7.0.2
@@ -148,19 +147,18 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v7.0.1
-      # Native builds render app icons with agent-tool, which runs under Bun.
       - uses: jdx/mise-action@v5.2.1
         with:
           version: 2026.10.15
           install_args: node bun
           cache: true
-      - name: Cache npm downloads
+      - name: Cache Bun downloads
         uses: actions/cache@v6.1.0
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
-            ${{ runner.os }}-npm-
+            ${{ runner.os }}-${{ runner.arch }}-bun-
       - uses: actions/setup-java@v6.1.0
         with:
           distribution: 'temurin'
@@ -172,7 +170,7 @@ jobs:
         with:
           # Generates the gitignored wrapper jar (scripts/ensureGradleWrapper.sh).
           gradle-version: '9.4.1'
-      - run: npm ci
+      - run: bun install --frozen-lockfile
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -184,7 +182,7 @@ jobs:
           sudo rm -rf /usr/local/lib/android/sdk/ndk
           sudo rm -rf /opt/ghc
           df -h
-      - run: npx detox build --configuration android.release
+      - run: bunx detox build --configuration android.release
       - name: run tests
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
@@ -199,7 +197,7 @@ jobs:
           script: |
             adb devices
             adb wait-for-device
-            npx detox test --configuration android.ci --headless --record-videos all
+            bunx detox test --configuration android.ci --headless --record-videos all
           avd-name: rn-sandbox
       - name: Upload Detox artifacts
         if: always()
