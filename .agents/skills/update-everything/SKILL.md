@@ -19,7 +19,7 @@ Update obsolete guidance instead of appending upgrade journals to README or docs
 
 Use the pinned `agent:run` harness for noisy finite setup, validation, and build
 commands below. Inspect required warnings, timings, and artifacts through bounded
-`npm run -s agent-tool -- logs <log-path>` reads or targeted searches. Run
+`bun run agent-tool logs <log-path>` reads or targeted searches. Run
 interactive tools directly, and keep review verdicts and decision output visible.
 
 ## Skill Composition
@@ -44,11 +44,11 @@ node -v
 cat .nvmrc
 cat .ruby-version
 cat .java-version
-npm ls react-native react @react-native-community/cli --depth=0
+bun pm ls
 ```
 
 - Ensure required tooling is present
-  (`node`, `npm`, `bundle`, CocoaPods, Android SDK).
+  (`node`, `bun`, `bundle`, CocoaPods, Android SDK).
 
 ## Workflow
 
@@ -73,12 +73,12 @@ npm ls react-native react @react-native-community/cli --depth=0
 
 1. Recreate lockfile from pinned versions:
 
-   - Regenerate `package-lock.json` using the pinned `package.json`.
+   - Regenerate `bun.lock` using the pinned `package.json`.
    - Commit the lockfile separately:
 
    ```bash
-   npm run -s agent:run -- -- npm install --package-lock-only
-   git add package-lock.json
+   bun run agent:run -- bun install --lockfile-only
+   git add bun.lock
    git commit -m "chore(deps): refresh lockfile for pinned versions"
    ```
 
@@ -106,19 +106,19 @@ npm ls react-native react @react-native-community/cli --depth=0
 1. Reinstall platform dependencies as needed:
 
    ```bash
-   npm run -s agent:run -- -- npm ci
-   npm run -s agent:run -- -- bundle install
-   npm run -s agent:run -- -- sh -c 'cd ios && bundle exec pod install'
+   bun run agent:run -- bun install --frozen-lockfile
+   bun run agent:run -- bundle install
+   bun run agent:run -- sh -c 'cd ios && bundle exec pod install'
    ```
 
 1. Validate (repo test suite):
 
    ```bash
-   npm run -s agent:run -- -- npm run lint
-   npm run -s agent:run -- -- npm run lint:shell
-   npm run -s agent:run -- -- npm run test
-   npm run -s agent:run -- -- ./scripts/detox-ios-headless.sh --loglevel info
-   npm run -s agent:run -- -- ./scripts/detox-android-headless.sh --loglevel info
+   bun run agent:run -- bun run lint
+   bun run agent:run -- bun run lint:shell
+   bun run agent:run -- bun run test
+   bun run agent:run -- ./scripts/detox-ios-headless.sh --loglevel info
+   bun run agent:run -- ./scripts/detox-android-headless.sh --loglevel info
    ```
 
    - If a headless Detox script fails, debug and rerun the same script until
@@ -126,8 +126,8 @@ npm ls react-native react @react-native-community/cli --depth=0
    - For quick isolation while debugging, you may run:
 
    ```bash
-   npm run -s agent:run -- -- npx detox build --configuration ios.release
-   npm run -s agent:run -- -- npx detox build --configuration android.release
+   bun run agent:run -- bunx detox build --configuration ios.release
+   bun run agent:run -- bunx detox build --configuration android.release
    ```
 
 1. Review and prepare PR:

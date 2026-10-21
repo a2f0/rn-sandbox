@@ -11,19 +11,19 @@ GitHub issues without an explicit request.
 
 Shipping and review skills come from the exactly pinned `@a2f0/agent-tool`
 dev dependency and are managed in `.agents/skills` and `.claude/skills`. Do not
-edit them. After changing its version, run `npm run agents:sync` and commit
-`package.json`, `package-lock.json`, the skills, and `.agent-tool-skills.json`
+edit them. After changing its version, run `bun run agents:sync` and commit
+`package.json`, `bun.lock`, the skills, and `.agent-tool-skills.json`
 together. The CLI runs under Bun, so Bun must be on `PATH`. Title and required
 CI policy is in `agent-tool.json`.
 
-npm installs the CLI in `node_modules/.bin`, which is not on `PATH`. Where the
-skills run `agent-tool <arguments>`, run `npm run -s agent-tool -- <arguments>`
-instead. npm keeps empty arguments, so this also works for `pr merge ''`.
+Where the skills run `agent-tool <arguments>`, run
+`bun run agent-tool <arguments>`. For commands needing a literal empty argument,
+invoke `node_modules/.bin/agent-tool` directly.
 
-Capture noisy finite commands with `npm run -s agent:run -- --label <name> --
+Capture noisy finite commands with `bun run agent:run --label <name> --
 <command> <arguments>`. The harness preserves exit status and full private logs,
 returning a compact receipt and a bounded failure excerpt. Inspect more evidence
-with `npm run -s agent-tool -- logs <log-path>` or a targeted search; review
+with `bun run agent-tool logs <log-path>` or a targeted search; review
 required warnings, timings, and artifacts before accepting a check. Keep review
 verdicts and structured decision output visible. Run interactive tools and
 persistent servers directly.
@@ -58,15 +58,15 @@ icons (`assets/brand/*.svg`, `scripts/buildImages.sh`) and the Gradle wrapper ja
 Run these checks before shipping. The pre-push hook runs the binary file, lint,
 and agent checks; `lint:shell` needs ShellCheck.
 
-- `npm run -s agent:run -- -- sh scripts/checks/checkBinaryFiles.sh`
-- `npm run -s agent:run -- -- npm run lint`
-- `npm run -s agent:run -- -- npm run lint:md`
-- `npm run -s agent:run -- -- npm run lint:shell`
-- `npm run -s agent:run -- -- npm run test` (builds WebAssembly; needs Emscripten)
-- `npm run -s agent:run -- -- npm run test:web` (Playwright; needs Chromium)
-- `npm run agents:check`
+- `bun run agent:run -- sh scripts/checks/checkBinaryFiles.sh`
+- `bun run agent:run -- bun run lint`
+- `bun run agent:run -- bun run lint:md`
+- `bun run agent:run -- bun run lint:shell`
+- `bun run agent:run -- bun run test` (builds WebAssembly; needs Emscripten)
+- `bun run agent:run -- bun run test:web` (Playwright; needs Chromium)
+- `bun run agents:check`
 
-Install Chromium with `npm run -s agent:run -- -- npx playwright install chromium`.
+Install Chromium with `bun run agent:run -- bunx playwright install chromium`.
 
 The TurboModule specs in `specs/` have Kotlin, Objective-C++, C++, and
 TypeScript implementations; the C++ binds to JSI on iOS and Android and to
@@ -77,8 +77,8 @@ Changes to native code, native dependencies, React Native versions, or `specs/`
 also need a release Detox build for each affected platform:
 
 ```sh
-npm run -s agent:run -- -- npx detox build --configuration ios.release
-npm run -s agent:run -- -- npx detox build --configuration android.release
+bun run agent:run -- bunx detox build --configuration ios.release
+bun run agent:run -- bunx detox build --configuration android.release
 ```
 
 ## Pull requests
@@ -107,4 +107,4 @@ branch protection requires the `code-quality (20)`, `detox-android (20)`, and
 `main`. Integrate an updated base with a normal merge. `detox-macos` takes
 about 10 minutes. If the same job fails three times in a row, stop and report
 it. Merging deploys nothing: the fastlane lanes ship the store builds, and
-`npm run deploy:web` the web build (see the README).
+`bun run deploy:web` the web build (see the README).

@@ -18,7 +18,7 @@ Update obsolete guidance instead of appending upgrade journals to README or docs
 
 Use the pinned `agent:run` harness for noisy finite setup, validation, and build
 commands below. Inspect required warnings, timings, and artifacts through bounded
-`npm run -s agent-tool -- logs <log-path>` reads or targeted searches. Run
+`bun run agent-tool logs <log-path>` reads or targeted searches. Run
 interactive tools directly, and keep review verdicts and decision output visible.
 
 ## Phase 0: Baseline Snapshot
@@ -32,7 +32,7 @@ interactive tools directly, and keep review verdicts and decision output visible
    cat .nvmrc
    cat .ruby-version
    cat .java-version
-   npm ls react-native react @react-native-community/cli --depth=0
+   bun pm ls
    ```
 
 1. Stop if there are unrelated unstaged changes that could be overwritten.
@@ -56,15 +56,15 @@ interactive tools directly, and keep review verdicts and decision output visible
 
 ## Phase 2: Upgrade Execution
 
-1. Pin npm dependency versions first (no ranges in `package.json`):
+1. Pin JavaScript dependency versions first (no ranges in `package.json`):
 
    - Set exact versions for RN/react/CLI and related packages (no `^` / `~`).
    - Commit only `package.json` pin changes.
 
 1. Regenerate and commit lockfile from pinned versions:
 
-   - Run `npm run -s agent:run -- -- npm install --package-lock-only`.
-   - Commit `package-lock.json` in a separate commit tied to the pin commit.
+   - Run `bun run agent:run -- bun install --lockfile-only`.
+   - Commit `bun.lock` in a separate commit tied to the pin commit.
 
 1. Generate and review React Native Upgrade Helper diffs (required):
 
@@ -105,7 +105,7 @@ interactive tools directly, and keep review verdicts and decision output visible
      independently. Follow `../update-dependencies/SKILL.md` for the full group.
    - Example check command: `gem list -r '^cocoapods$'`
    - Update `Gemfile` `gem 'cocoapods', '<version>'`.
-   - Run `npm run -s agent:run -- -- bundle update cocoapods` and commit
+   - Run `bun run agent:run -- bundle update cocoapods` and commit
      `Gemfile` + `Gemfile.lock`.
    - If already at latest stable, note that explicitly in the PR summary.
 
@@ -119,17 +119,17 @@ interactive tools directly, and keep review verdicts and decision output visible
 Run in this order and stop on first failure:
 
 ```bash
-npm run -s agent:run -- -- npm run lint
-npm run -s agent:run -- -- npm run lint:shell
-npm run -s agent:run -- -- npm run test
-npm run -s agent:run -- -- npx detox build --configuration ios.release
-npm run -s agent:run -- -- npx detox build --configuration android.release
+bun run agent:run -- bun run lint
+bun run agent:run -- bun run lint:shell
+bun run agent:run -- bun run test
+bun run agent:run -- bunx detox build --configuration ios.release
+bun run agent:run -- bunx detox build --configuration android.release
 ```
 
 For local Android emulator ABI mismatches, use:
 
 ```bash
-npm run -s agent:run -- -- ./scripts/detox-android-headless.sh
+bun run agent:run -- ./scripts/detox-android-headless.sh
 ```
 
 The helper script auto-selects ABI and config for arm64 local emulators.

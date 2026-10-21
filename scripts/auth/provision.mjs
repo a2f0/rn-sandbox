@@ -1,5 +1,5 @@
 // Provisions Firebase Authentication for Sign in with Google and Apple, then
-// writes the app's config: npm run auth:provision. See the README.
+// writes the app's config: bun run auth:provision. See the README.
 //
 // 1. Terraform (infra/auth) creates the project, Firebase, Identity Platform,
 //    and the iOS, Android, and web apps.
