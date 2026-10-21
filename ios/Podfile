@@ -17,6 +17,11 @@ end
 target 'sandbox' do
   config = use_native_modules!
 
+  # AppCheckCore's Swift implementation imports these static dependencies.
+  pod 'GoogleUtilities/Environment', :modular_headers => true
+  pod 'GoogleUtilities/UserDefaults', :modular_headers => true
+  pod 'RecaptchaInterop', :modular_headers => true
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
