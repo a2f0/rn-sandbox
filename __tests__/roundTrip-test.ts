@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { createCases } from '../src/roundTrip/cases';
-import { describe as describeValue } from '../src/roundTrip/describe';
+import { describeValue } from '../src/roundTrip/describe';
 import { runRoundTrips } from '../src/roundTrip/run';
 
 // jest.setup.ts provides the web modules, which report the web platform.

@@ -1,7 +1,10 @@
 // A compact, unambiguous rendering of a round-tripped value: unlike
 // JSON.stringify it shows undefined, NaN, Infinity, -0, ArrayBuffers, and
 // cycles. enclosing holds the objects that contain value.
-export function describe(value: unknown, enclosing: object[] = []): string {
+export function describeValue(
+  value: unknown,
+  enclosing: object[] = [],
+): string {
   if (typeof value === 'number') {
     return Object.is(value, -0) ? '-0' : String(value);
   }
@@ -23,10 +26,10 @@ export function describe(value: unknown, enclosing: object[] = []): string {
   }
   const inner = [...enclosing, value];
   if (Array.isArray(value)) {
-    return `[${value.map((item) => describe(item, inner)).join(', ')}]`;
+    return `[${value.map((item) => describeValue(item, inner)).join(', ')}]`;
   }
   const entries = Object.entries(value).map(
-    ([key, item]) => `${key}: ${describe(item, inner)}`,
+    ([key, item]) => `${key}: ${describeValue(item, inner)}`,
   );
   return `{${entries.join(', ')}}`;
 }

@@ -22,6 +22,9 @@ establish native compatibility. Use the
 review template changes for the exact from/to versions, preserving the
 repository's native customizations. Keep local toolchain files and CI aligned;
 the Emscripten version comes from `.mise.toml`.
+The WebAssembly build includes that file in its freshness check, so changing
+the compiler pin rebuilds the generated module. Run the web and Jest suites
+against the rebuilt output after an Emscripten update.
 
 After changing React Native, refresh its cached prebuilt podspecs with
 `cd ios && bundle exec pod update React-Core-prebuilt hermes-engine --no-repo-update`.

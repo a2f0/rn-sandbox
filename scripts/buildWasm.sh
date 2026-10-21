@@ -14,9 +14,10 @@ cd "$(dirname "$0")/.."
 out=web/wasm/build
 module="$out/roundTripCxx.js"
 
-# find -newer lists the sources changed since the last build.
+# Include the compiler pin so upgrading Emscripten rebuilds the module.
+# find -newer lists inputs changed since the last build.
 if [ -f "$module" ] && [ -z "$(find shared/RoundTripCxxCore.h \
-  web/wasm/RoundTripCxxWasm.cpp scripts/buildWasm.sh -newer "$module")" ]; then
+  web/wasm/RoundTripCxxWasm.cpp scripts/buildWasm.sh .mise.toml -newer "$module")" ]; then
   exit 0
 fi
 

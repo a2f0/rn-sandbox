@@ -9,7 +9,7 @@ gradle = "9.4.1"
 shellcheck = "0.11.0"
 # Builds the C++ TurboModule as WebAssembly for the web (scripts/buildWasm.sh).
 # CI reads this version too.
-emsdk = "6.0.12"
+emsdk = "6.0.13"
 bun = "1.4.3"
 # Provisions Firebase Authentication (infra/auth, scripts/auth/provision.mjs).
 terraform = "1.16.4"
