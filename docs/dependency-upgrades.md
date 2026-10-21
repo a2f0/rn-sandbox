@@ -22,6 +22,9 @@ establish native compatibility. Use the
 review template changes for the exact from/to versions, preserving the
 repository's native customizations. Keep local toolchain files and CI aligned;
 the Emscripten version comes from `.mise.toml`.
+The WebAssembly build records the active compiler version beside its generated
+module and rebuilds when the installed compiler changes. Run the web and Jest
+suites against the rebuilt output after an Emscripten update.
 
 After changing React Native, refresh its cached prebuilt podspecs with
 `cd ios && bundle exec pod update React-Core-prebuilt hermes-engine --no-repo-update`.
@@ -85,6 +88,14 @@ do not execute provisioning or store-release lanes as migration tests.
   app's existing AppDelegate lifecycle; its new SceneDelegate template is an
   optional lifecycle migration, which needs launch and URL callback tests before
   adoption.
+- The Google Sign-In native module owns the supported GoogleSignIn pod range.
+  Refresh its compatible pods together with `bundle exec pod update GoogleSignIn`.
+  AppCheckCore's Swift implementation needs module maps for GoogleUtilities and
+  RecaptchaInterop when linked as static libraries. Keep the scoped
+  [`modular_headers`](https://guides.cocoapods.org/syntax/podfile.html#use_modular_headers_bang)
+  entries in `ios/Podfile` until those podspecs provide modules themselves or the
+  integration changes; verify a frozen pod install and the iOS release Detox suite
+  before removing them.
 - Keep TypeScript 6 while Jest's TypeScript configuration loads through
   `ts-node` and its JavaScript compiler API. [TypeScript 7](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/)
   uses the native compiler. Revisit when the configuration loader supports that

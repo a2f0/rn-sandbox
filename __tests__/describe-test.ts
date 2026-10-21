@@ -1,4 +1,4 @@
-import { describe as describeValue } from '../src/roundTrip/describe';
+import { describeValue } from '../src/roundTrip/describe';
 
 test('shows values JSON.stringify loses', () => {
   expect(describeValue(undefined)).toBe('undefined');

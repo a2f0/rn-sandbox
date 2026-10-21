@@ -11,9 +11,9 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: jdx/mise-action@v5.2.1
+      - uses: jdx/mise-action@v5.2.2
         with:
-          version: 2026.10.15
+          version: 2026.10.17
           install_args: node bun shellcheck
           cache: true
       - name: Cache Bun downloads
@@ -48,9 +48,9 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: jdx/mise-action@v5.2.1
+      - uses: jdx/mise-action@v5.2.2
         with:
-          version: 2026.10.15
+          version: 2026.10.17
           install_args: node bun
           cache: true
       - name: Cache Bun downloads
@@ -85,9 +85,9 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: jdx/mise-action@v5.2.1
+      - uses: jdx/mise-action@v5.2.2
         with:
-          version: 2026.10.15
+          version: 2026.10.17
           install_args: node bun
           cache: true
       - name: Cache Bun downloads
@@ -97,7 +97,7 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-bun-
-      - uses: ruby/setup-ruby@v1.329.0
+      - uses: ruby/setup-ruby@v1.332.0
         with:
           ruby-version: '3.3.12'
           bundler-cache: true
@@ -147,9 +147,9 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: jdx/mise-action@v5.2.1
+      - uses: jdx/mise-action@v5.2.2
         with:
-          version: 2026.10.15
+          version: 2026.10.17
           install_args: node bun
           cache: true
       - name: Cache Bun downloads

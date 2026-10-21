@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SignInBar } from './auth/SignInBar';
 import { deepEqual } from './roundTrip/deepEqual';
-import { describe } from './roundTrip/describe';
+import { describeValue } from './roundTrip/describe';
 import { type RoundTripResult, runRoundTrips } from './roundTrip/run';
 import { type Colors, dark, light, monospace } from './theme';
 
@@ -190,19 +190,19 @@ function ResultRow({
             value={
               result.input === undefined
                 ? 'no arguments'
-                : describe(result.input)
+                : describeValue(result.input)
             }
             colors={colors}
           />
           <Value
             label="Received"
-            value={describe(result.actual)}
+            value={describeValue(result.actual)}
             colors={colors}
           />
           {showExpected && (
             <Value
               label="Expected"
-              value={describe(result.expected)}
+              value={describeValue(result.expected)}
               colors={colors}
             />
           )}
