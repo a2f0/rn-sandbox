@@ -77,7 +77,7 @@ bun pm ls
    - Commit the lockfile separately:
 
    ```bash
-   bun run agent:run -- bun install --lockfile-only
+   bun run agent:run --label lockfile -- bun install --lockfile-only
    git add bun.lock
    git commit -m "chore(deps): refresh lockfile for pinned versions"
    ```
@@ -106,19 +106,21 @@ bun pm ls
 1. Reinstall platform dependencies as needed:
 
    ```bash
-   bun run agent:run -- bun install --frozen-lockfile
-   bun run agent:run -- bundle install
-   bun run agent:run -- sh -c 'cd ios && bundle exec pod install'
+   bun run agent:run --label install -- bun install --frozen-lockfile
+   bun run agent:run --label bundle -- bundle install
+   bun run agent:run --label pods -- sh -c 'cd ios && bundle exec pod install'
    ```
 
 1. Validate (repo test suite):
 
    ```bash
-   bun run agent:run -- bun run lint
-   bun run agent:run -- bun run lint:shell
-   bun run agent:run -- bun run test
-   bun run agent:run -- ./scripts/detox-ios-headless.sh --loglevel info
-   bun run agent:run -- ./scripts/detox-android-headless.sh --loglevel info
+   bun run agent:run --label lint -- bun run lint
+   bun run agent:run --label shell -- bun run lint:shell
+   bun run agent:run --label tests -- bun run test
+   bun run agent:run --label ios-detox -- \
+     ./scripts/detox-ios-headless.sh --loglevel info
+   bun run agent:run --label android-detox -- \
+     ./scripts/detox-android-headless.sh --loglevel info
    ```
 
    - If a headless Detox script fails, debug and rerun the same script until
@@ -126,8 +128,8 @@ bun pm ls
    - For quick isolation while debugging, you may run:
 
    ```bash
-   bun run agent:run -- bunx detox build --configuration ios.release
-   bun run agent:run -- bunx detox build --configuration android.release
+   bun run agent:run --label ios-build -- bunx detox build --configuration ios.release
+   bun run agent:run --label android-build -- bunx detox build --configuration android.release
    ```
 
 1. Review and prepare PR:

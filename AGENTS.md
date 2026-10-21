@@ -27,6 +27,8 @@ with `bun run agent-tool logs <log-path>` or a targeted search; review
 required warnings, timings, and artifacts before accepting a check. Keep review
 verdicts and structured decision output visible. Run interactive tools and
 persistent servers directly.
+Keep `--label <name>` before the separator; Bun strips a leading `--` from
+script arguments.
 
 Use the shared `update-dependencies` skill for dependency refreshes, including
 compatibility checks, advisories, and non-destructive deployment previews.
@@ -58,15 +60,19 @@ icons (`assets/brand/*.svg`, `scripts/buildImages.sh`) and the Gradle wrapper ja
 Run these checks before shipping. The pre-push hook runs the binary file, lint,
 and agent checks; `lint:shell` needs ShellCheck.
 
-- `bun run agent:run -- sh scripts/checks/checkBinaryFiles.sh`
-- `bun run agent:run -- bun run lint`
-- `bun run agent:run -- bun run lint:md`
-- `bun run agent:run -- bun run lint:shell`
-- `bun run agent:run -- bun run test` (builds WebAssembly; needs Emscripten)
-- `bun run agent:run -- bun run test:web` (Playwright; needs Chromium)
+- `bun run agent:run --label binary -- sh scripts/checks/checkBinaryFiles.sh`
+- `bun run agent:run --label lint -- bun run lint`
+- `bun run agent:run --label markdown -- bun run lint:md`
+- `bun run agent:run --label shell -- bun run lint:shell`
+- `bun run agent:run --label tests -- bun run test` (builds WebAssembly; needs Emscripten)
+- `bun run agent:run --label web -- bun run test:web` (Playwright; needs Chromium)
 - `bun run agents:check`
 
-Install Chromium with `bun run agent:run -- bunx playwright install chromium`.
+Install Chromium with:
+
+```sh
+bun run agent:run --label chromium -- bunx playwright install chromium
+```
 
 The TurboModule specs in `specs/` have Kotlin, Objective-C++, C++, and
 TypeScript implementations; the C++ binds to JSI on iOS and Android and to
@@ -77,8 +83,8 @@ Changes to native code, native dependencies, React Native versions, or `specs/`
 also need a release Detox build for each affected platform:
 
 ```sh
-bun run agent:run -- bunx detox build --configuration ios.release
-bun run agent:run -- bunx detox build --configuration android.release
+bun run agent:run --label ios-build -- bunx detox build --configuration ios.release
+bun run agent:run --label android-build -- bunx detox build --configuration android.release
 ```
 
 ## Pull requests
