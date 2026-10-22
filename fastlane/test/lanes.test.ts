@@ -3,8 +3,8 @@ import { resolve } from 'node:path';
 
 const fastlaneDir = resolve(__dirname, '..');
 
-// Runs the Fastfile's lanes against fake actions (support/fake_fastlane.rb)
-// and prints what each scenario recorded.
+// Runs the lanes the Fastfile imports against fake actions
+// (support/fake_fastlane.rb) and prints what each scenario recorded.
 const script = `
 require "json"
 require "tmpdir"
@@ -15,14 +15,17 @@ secrets = Dir.mktmpdir("rn-sandbox-secrets-")
 work = Dir.mktmpdir("rn-sandbox-lanes-")
 at_exit { [secrets, work].each { |dir| FileUtils.rm_rf(dir) } }
 
-ENV["RN_SANDBOX_SECRETS_DIR"] = secrets
+# The default tier, production, with its secrets in a temporary folder.
+ENV.delete("NATIVE_RELEASE_TIER")
+ENV["NATIVE_RELEASE_SECRETS_DIR"] = secrets
 SECRET_NAMES = %w[APPLE_ID APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_KEY_ID ITC_TEAM_ID
                   MATCH_GIT_BASIC_AUTHORIZATION MATCH_GIT_URL MATCH_PASSWORD TEAM_ID
-                  RN_SANDBOX_ANDROID_KEYSTORE_PASS].freeze
+                  ANDROID_KEYSTORE_STORE_PASS ANDROID_KEYSTORE_KEY_PASS].freeze
+ANDROID_PASSWORDS = "ANDROID_KEYSTORE_STORE_PASS=store-pass\\nANDROID_KEYSTORE_KEY_PASS=key-pass\\n"
 KEYSTORE = File.join(secrets, "rn-sandbox-upload.keystore")
 PROFILE_ENV = "sigh_net.a2f0.sandbox.rn_appstore_profile-name"
 
-def write_secrets(secrets, android_password: true, keystore: true)
+def write_secrets(secrets, android_passwords: ANDROID_PASSWORDS, keystore: true)
   SECRET_NAMES.each { |name| ENV.delete(name) }
   ENV.delete(PROFILE_ENV)
   File.write(File.join(secrets, "shared.env"), <<~ENV)
@@ -34,7 +37,7 @@ def write_secrets(secrets, android_password: true, keystore: true)
     UNRELATED=ignored
   ENV
   File.write(File.join(secrets, "AuthKey_KEY123.p8"), "key")
-  File.write(File.join(secrets, "app.env"), android_password ? "RN_SANDBOX_ANDROID_KEYSTORE_PASS=upload-pass\\n" : "")
+  File.write(File.join(secrets, "app.env"), android_passwords)
   keystore ? File.write(KEYSTORE, "keystore") : FileUtils.rm_f(KEYSTORE)
 end
 
@@ -50,18 +53,18 @@ def android(work, create_bundle: true)
   aab = File.join(work, "app-release.aab")
   FileUtils.rm_f(aab)
   track_codes = { "production" => [], "beta" => [], "alpha" => [], "internal" => [3] }
-  password = nil
+  passwords = nil
   fastfile = FakeFastfile.new(File.join(ARGV.fetch(0), "Fastfile"),
     google_play_track_version_codes: ->(track:, **) { track_codes.fetch(track) },
     sh: ->(*) {},
     gradle: lambda do |**|
-      password = ENV["RN_SANDBOX_ANDROID_KEYSTORE_PASS"]
+      passwords = ENV.to_h.slice("ANDROID_KEYSTORE_STORE_PASS", "ANDROID_KEYSTORE_KEY_PASS")
       File.write(aab, "bundle") if create_bundle
     end,
     upload_to_play_store: ->(**) {})
   fastfile.stub_method(:google_play_uploaded_version_codes) { [9] }
   fastfile.set_constant(:ANDROID_RELEASE_AAB, aab)
-  [fastfile, aab, -> { password }]
+  [fastfile, aab, -> { passwords }]
 end
 
 # The security tool, as far as the keychain search list goes.
@@ -153,7 +156,7 @@ def create_app_result(fastfile, app)
     keychain: fastfile.calls_to(:create_keychain).first&.fetch(:name), groups: app&.calls }
 end
 
-results = { keystore: KEYSTORE }
+results = { keystore: KEYSTORE, lanes: FakeFastfile.new(File.join(ARGV.fetch(0), "Fastfile"), {}).lane_names }
 
 write_secrets(secrets)
 app = FakeApp.new([])
@@ -194,14 +197,14 @@ write_secrets(secrets)
 results[:register_identifiers_existing] = run_register_identifiers(:existing)
 
 write_secrets(secrets)
-fastfile, aab, password = android(work)
+fastfile, aab, passwords = android(work)
 results[:android_build] = {
   result: fastfile.run_lane(:android, :build_release) == aab,
-  gradle: fastfile.calls_to(:gradle), sh: fastfile.calls_to(:sh), password: password.call
+  gradle: fastfile.calls_to(:gradle), sh: fastfile.calls_to(:sh), passwords: passwords.call
 }
 
 fastfile, = android(work)
-fastfile.run_lane(:android, :build_release, { version_code: "42" })
+fastfile.run_lane(:android, :build_release, { build_number: "42" })
 results[:android_override] = {
   gradle: fastfile.calls_to(:gradle), track_lookups: fastfile.calls_to(:google_play_track_version_codes).length
 }
@@ -210,21 +213,27 @@ write_secrets(secrets, keystore: false)
 fastfile, = android(work)
 results[:android_no_keystore] = { error: error_of { fastfile.run_lane(:android, :build_release) }, gradle: fastfile.calls_to(:gradle).length }
 
-write_secrets(secrets, android_password: false)
+write_secrets(secrets, android_passwords: "")
 fastfile, = android(work)
 results[:android_no_password] = { error: error_of { fastfile.run_lane(:android, :build_release) }, gradle: fastfile.calls_to(:gradle).length }
+
+write_secrets(secrets, android_passwords: "ANDROID_KEYSTORE_STORE_PASS=store-pass\\n")
+fastfile, = android(work)
+results[:android_no_key_password] = { error: error_of { fastfile.run_lane(:android, :build_release) }, gradle: fastfile.calls_to(:gradle).length }
 
 write_secrets(secrets)
 fastfile, = android(work, create_bundle: false)
 results[:android_no_bundle] = { error: error_of { fastfile.run_lane(:android, :build_release) } }
 
 fastfile, aab = android(work)
-fastfile.run_lane(:android, :internal)
-results[:android_internal] = { upload: fastfile.calls_to(:upload_to_play_store), aab: aab }
+fastfile.run_lane(:android, :upload_release)
+results[:android_upload] = { upload: fastfile.calls_to(:upload_to_play_store), aab: aab }
 
 fastfile, = android(work)
-fastfile.run_lane(:android, :internal, { release_status: "draft" })
-results[:android_internal_draft] = { upload: fastfile.calls_to(:upload_to_play_store) }
+fastfile.run_lane(:android, :upload_release, { build_number: "42", track: "beta", release_status: "draft" })
+results[:android_upload_options] = {
+  upload: fastfile.calls_to(:upload_to_play_store), gradle: fastfile.calls_to(:gradle)
+}
 
 write_secrets(secrets)
 fastfile, project = ios(work)
@@ -251,8 +260,11 @@ results[:ios_failed_build] = { error: error_of { fastfile.run_lane(:ios, :build_
 
 write_secrets(secrets)
 fastfile, = ios(work)
-fastfile.run_lane(:ios, :beta)
-results[:ios_beta] = { upload: fastfile.calls_to(:upload_to_testflight) }
+fastfile.run_lane(:ios, :upload_release, { build_number: "7" })
+results[:ios_upload] = {
+  upload: fastfile.calls_to(:upload_to_testflight),
+  xcargs: fastfile.calls_to(:build_app).first&.fetch(:xcargs)
+}
 
 puts JSON.generate(results)
 `;
@@ -274,6 +286,19 @@ const results = (() => {
 
 const repoRoot = resolve(fastlaneDir, '..');
 
+test('the Fastfile imports the iOS and Android lanes', () => {
+  expect(results.lanes).toEqual({
+    ios: [
+      'register_identifiers',
+      'profiles',
+      'create_app',
+      'build_release',
+      'upload_release',
+    ],
+    android: ['build_release', 'upload_release'],
+  });
+});
+
 describe('android lanes', () => {
   test('build_release signs with the upload key at the next version code', () => {
     expect(results.android_build).toEqual({
@@ -291,11 +316,14 @@ describe('android lanes', () => {
         },
       ],
       sh: [['sh', `${repoRoot}/scripts/ensureGradleWrapper.sh`]],
-      password: 'upload-pass',
+      passwords: {
+        ANDROID_KEYSTORE_STORE_PASS: 'store-pass',
+        ANDROID_KEYSTORE_KEY_PASS: 'key-pass',
+      },
     });
   });
 
-  test('build_release takes a version code override', () => {
+  test('build_release takes a build_number: version code override', () => {
     expect(results.android_override.gradle[0].properties).toEqual({
       rnSandboxVersionCode: 42,
       rnSandboxUploadSigning: true,
@@ -310,7 +338,11 @@ describe('android lanes', () => {
       gradle: 0,
     });
     expect(results.android_no_password).toEqual({
-      error: expect.stringContaining('RN_SANDBOX_ANDROID_KEYSTORE_PASS'),
+      error: expect.stringContaining('ANDROID_KEYSTORE_STORE_PASS'),
+      gradle: 0,
+    });
+    expect(results.android_no_key_password).toEqual({
+      error: expect.stringContaining('ANDROID_KEYSTORE_KEY_PASS'),
       gradle: 0,
     });
     expect(results.android_no_bundle.error).toContain(
@@ -318,8 +350,8 @@ describe('android lanes', () => {
     );
   });
 
-  test('internal rolls the bundle out to internal testers', () => {
-    const { upload, aab } = results.android_internal;
+  test('upload_release rolls the bundle out to internal testers by default', () => {
+    const { upload, aab } = results.android_upload;
     expect(upload).toEqual([
       {
         package_name: 'net.a2f0.sandbox.rn',
@@ -336,9 +368,14 @@ describe('android lanes', () => {
         skip_upload_screenshots: true,
       },
     ]);
-    expect(results.android_internal_draft.upload[0].release_status).toBe(
-      'draft',
-    );
+  });
+
+  test('upload_release takes build_number:, track:, and release_status:', () => {
+    const { upload, gradle } = results.android_upload_options;
+    expect(upload).toEqual([
+      expect.objectContaining({ track: 'beta', release_status: 'draft' }),
+    ]);
+    expect(gradle[0].properties.rnSandboxVersionCode).toBe(42);
   });
 });
 
@@ -417,8 +454,9 @@ describe('ios lanes', () => {
     });
   });
 
-  test('beta uploads the build to TestFlight without waiting', () => {
-    expect(results.ios_beta.upload).toEqual([
+  test('upload_release uploads the build to TestFlight without waiting', () => {
+    expect(results.ios_upload.xcargs).toMatch(/^CURRENT_PROJECT_VERSION=7 /);
+    expect(results.ios_upload.upload).toEqual([
       {
         api_key: 'api-key',
         app_identifier: 'net.a2f0.sandbox.rn',

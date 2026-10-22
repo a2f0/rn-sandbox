@@ -23,7 +23,7 @@ function runRuby(script: string, ...args: string[]) {
 // escaped.
 const keychainScript = `
 require "json"
-require File.join(ARGV.fetch(0), "signing_keychain")
+require File.join(ARGV.fetch(0), "ios_signing_keychain")
 
 LOGIN = "/keychains/login.keychain-db"
 
@@ -43,7 +43,7 @@ def exercise(fail_create: false, created_before_failure: false, fail_block: fals
     search_list.map { |path| "    \\"#{path}\\"\n" }.join
   end
   begin
-    result = SigningKeychain.with_temporary(
+    result = IosSigningKeychain.with_temporary(
       create: proc do |name, password|
         created = created_before_failure || !fail_create
         events << ["create", name]
@@ -79,8 +79,8 @@ puts JSON.generate(
   block_failure: exercise(fail_block: true),
   create_failure: exercise(fail_create: true),
   partial_create_failure: exercise(fail_create: true, created_before_failure: true),
-  exists_present: SigningKeychain.exists?("present", keychains_dir: keychains),
-  exists_missing: SigningKeychain.exists?("missing", keychains_dir: keychains)
+  exists_present: IosSigningKeychain.exists?("present", keychains_dir: keychains),
+  exists_missing: IosSigningKeychain.exists?("missing", keychains_dir: keychains)
 )
 `;
 

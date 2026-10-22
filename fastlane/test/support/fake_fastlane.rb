@@ -1,60 +1,26 @@
 # frozen_string_literal: true
 
-# Just enough of fastlane to evaluate fastlane/Fastfile and run its lanes with
-# recording stand-ins for every action, so tests see what each lane passes
-# without building, signing, or uploading anything. Needs only plain Ruby.
+require_relative 'fake_fastlane_core'
+require_relative 'fake_spaceship'
 
-class UserError < StandardError; end
-
-module UI
-  def self.user_error!(message) = raise(UserError, message)
-  def self.message(_text) = nil
-  def self.success(_text) = nil
-  def self.important(_text) = nil
-end
-
-module FastlaneCore
-  module Helper
-    def self.keychain_path(name) = "/keychains/#{name}-db"
-  end
-end
-
-# create_app looks the new app up through Spaceship, and register_identifiers
-# the bundle ID; tests set the finders and see what was created.
-module Spaceship
-  module ConnectAPI
-    module Platform
-      IOS = 'IOS'
-    end
-
-    class App
-      class << self
-        attr_accessor :finder
-
-        def find(identifier) = finder.call(identifier)
-      end
-    end
-
-    class BundleId
-      class << self
-        attr_accessor :finder, :created
-
-        def find(identifier) = finder.call(identifier)
-        def create(**args) = created.push(args).last
-      end
-    end
-  end
-end
-
+# Just enough of fastlane to evaluate fastlane/Fastfile, the lane files it
+# imports, and their lanes with recording stand-ins for every action, so tests
+# see what each lane passes without building, signing, or uploading anything.
+# Needs only plain Ruby.
 class FakeFastfile
+  # Lane files see UI, as fastlane's Fastlane::UI, but plain Ruby files they
+  # require don't, so those must use FastlaneCore::UI as they do under fastlane.
+  UI = FastlaneCore::UI
+
   attr_reader :calls
 
   # stubs maps each action the lanes may call to a callable returning its result.
   def initialize(path, stubs)
+    @path = path
     @stubs = stubs
     @calls = []
     @lanes = Hash.new { |lanes, platform| lanes[platform] = {} }
-    instance_eval(File.read(path), path)
+    evaluate(path)
   end
 
   def run_lane(platform, name, options = {})
@@ -67,16 +33,24 @@ class FakeFastfile
 
   def calls_to(action) = @calls.select { |name, _| name == action }.map(&:last)
 
-  # Replaces a helper method the Fastfile defines.
+  # Each platform's lane names, in the order they're defined.
+  def lane_names = @lanes.transform_values(&:keys)
+
+  # Replaces a helper method the lane files define.
   def stub_method(name, &) = define_singleton_method(name, &)
 
-  # Repoints a constant the Fastfile defines, such as an output path.
+  # Repoints a constant the lane files define, such as an output path.
   def set_constant(name, value)
     singleton_class.send(:remove_const, name)
     singleton_class.const_set(name, value)
   end
 
   private
+
+  def evaluate(path) = instance_eval(File.read(path), path)
+
+  # As fastlane's import does, relative to the Fastfile.
+  def import(path) = evaluate(File.expand_path(path, File.dirname(@path)))
 
   def default_platform(_platform) = nil
   def skip_docs = nil

@@ -1,4 +1,8 @@
 # frozen_string_literal: true
 
-app_identifier('net.a2f0.sandbox.rn')
-package_name('net.a2f0.sandbox.rn')
+# fastlane evaluates the Appfile from its own directory, without a file path
+# for require_relative.
+require File.expand_path('lib/native_release_target', Dir.pwd)
+
+app_identifier(NATIVE_APP_IDENTIFIER)
+package_name(NATIVE_APP_IDENTIFIER)
