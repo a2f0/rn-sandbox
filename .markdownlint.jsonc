@@ -1,0 +1,4 @@
+// Table rows can't wrap, so the line length limit applies to everything else.
+{
+  "MD013": { "tables": false }
+}

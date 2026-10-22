@@ -1,16 +1,18 @@
-source "https://rubygems.org"
+# frozen_string_literal: true
 
-# You may use http://rbenv.org/ or https://rvm.io/ to install and use this version
-ruby '~> 3.3.0'
+source 'https://rubygems.org'
 
-gem 'cocoapods', '1.17.0'
+ruby file: '.ruby-version'
+
 gem 'activesupport', '7.2.4'
+gem 'cocoapods', '1.17.0'
 gem 'concurrent-ruby', '1.3.8'
 gem 'fastlane', '2.240.1'
+gem 'rubocop', '1.92.0'
 
 # Ruby 3.4.0 has removed some libraries from the standard library.
+gem 'benchmark', '0.5.0'
 gem 'bigdecimal', '4.1.3'
 gem 'logger', '1.7.0'
-gem 'benchmark', '0.5.0'
 gem 'mutex_m', '0.3.0'
 gem 'nkf', '0.3.0'

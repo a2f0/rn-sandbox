@@ -105,7 +105,9 @@ do not execute provisioning or store-release lanes as migration tests.
   [published manifests](https://registry.npmjs.org/@firebase/app/latest).
 - CocoaPods Core requires ActiveSupport below 8. Keep Ruby on the supported
   3.3 lane and ActiveSupport 7 until CocoaPods' [dependency requirements](https://rubygems.org/gems/cocoapods-core)
-  and native builds support the newer combination.
+  and native builds support the newer combination. The `ruby/setup-ruby` steps
+  in `.github/workflows/main.yml` and `TargetRubyVersion` in `.rubocop.yml`
+  follow `.ruby-version`.
 - Terraform/provider and Wrangler upgrades need the real-state and live-resource
   checks above. Fastlane's store lanes create identifiers/profiles, manage
   signing keychains, and publish builds; do not execute them as an upgrade test.

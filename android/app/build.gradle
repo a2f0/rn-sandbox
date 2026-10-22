@@ -77,15 +77,17 @@ def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
  * Release builds are signed with the Google Play upload key from .secrets/prod/
  * (gitignored; see the README) only when fastlane asks for it with
  * -PrnSandboxUploadSigning=true, passing the keystore it found as
- * -PrnSandboxUploadKeystore. Otherwise they use the debug key, which Detox's
- * debug-signed test APK needs to instrument them.
+ * -PrnSandboxUploadKeystore and its passwords in ANDROID_KEYSTORE_STORE_PASS
+ * and ANDROID_KEYSTORE_KEY_PASS. Otherwise they use the debug key, which
+ * Detox's debug-signed test APK needs to instrument them.
  */
 def uploadSigning = providers.gradleProperty("rnSandboxUploadSigning").map { it.toBoolean() }.getOrElse(false)
 def uploadKeystore = file(providers.gradleProperty("rnSandboxUploadKeystore")
     .getOrElse(rootProject.file("../.secrets/prod/rn-sandbox-upload.keystore").path))
-def uploadKeystorePassword = providers.environmentVariable("RN_SANDBOX_ANDROID_KEYSTORE_PASS").getOrNull()
-if (uploadSigning && (!uploadKeystore.isFile() || !uploadKeystorePassword)) {
-    throw new GradleException("Upload signing needs ${uploadKeystore} and RN_SANDBOX_ANDROID_KEYSTORE_PASS.")
+def uploadStorePassword = providers.environmentVariable("ANDROID_KEYSTORE_STORE_PASS").getOrNull()
+def uploadKeyPassword = providers.environmentVariable("ANDROID_KEYSTORE_KEY_PASS").getOrNull()
+if (uploadSigning && (!uploadKeystore.isFile() || !uploadStorePassword || !uploadKeyPassword)) {
+    throw new GradleException("Upload signing needs ${uploadKeystore}, ANDROID_KEYSTORE_STORE_PASS, and ANDROID_KEYSTORE_KEY_PASS.")
 }
 
 android {
@@ -116,9 +118,9 @@ android {
         if (uploadSigning) {
             upload {
                 storeFile uploadKeystore
-                storePassword uploadKeystorePassword
+                storePassword uploadStorePassword
                 keyAlias "rn-sandbox-upload"
-                keyPassword uploadKeystorePassword
+                keyPassword uploadKeyPassword
             }
         }
     }

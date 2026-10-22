@@ -8,7 +8,11 @@ export default {
     '<rootDir>/node_modules/@react-native-google-signin/google-signin/jest/build/jest/setup.js',
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setupAfterEnv.ts'],
-  testMatch: ['**/__tests__/**/*-test.[jt]s?(x)'],
+  testMatch: [
+    '**/__tests__/**/*-test.[jt]s?(x)',
+    // Lane and helper tests, which run Ruby.
+    '<rootDir>/fastlane/test/*.test.ts',
+  ],
   // The preset's pattern, plus the sign-in libraries, which ship ES modules.
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-native-google-signin|@invertase/react-native-apple-authentication)/)',

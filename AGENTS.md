@@ -58,13 +58,16 @@ icons (`assets/brand/*.svg`, `scripts/buildImages.sh`) and the Gradle wrapper ja
 ## Validation
 
 Run these checks before shipping. The pre-push hook runs the binary file, lint,
-and agent checks; `lint:shell` needs ShellCheck.
+and agent checks; `lint:shell` needs ShellCheck, and `lint:ruby` needs
+`bundle install`.
 
 - `bun run agent:run --label binary -- sh scripts/checks/checkBinaryFiles.sh`
 - `bun run agent:run --label lint -- bun run lint`
 - `bun run agent:run --label markdown -- bun run lint:md`
 - `bun run agent:run --label shell -- bun run lint:shell`
-- `bun run agent:run --label tests -- bun run test` (builds WebAssembly; needs Emscripten)
+- `bun run agent:run --label ruby -- bun run lint:ruby`
+- `bun run agent:run --label tests -- bun run test` (builds WebAssembly and runs
+  the fastlane tests; needs Emscripten and Ruby)
 - `bun run agent:run --label web -- bun run test:web` (Playwright; needs Chromium)
 - `bun run agents:check`
 
@@ -112,5 +115,6 @@ branch protection requires the `code-quality (20)`, `detox-android (20)`, and
 `detox-macos (20, 3.3)` checks to pass on a head that contains the latest
 `main`. Integrate an updated base with a normal merge. `detox-macos` takes
 about 10 minutes. If the same job fails three times in a row, stop and report
-it. Merging deploys nothing: the fastlane lanes ship the store builds, and
+it. Merging deploys nothing: `bun run ios:upload-release` and
+`bun run android:upload-release` ship the store builds through fastlane, and
 `bun run deploy:web` the web build (see the README).

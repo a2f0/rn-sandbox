@@ -14,7 +14,7 @@ available at <https://rn-sandbox.a2f0.net>. See
 ```bash
 mise install                 # Ruby, Node, and the tools in .mise.toml
 bun install --frozen-lockfile
-bundle install               # CocoaPods and fastlane
+bundle install               # CocoaPods, fastlane, and RuboCop
 cd ios
 bundle exec pod install
 ```
@@ -191,7 +191,8 @@ Terraform alone, as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` without
 `AWS_PROFILE` or `AWS_SESSION_TOKEN`. It reads the billing account from
 `RN_SANDBOX_GCP_BILLING_ACCOUNT` in `.secrets/prod/app.env`, or uses your only
 open one. Identity Platform needs billing; its free tier covers the sandbox.
-Set `TF_VAR_project_id` if the project ID is taken.
+Set `TF_VAR_project_id` if the project ID is taken. `RN_SANDBOX_SECRETS_DIR`
+names a folder to read in place of `.secrets/prod`.
 
 One-time steps that have no API:
 
@@ -246,7 +247,9 @@ bun run test
 ```
 
 Jest runs the round-trip cases against the web modules, including the C++
-module in WebAssembly (`jest.setup.ts`), so it needs Emscripten.
+module in WebAssembly (`jest.setup.ts`), so it needs Emscripten. It also runs
+the fastlane lane tests in `fastlane/test/`, which need Ruby; `bun run lint:ruby`
+checks the fastlane Ruby with RuboCop.
 
 #### Playwright
 
@@ -276,39 +279,63 @@ bunx detox test --configuration android.release
 
 ### Releasing
 
-IDs: `net.a2f0.sandbox.rn` (app, both stores), named "RN Sandbox". Store
-credentials come from `.secrets/prod/`. `.secrets` is a gitignored symlink to
-`../matrix-secrets/rn-sandbox` (`ln -s ../matrix-secrets/rn-sandbox .secrets`),
-managed and backed up from [a2f0/matrix](https://github.com/a2f0/matrix)
-(`docs/secrets.md`). `prod/` holds the App Store Connect API key, Google Play
-service account, Android upload key (`rn-sandbox-upload.keystore`),
-`shared.env` (fastlane match settings and other shared values), and `app.env`
-(this app's own, such as the upload key's password and the Terraform state
-key), which wins over `shared.env`. `RN_SANDBOX_SECRETS_DIR` names a folder to
-use instead of `.secrets/prod`.
+fastlane ships the store builds. `fastlane/Fastfile` imports the iOS and
+Android lanes from `fastlane/lanes/`, and `fastlane/lib/native_release_target.rb`
+declares the release tiers. rn-sandbox has one, `production`: the app
+`net.a2f0.sandbox.rn` in both stores, named "RN Sandbox". `NATIVE_RELEASE_TIER`
+selects the tier and defaults to `production`; any other tier fails before a
+lane runs.
 
-Lanes:
+Each routine lane has a package script that sets the tier. Arguments pass
+through to fastlane, as in `bun run android:upload-release track:beta`:
 
-- `fastlane ios register_identifiers`: registers the bundle ID (API key).
-- `fastlane ios profiles`: creates the match App Store profile when it's
-  missing or no longer valid (API key). `force:true` regenerates it, as after
-  the bundle ID's capabilities or the distribution certificate change.
-- `fastlane ios create_app`: one time, interactive (Apple ID and 2FA). Creates
-  the bundle ID, the App Store Connect app, and an `Internal` TestFlight group
-  that gets every build, then runs `profiles`.
-- `fastlane ios build_release`: signed App Store IPA in `ios/build/release/`.
-- `fastlane ios beta`: signed build to TestFlight.
-- `fastlane android build_release`: signed release App Bundle.
-- `fastlane android internal`: signed release App Bundle, rolled out to
-  internal testers (`release_status:draft` uploads it without rolling it out).
+```bash
+bun run ios:build-release
+bun run ios:upload-release
+bun run ios:profiles
+bun run android:build-release
+bun run android:upload-release
+```
 
-Run them with `bundle exec`. Build numbers and version codes follow the highest
-one already in TestFlight or on Google Play; pass `build_number:<n>` or
-`version_code:<n>` to override. One-time store setup that has no API:
+Run the other lanes with `bundle exec fastlane <platform> <lane> [key:value ...]`.
+
+| Lane | Does | Options |
+| --- | --- | --- |
+| `ios build_release` | Signed App Store IPA in `ios/build/release/`, without uploading | `build_number:` |
+| `ios upload_release` | `build_release`, then uploads to TestFlight | `build_number:` |
+| `ios profiles` | Creates or renews the match App Store profile | `force:true` regenerates it |
+| `android build_release` | Signed release App Bundle, without uploading | `build_number:` |
+| `android upload_release` | `build_release`, then uploads to a Google Play track | `build_number:`, `track:` (`internal`), `release_status:` (`completed`) |
+| `ios register_identifiers` | Registers the bundle ID (API key) | |
+| `ios create_app` | One time, interactive: creates the App Store Connect app (Apple ID and 2FA) | |
+
+`build_number:` is the iOS build number or the Android version code. Without
+it, the lanes use one more than the highest already in TestFlight or on Google
+Play. `ios profiles` uses the App Store Connect API key; regenerate the profile
+with `force:true` after the bundle ID's capabilities or the distribution
+certificate change. `ios create_app` also creates the bundle ID and an
+`Internal` TestFlight group that gets every build, then runs `profiles`.
+
+Store credentials come from `.secrets/prod/`. `.secrets` is a gitignored
+symlink to `../matrix-secrets/rn-sandbox`
+(`ln -s ../matrix-secrets/rn-sandbox .secrets`), managed and backed up from
+[a2f0/matrix](https://github.com/a2f0/matrix) (`docs/secrets.md`). `prod/`
+holds the App Store Connect API key, Google Play service account, Android upload
+key (`rn-sandbox-upload.keystore`), `shared.env` (fastlane match settings and
+other shared values), and `app.env` (this app's own, such as the upload key's
+passwords, `ANDROID_KEYSTORE_STORE_PASS` and `ANDROID_KEYSTORE_KEY_PASS`, and
+the Terraform state key), which wins over `shared.env`. The lanes import only
+the values they need, and never override one already in the environment.
+`NATIVE_RELEASE_SECRETS_DIR` names a folder for the lanes to use instead of
+`.secrets/prod`.
+
+One-time store setup that has no API:
 
 - **Google Play:** a new app only accepts draft releases until its first release
-  is rolled out by hand. Run `fastlane android internal release_status:draft`,
-  then in Play Console add testers to internal testing and roll the draft out.
-  After that, `fastlane android internal` uploads and rolls out each build.
+  is rolled out by hand. Run
+  `bundle exec fastlane android upload_release release_status:draft`, then in
+  Play Console add testers to internal testing and roll the draft out. After
+  that, `bun run android:upload-release` uploads each build and rolls it out to
+  internal testers.
 - **App Store:** add internal testers (App Store Connect users) to the
   `Internal` TestFlight group.

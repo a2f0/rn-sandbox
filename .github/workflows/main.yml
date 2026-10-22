@@ -30,6 +30,11 @@ jobs:
         uses: emscripten-core/setup-emsdk@v16
         with:
           version: ${{ steps.emsdk.outputs.version }}
+      # RuboCop, and the Ruby the fastlane tests run.
+      - uses: ruby/setup-ruby@v1.332.0
+        with:
+          ruby-version: '3.3.12'
+          bundler-cache: true
       - run: bun install --frozen-lockfile
       - name: Verify agent-tool
         run: |
@@ -41,6 +46,7 @@ jobs:
       - run: bun run lint
       - run: bun run lint:md
       - run: bun run lint:shell
+      - run: bun run lint:ruby
       - run: bun run test
   web:
     name: web
