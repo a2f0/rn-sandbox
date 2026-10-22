@@ -91,10 +91,11 @@ platform :ios do
   end
 
   # match keeps the App Store profile in the encrypted certificates repo
-  # (MATCH_GIT_URL), where build_release installs it from. This creates the
-  # profile when it's missing or no longer valid; force:true regenerates it, as
-  # after the bundle ID's capabilities or the distribution certificate change.
-  desc 'Create or renew the match App Store profile (App Store Connect API key; force:true regenerates it)'
+  # (MATCH_GIT_URL), where build_release installs it from. Using the App Store
+  # Connect API key, this creates the profile when it's missing or no longer
+  # valid; force:true regenerates it, as after the bundle ID's capabilities or
+  # the distribution certificate change.
+  desc 'Create or renew the match App Store profiles (force:true regenerates them)'
   lane :profiles do |options|
     load_store_secrets(IOS_SECRETS)
     api_key = app_store_connect_api_key(**app_store_connect_api_key_options)
@@ -133,7 +134,8 @@ platform :ios do
     profiles
   end
 
-  desc 'Build the App Store IPA, signed with the match profile, without uploading it (build_number:)'
+  # Signs with the match App Store profile, which it installs read-only.
+  desc 'Build a signed App Store IPA without uploading it (build_number:)'
   lane :build_release do |options|
     load_store_secrets(IOS_SECRETS)
     team_id = required_env('TEAM_ID')
@@ -168,7 +170,7 @@ platform :ios do
   end
 
   # Doesn't wait for processing; the Internal group gets the build when it's done.
-  desc 'Build the App Store IPA and upload it to TestFlight (build_number:)'
+  desc 'Run build_release, then upload to TestFlight (build_number:)'
   lane :upload_release do |options|
     ipa = build_release(options)
     upload_to_testflight(

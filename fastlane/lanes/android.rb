@@ -52,7 +52,8 @@ def google_play_client
 end
 
 platform :android do
-  desc 'Build the release App Bundle, signed with the upload key, without uploading it (build_number:)'
+  # Signs with the upload key, rn-sandbox-upload.keystore in the secrets folder.
+  desc 'Build a signed release App Bundle without uploading it (build_number:)'
   lane :build_release do |options|
     load_store_secrets(ANDROID_SECRETS)
     ANDROID_SECRETS.each { |name| required_env(name) }
@@ -77,8 +78,7 @@ platform :android do
   # Rolls the release out on the track, with no Play Console step. A new Play
   # app only accepts draft releases until its first release has been rolled out
   # by hand; pass release_status:draft to upload one without rolling it out.
-  desc 'Build the release App Bundle and upload it to a Google Play track ' \
-       '(build_number:, track: internal, release_status: completed)'
+  desc 'Run build_release, then upload to a Google Play track (build_number:, track:internal, release_status:completed)'
   lane :upload_release do |options|
     aab = build_release(options)
     upload_to_play_store(
