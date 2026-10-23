@@ -61,7 +61,10 @@ export function RoundTripScreen() {
     >
       <View style={[styles.header, { borderColor: colors.border }]}>
         <View style={styles.headerText}>
-          <Text style={[styles.title, { color: colors.text }]}>
+          <Text
+            accessibilityRole="header"
+            style={[styles.title, { color: colors.text }]}
+          >
             Bridge round trip
           </Text>
           {/* Separate Text views: a nested Text's testID isn't reachable on iOS. */}
