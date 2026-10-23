@@ -77,6 +77,13 @@ test.describe('static metadata', () => {
       await expect(page.locator('h1')).toHaveText('Page not found');
       await expect(page.locator('a')).toHaveAttribute('href', '/');
     }
+
+    // The asset handler also serves 404.html at /404 with a 200, so the page
+    // itself has to keep that URL out of search results.
+    const errorPage = await page.goto(`${WORKER}/404`);
+    expect(errorPage?.status()).toBe(200);
+    await expect(page).toHaveTitle('Page not found · RN Sandbox');
+    expect(await content(page, 'meta[name="robots"]')).toBe('noindex');
   });
 });
 

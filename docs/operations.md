@@ -21,9 +21,10 @@ a2f0.net zone.
 The site is a single page with no client-side routes. `web/index.html` carries
 its search and social metadata, with <https://rn-sandbox.a2f0.net/> as the
 canonical URL, and `web/public/` holds `robots.txt`, `sitemap.xml`, and
-`404.html`, which the Worker returns with a 404 status for any other path. The
-Playwright suite checks them in the production build, and the 404 status
-under `wrangler dev`. There is no staging
+`404.html`, which the Worker returns with a 404 status for any other path.
+Cloudflare also serves that page at `/404` with a 200, so it carries a
+`noindex` robots tag. The Playwright suite checks them in the production build,
+and the 404 status under `wrangler dev`. There is no staging
 tier; a new one needs `X-Robots-Tag: noindex, nofollow` and a matching robots
 meta tag, without the canonical URL or sitemap.
 

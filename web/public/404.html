@@ -4,11 +4,23 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Page not found · RN Sandbox</title>
+    <!-- Cloudflare serves this with a 404 status for every path the build
+         doesn't contain (wrangler.jsonc), and at /404 with a 200, so it keeps
+         itself out of search. Colors follow src/theme.ts. -->
+    <meta name="robots" content="noindex" />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#f6f7f9"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#0f1115"
+    />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <!-- Cloudflare serves this with a 404 status for every path the build
-         doesn't contain (wrangler.jsonc). Colors follow src/theme.ts. -->
     <style>
       body {
         margin: 0;
