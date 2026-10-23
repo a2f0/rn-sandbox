@@ -5,6 +5,7 @@
     "": {
       "name": "sandbox",
       "dependencies": {
+        "@a2f0/ct-client": "0.1.5",
         "@firebase/app": "0.16.4",
         "@firebase/auth": "1.13.8",
         "@invertase/react-native-apple-authentication": "2.5.1",
@@ -61,6 +62,8 @@
   },
   "packages": {
     "@a2f0/agent-tool": ["@a2f0/agent-tool@0.1.20", "", { "dependencies": { "@resvg/resvg-wasm": "2.6.2" }, "bin": { "agent-tool": "src/index.ts" } }, "sha512-/MOrIZvDkCh73zGTn4Qs3W+WjjhlPvVz52ZiirVP6W9HbT5hLqs+PA58uVPNZLLrL8Sf2QXVpunXWodrroTLuw=="],
+
+    "@a2f0/ct-client": ["@a2f0/ct-client@0.1.5", "", {}, "sha512-1IkE5Ft3XkkbzAegrTblsvsa3JuL0WpB8wydtXHm33iGQNrdJ3djdbhXPa7drhcMbsMzRt3rsOjNZhxqC+qk6A=="],
 
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
 

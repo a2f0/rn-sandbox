@@ -40,6 +40,7 @@
     "lint:branch-name": "agent-tool branch check"
   },
   "dependencies": {
+    "@a2f0/ct-client": "0.1.5",
     "@firebase/app": "0.16.4",
     "@firebase/auth": "1.13.8",
     "@invertase/react-native-apple-authentication": "2.5.1",
