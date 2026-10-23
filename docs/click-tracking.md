@@ -3,8 +3,8 @@
 The browser app uses CT, operated by Tearleads, LLC and hosted on Cloudflare.
 Only a production build on the exact `https://rn-sandbox.a2f0.net` origin
 initializes tracking, in `web/index.tsx`. Native iOS and Android entrypoints,
-imported app components, development servers, previews and automated browsers
-do not initialize collection.
+imported app components, development servers and previews do not initialize
+collection. The SDK refuses collection in automated browsers.
 
 The client queues clicks in memory and flushes them to
 `https://ct.a2f0.net/v1/clicks`. Events contain a random event ID, timestamp,

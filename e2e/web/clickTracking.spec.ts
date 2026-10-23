@@ -27,6 +27,9 @@ async function open(
   await context.route('**/*', async (route) => {
     const url = new URL(route.request().url());
     if (url.href === COLLECTOR) {
+      expect(route.request().headers().referer ?? '').not.toMatch(
+        /private|token|#/,
+      );
       batches.push(route.request().postDataJSON() as Batch);
       await route.fulfill({
         status: 204,
@@ -118,6 +121,21 @@ test('captures real controls and text clicks with fixed, private metadata', asyn
       document.body.append(input);
     });
     await page.locator('#private-field').click();
+    await page.evaluate(() => {
+      document.querySelector('#private-field')?.remove();
+      for (const [id, attribute] of [
+        ['private-editable', 'contenteditable'],
+        ['private-ignored', 'data-ct-ignore'],
+      ]) {
+        const element = document.createElement('div');
+        element.id = id;
+        element.setAttribute(attribute, 'true');
+        element.textContent = 'private editable or ignored content';
+        document.body.append(element);
+      }
+    });
+    await page.locator('#private-editable').click();
+    await page.locator('#private-ignored').click();
     await flush(page, true);
     expect(batches).toHaveLength(1);
     expect(batches[0]).toMatchObject({

@@ -80,6 +80,9 @@ do not execute provisioning or store-release lanes as migration tests.
 
 ## Compatibility constraints
 
+- Keep the web-only `@a2f0/ct-client` dependency pinned exactly. After an update,
+  rerun `e2e/web/clickTracking.spec.ts` to verify opt-outs, the requested GPC
+  override, safe metadata and refusal to collect outside the production origin.
 - React Native owns the React renderer, Babel 7 preset, Metro, Hermes, native
   pods, and Android toolchain. Keep Gradle, AGP, Kotlin, SDK, and NDK on the
   selected release's [template](https://github.com/react-native-community/rn-diff-purge)
