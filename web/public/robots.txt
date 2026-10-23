@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rn-sandbox.a2f0.net/sitemap.xml

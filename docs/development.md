@@ -84,6 +84,10 @@ bunx playwright install chromium
 bun run test:web
 ```
 
+The suite builds the production web app and serves it twice: with Vite's
+preview, and with `wrangler dev` on port 8788, which runs the Worker's asset
+handling from `wrangler.jsonc` locally, including its 404 page.
+
 ### Detox
 
 The configured local iOS target is `ios.release`; Android has `android`
