@@ -37,12 +37,16 @@ must refer to the moved implementation so script changes still invalidate output
 
 ## Branches
 
-Feature branches use `<type>/<topic>` with the Conventional Commits types from
-`agent-tool.json`. `main` is exempt; there is no extra length cap. Use
+Feature branches use `<type>/<topic>`. `branch.types: null` inherits
+`subject.types`, which uses agent-tool's default Conventional Commits types here.
+Inspect the effective list with `bun run agent-tool config show`. `main` is
+exempt; there is no extra length cap. Use
 `bun run lint:branch-name [name]` to check an attached branch or an explicit
 name, and `bun run agent-tool branch create <name> --base main --remote origin`
 to create from a fetched base without a local upstream. CI checks its explicit
-event branch; pre-push checks each non-deleted destination branch.
+event branch; pre-push checks each non-deleted destination branch. GitHub-created
+`patch-N` and `revert-N` branches must have their changes moved to a conforming
+branch, such as `fix/correction` or `revert/change`, before requesting a merge.
 
 ## Hooks and validation
 

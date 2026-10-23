@@ -147,9 +147,13 @@ certificate change. `ios create_app` also creates the bundle ID and an
 Store credentials come from `.secrets/prod/`. `.secrets` is a gitignored
 symlink to the external `matrix-secrets/rn-sandbox` directory, managed and
 backed up from [matrix](https://github.com/a2f0/matrix/blob/main/docs/secrets.md).
-Its relative target depends on the checkout location; use the workspace
-setup instead of copying a relative symlink command. `prod/`
-holds the App Store Connect API key, Google Play service account, Android upload
+Follow the [clone-linking instructions](https://github.com/a2f0/matrix/blob/main/docs/secrets.md#linking-a-clone)
+for the checkout location: a matrix checkout uses
+`ln -s ../../../matrix-secrets/rn-sandbox .secrets` from its repository root; a
+standalone clone beside `matrix-secrets` uses
+`ln -s ../matrix-secrets/rn-sandbox .secrets`. Verify the link is ignored with
+`git check-ignore .secrets`. `prod/` holds the App Store Connect API key, Google
+Play service account, Android upload
 key (`rn-sandbox-upload.keystore`), `shared.env` (fastlane match settings and
 other shared values), and `app.env` (this app's own, such as the upload key's
 passwords, `ANDROID_KEYSTORE_STORE_PASS` and `ANDROID_KEYSTORE_KEY_PASS`, and

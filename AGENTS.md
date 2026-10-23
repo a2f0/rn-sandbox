@@ -58,8 +58,9 @@ Tool versions come from `.mise.toml`, `.ruby-version`, and `.nvmrc`.
 ## Validation
 
 Run `bun run check` to record the complete validation group, or run each
-command below before shipping. The pre-push hook runs the binary file, lint,
-and agent checks; `lint:shell` needs ShellCheck, and `lint:ruby` needs
+command below before shipping. The pre-push hook runs hook-drift, destination
+branch-name, binary file, lint, and agent checks. `lint:shell` needs ShellCheck;
+`lint:ruby` needs
 `bundle install`.
 
 - `bun run agent:run --label binary -- bun run check:binaries --all`

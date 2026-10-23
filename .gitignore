@@ -64,7 +64,7 @@ yarn-error.log
 **/fastlane/test_output
 **/fastlane/README.md
 
-# Symlink to this project's folder in ../matrix-secrets (see docs/operations.md)
+# Symlink to this project's external secrets folder (see docs/operations.md)
 .secrets
 
 # Bundle artifact
