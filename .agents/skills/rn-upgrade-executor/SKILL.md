@@ -129,7 +129,7 @@ bun run agent:run --label android-build -- bunx detox build --configuration andr
 For local Android emulator ABI mismatches, use:
 
 ```bash
-bun run agent:run --label android-detox -- ./scripts/detox-android-headless.sh
+bun run agent:run --label android-detox -- ./scripts/testing/detox-android-headless.sh
 ```
 
 The helper script auto-selects ABI and config for arm64 local emulators.

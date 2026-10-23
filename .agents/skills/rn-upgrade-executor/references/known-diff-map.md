@@ -30,7 +30,7 @@ clean:
 - `.detoxrc.json`
   - iOS simulator `bootArgs` for local audio-disable behavior must be
     preserved.
-- `scripts/detox-*.sh`
+- `scripts/testing/detox-*.sh`
 
 For each file changed by Upgrade Helper:
 

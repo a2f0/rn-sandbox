@@ -10,7 +10,7 @@ set -eu
 # jobs that build Android generate the jar in their build step, and running
 # Gradle before setup-gradle stops it from restoring its cache.
 
-REPO_ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)"
+REPO_ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd -P)"
 WRAPPER_DIR="$REPO_ROOT/android/gradle/wrapper"
 WRAPPER_JAR="$WRAPPER_DIR/gradle-wrapper.jar"
 
@@ -19,7 +19,7 @@ WRAPPER_JAR="$WRAPPER_DIR/gradle-wrapper.jar"
 
 if ! command -v gradle >/dev/null 2>&1; then
   if [ "${1:-}" = "--optional" ]; then
-    echo "Warning: skipped android/gradle/wrapper/gradle-wrapper.jar; install Gradle (mise install) and rerun scripts/ensureGradleWrapper.sh." >&2
+    echo "Warning: skipped android/gradle/wrapper/gradle-wrapper.jar; install Gradle (mise install) and rerun scripts/dev/ensureGradleWrapper.sh." >&2
     exit 0
   fi
   echo "Error: Gradle is needed to generate the wrapper jar (mise install)." >&2

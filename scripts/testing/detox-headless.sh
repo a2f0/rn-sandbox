@@ -10,7 +10,7 @@ PLATFORM=$1
 shift
 
 ROOT_DIR=$(
-  cd "$(dirname "$0")/.." || exit 1
+  cd "$(dirname "$0")/../.." || exit 1
   pwd
 )
 cd "$ROOT_DIR"

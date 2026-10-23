@@ -152,7 +152,7 @@ dependencies {
 }
 
 // Launcher icons are rendered from assets/brand/*.svg by agent-tool, as the
-// android target in agent-tool.json declares (see scripts/buildImages.sh), and
+// android target in agent-tool.json declares (see scripts/build/buildImages.sh), and
 // gitignored. Regenerate them whenever the sources, the declaration, or the
 // renderer change, before anything reads resources.
 def repoRoot = rootProject.layout.projectDirectory.dir("..")
@@ -160,7 +160,7 @@ def generateImages = tasks.register("generateImages", Exec) {
     description = "Generates launcher icons from assets/brand/*.svg."
     inputs.files(
         repoRoot.file("agent-tool.json"),
-        repoRoot.file("scripts/buildImages.sh"),
+        repoRoot.file("scripts/build/buildImages.sh"),
         repoRoot.file("node_modules/@a2f0/agent-tool/package.json"),
         fileTree(repoRoot.dir("assets/brand")) { include("*.svg") }
     )
@@ -168,6 +168,6 @@ def generateImages = tasks.register("generateImages", Exec) {
     ["mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"].each { density ->
         outputs.dir(res.dir("mipmap-$density"))
     }
-    commandLine("sh", repoRoot.file("scripts/buildImages.sh").asFile.path, "android")
+    commandLine("sh", repoRoot.file("scripts/build/buildImages.sh").asFile.path, "android")
 }
 tasks.named("preBuild") { dependsOn(generateImages) }

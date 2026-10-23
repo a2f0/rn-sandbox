@@ -1,0 +1,15 @@
+{
+  "label": "verify",
+  "steps": [
+    {"label": "binary", "command": ["bun", "run", "check:binaries", "--all"]},
+    {"label": "branch", "command": ["bun", "run", "lint:branch-name"]},
+    {"label": "hooks", "command": ["bun", "run", "hooks:check"]},
+    {"label": "lint", "command": ["bun", "run", "lint"]},
+    {"label": "markdown", "command": ["bun", "run", "lint:md"]},
+    {"label": "shell", "command": ["bun", "run", "lint:shell"]},
+    {"label": "ruby", "command": ["bun", "run", "lint:ruby"]},
+    {"label": "tests", "command": ["bun", "run", "test"]},
+    {"label": "web", "command": ["bun", "run", "test:web"]},
+    {"label": "agents", "command": ["bun", "run", "agents:check"]}
+  ]
+}

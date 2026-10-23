@@ -9,7 +9,7 @@
 
 set -eu
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 out=web/wasm/build
 module="$out/roundTripCxx.js"
@@ -26,7 +26,7 @@ compiler_version=$(em++ --version)
 if [ -f "$module" ] && [ -f "$compiler_stamp" ] &&
   [ "$compiler_version" = "$(cat "$compiler_stamp")" ] &&
   [ -z "$(find shared/RoundTripCxxCore.h web/wasm/RoundTripCxxWasm.cpp \
-    scripts/buildWasm.sh -newer "$module")" ]; then
+    scripts/build/buildWasm.sh -newer "$module")" ]; then
   exit 0
 fi
 
