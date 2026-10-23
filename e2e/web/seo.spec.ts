@@ -2,6 +2,8 @@ import { expect, type Page, test } from '@playwright/test';
 
 const ORIGIN = 'https://rn-sandbox.a2f0.net';
 const TITLE = 'React Native TurboModule Bridge Round Trips · RN Sandbox';
+// The `wrangler dev` server in playwright.config.ts.
+const WORKER = 'http://127.0.0.1:8788';
 
 const content = (page: Page, selector: string) =>
   page.locator(`head ${selector}`).getAttribute('content');
@@ -59,13 +61,22 @@ test.describe('static metadata', () => {
     });
   });
 
-  test('serves the 404 page that Cloudflare returns for missing paths', async ({
+  // Vite's preview answers every path with the app, so this asks the Worker
+  // itself, which Playwright runs on the build with `wrangler dev`.
+  test('the Worker answers a missing path with a 404 page', async ({
     page,
   }) => {
-    await page.goto('/404.html');
-    await expect(page).toHaveTitle('Page not found · RN Sandbox');
-    await expect(page.locator('h1')).toHaveText('Page not found');
-    await expect(page.locator('a')).toHaveAttribute('href', '/');
+    const home = await page.goto(`${WORKER}/`);
+    expect(home?.status()).toBe(200);
+    await expect(page).toHaveTitle(TITLE);
+
+    for (const path of ['/seo-missing-page', '/assets/missing.js']) {
+      const missing = await page.goto(`${WORKER}${path}`);
+      expect(missing?.status()).toBe(404);
+      await expect(page).toHaveTitle('Page not found · RN Sandbox');
+      await expect(page.locator('h1')).toHaveText('Page not found');
+      await expect(page.locator('a')).toHaveAttribute('href', '/');
+    }
   });
 });
 
