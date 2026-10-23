@@ -9,6 +9,9 @@ including file I/O, and lists each case with its result. The web version is
 available at <https://rn-sandbox.a2f0.net>. See
 [Bridge round trip](#bridge-round-trip).
 
+The production web app uses [CT click tracking](docs/click-tracking.md).
+Native apps and local development do not initialize the tracker.
+
 ### Getting Started
 
 ```bash
