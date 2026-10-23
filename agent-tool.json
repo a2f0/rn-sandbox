@@ -82,6 +82,37 @@
             ]
           }
         ]
+      },
+      "favicons": {
+        "outputs": [
+          {
+            "path": "favicon.svg",
+            "size": 1024,
+            "mask": { "cornerRadius": 0.21875 },
+            "layers": [
+              { "source": "background", "fit": "cover" },
+              { "source": "logo", "scale": 1.2 }
+            ]
+          },
+          {
+            "path": "favicon.ico",
+            "sizes": [16, 32, 48],
+            "mask": { "cornerRadius": 0.21875 },
+            "layers": [
+              { "source": "background", "fit": "cover" },
+              { "source": "logo", "scale": 1.2 }
+            ]
+          },
+          {
+            "path": "apple-touch-icon.png",
+            "size": 180,
+            "opaque": true,
+            "layers": [
+              { "source": "background", "fit": "cover" },
+              { "source": "logo" }
+            ]
+          }
+        ]
       }
     }
   }
