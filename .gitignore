@@ -45,6 +45,11 @@ android/app/src/main/res/mipmap-xhdpi/
 android/app/src/main/res/mipmap-xxhdpi/
 android/app/src/main/res/mipmap-xxxhdpi/
 
+# Rendered from assets/brand/*.svg by bun run build:favicons (agent-tool.json)
+/web/public/favicon.svg
+/web/public/favicon.ico
+/web/public/apple-touch-icon.png
+
 # node.js
 #
 node_modules/

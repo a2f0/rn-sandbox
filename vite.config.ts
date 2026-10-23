@@ -5,6 +5,9 @@ import { defineConfig } from 'vite';
 // Builds the app for the browser with react-native-web; see web/.
 export default defineConfig({
   root: 'web',
+  // web/public holds the favicons that `bun run build:favicons` renders from
+  // assets/brand/; Vite serves it in development and copies it into the build.
+  publicDir: 'public',
   plugins: [react()],
   resolve: {
     alias: [
