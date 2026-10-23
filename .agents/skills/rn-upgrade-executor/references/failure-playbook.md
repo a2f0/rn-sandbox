@@ -35,7 +35,7 @@ Actions:
 
 1. Confirm emulator ABI: `adb -s <emulator-id> shell getprop ro.product.cpu.abi`
 1. Build with matching `RN_ANDROID_ARCH`.
-1. Use `./scripts/detox-android-headless.sh` to auto-select local ABI.
+1. Use `./scripts/testing/detox-android-headless.sh` to auto-select local ABI.
 
 ## Android Runtime Crash After Launch
 
@@ -48,7 +48,7 @@ Actions:
 
 1. Capture crash logs and identify crashing native/lib component.
 1. If release-only crash on arm64 emulator, test debug config locally:
-   - `DETOX_CONFIG=android bun run agent:run --label android-detox -- ./scripts/detox-android-headless.sh`
+   - `DETOX_CONFIG=android bun run agent:run --label android-detox -- ./scripts/testing/detox-android-headless.sh`
 1. Keep release path for CI unless CI reproduces same crash.
 
 ## iOS Build/Runtime Failure

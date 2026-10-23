@@ -61,7 +61,7 @@ platform :android do
 
     version_code = options[:build_number]&.to_i || next_google_play_version_code
     UI.message("Building #{NATIVE_APP_IDENTIFIER} version code #{version_code}")
-    sh('sh', File.join(NATIVE_APP_DIR, 'scripts/ensureGradleWrapper.sh'))
+    sh('sh', File.join(NATIVE_APP_DIR, 'scripts/dev/ensureGradleWrapper.sh'))
     gradle(
       project_dir: ANDROID_DIR, task: 'bundleRelease',
       properties: {

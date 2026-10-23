@@ -118,9 +118,9 @@ bun pm ls
    bun run agent:run --label shell -- bun run lint:shell
    bun run agent:run --label tests -- bun run test
    bun run agent:run --label ios-detox -- \
-     ./scripts/detox-ios-headless.sh --loglevel info
+     ./scripts/testing/detox-ios-headless.sh --loglevel info
    bun run agent:run --label android-detox -- \
-     ./scripts/detox-android-headless.sh --loglevel info
+     ./scripts/testing/detox-android-headless.sh --loglevel info
    ```
 
    - If a headless Detox script fails, debug and rerun the same script until

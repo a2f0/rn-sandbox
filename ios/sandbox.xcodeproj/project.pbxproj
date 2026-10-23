@@ -348,7 +348,7 @@
 				"$(SRCROOT)/../agent-tool.json",
 				"$(SRCROOT)/../assets/brand/logo.svg",
 				"$(SRCROOT)/../assets/brand/background.svg",
-				"$(SRCROOT)/../scripts/buildImages.sh",
+				"$(SRCROOT)/../scripts/build/buildImages.sh",
 				"$(SRCROOT)/../node_modules/@a2f0/agent-tool/package.json",
 			);
 			name = "Generate Images";
@@ -359,7 +359,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# The app icon is rendered from assets/brand/*.svg, as the ios target in\n# agent-tool.json declares, and gitignored.\nexec sh \"$SRCROOT/../scripts/buildImages.sh\" ios\n";
+			shellScript = "# The app icon is rendered from assets/brand/*.svg, as the ios target in\n# agent-tool.json declares, and gitignored.\nexec sh \"$SRCROOT/../scripts/build/buildImages.sh\" ios\n";
 		};
 		FD10A7F022414F080027D42C /* Start Packager */ = {
 			isa = PBXShellScriptBuildPhase;

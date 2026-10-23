@@ -315,7 +315,7 @@ describe('android lanes', () => {
           flags: '--console=plain',
         },
       ],
-      sh: [['sh', `${repoRoot}/scripts/ensureGradleWrapper.sh`]],
+      sh: [['sh', `${repoRoot}/scripts/dev/ensureGradleWrapper.sh`]],
       passwords: {
         ANDROID_KEYSTORE_STORE_PASS: 'store-pass',
         ANDROID_KEYSTORE_KEY_PASS: 'key-pass',

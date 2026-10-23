@@ -9,6 +9,20 @@
   },
   "versions": { "lockfile": null },
   "pr": { "rejectClaudeBranding": true },
+  "branch": {
+    "types": null,
+    "exempt": ["main"],
+    "maxLength": null
+  },
+  "hooks": {
+    "files": [
+      {
+        "source": "scripts/git/hooks/pre-push",
+        "target": "pre-push",
+        "executable": true
+      }
+    ]
+  },
   "images": {
     "targets": {
       "ios": {

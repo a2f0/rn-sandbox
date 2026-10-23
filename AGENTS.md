@@ -3,9 +3,9 @@
 Resolve the repository with
 `gh repo view --json nameWithOwner -q .nameWithOwner` and pass it to `gh` with
 `-R`; do not infer it from the folder name. Work on a feature branch, use
-conventional commits, sign commits when signing is available, and preserve
-unrelated edits. Do not force-push or add attribution footers. Do not create
-GitHub issues without an explicit request.
+conventional commits and `<type>/<topic>` branch names, sign commits when
+signing is available, and preserve unrelated edits. Do not force-push or add
+attribution footers. Do not create GitHub issues without an explicit request.
 
 ## Agent tooling
 
@@ -32,7 +32,7 @@ script arguments.
 
 Use the shared `update-dependencies` skill for dependency refreshes, including
 compatibility checks, advisories, and non-destructive deployment previews.
-Its canonical Markdown is excluded from the local Markdown style checker;
+Managed skill directories are excluded from the local Markdown style checker;
 `agents:check` verifies both installed copies instead. Repository-owned skills
 still run through `lint:md`.
 
@@ -51,17 +51,21 @@ README or maintenance docs.
 ## Binary files
 
 Do not commit binary files. Generate them from text sources instead, as the app
-icons (`assets/brand/*.svg`, `scripts/buildImages.sh`) and the Gradle wrapper jar
-(`scripts/ensureGradleWrapper.sh`) are; see the README. Tool versions come from
-`.mise.toml`, `.ruby-version`, and `.nvmrc`.
+icons (`assets/brand/*.svg`, `scripts/build/buildImages.sh`) and the Gradle
+wrapper jar (`scripts/dev/ensureGradleWrapper.sh`) are; see the README.
+Tool versions come from `.mise.toml`, `.ruby-version`, and `.nvmrc`.
 
 ## Validation
 
-Run these checks before shipping. The pre-push hook runs the binary file, lint,
-and agent checks; `lint:shell` needs ShellCheck, and `lint:ruby` needs
+Run `bun run check` to record the complete validation group, or run each
+command below before shipping. The pre-push hook runs hook-drift, destination
+branch-name, binary file, lint, and agent checks. `lint:shell` needs ShellCheck;
+`lint:ruby` needs
 `bundle install`.
 
-- `bun run agent:run --label binary -- sh scripts/checks/checkBinaryFiles.sh`
+- `bun run agent:run --label binary -- bun run check:binaries --all`
+- `bun run lint:branch-name`
+- `bun run hooks:check`
 - `bun run agent:run --label lint -- bun run lint`
 - `bun run agent:run --label markdown -- bun run lint:md`
 - `bun run agent:run --label shell -- bun run lint:shell`
@@ -77,10 +81,14 @@ Install Chromium with:
 bun run agent:run --label chromium -- bunx playwright install chromium
 ```
 
+See [docs/tooling.md](docs/tooling.md) for script ownership and layout,
+[docs/development.md](docs/development.md) for native/web development, and
+[docs/operations.md](docs/operations.md) for provisioning and releases.
+
 The TurboModule specs in `specs/` have Kotlin, Objective-C++, C++, and
 TypeScript implementations; the C++ binds to JSI on iOS and Android and to
-Embind for WebAssembly on the web. See the README. A spec change needs every
-implementation updated.
+Embind for WebAssembly on the web. See the development guide. A spec change
+needs every implementation updated.
 
 Changes to native code, native dependencies, React Native versions, or `specs/`
 also need a release Detox build for each affected platform:
@@ -102,11 +110,10 @@ change to `.nvmrc`, `.ruby-version`, `.java-version`, or the toolchain setup in
 
 ## Review feedback
 
-Fix valid findings from pull request review comments, then reply in each
-original thread with
-`POST /repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies`,
-naming the fixing commit. Do not reply with top-level PR comments or
-`gh pr review`. Resolve a thread only when its finding is fully addressed.
+Use `bun run agent-tool pr threads list` to inspect review feedback. Fix valid
+findings and use `pr threads reply <comment-id> --body-file <file>` to reply in
+the original thread with the fixing commit. Resolve fully addressed findings
+with `pr threads resolve <thread-id>`; keep unresolved findings open.
 
 ## Shipping
 
@@ -117,4 +124,4 @@ branch protection requires the `code-quality (20)`, `detox-android (20)`, and
 about 10 minutes. If the same job fails three times in a row, stop and report
 it. Merging deploys nothing: `bun run ios:upload-release` and
 `bun run android:upload-release` ship the store builds through fastlane, and
-`bun run deploy:web` the web build (see the README).
+`bun run deploy:web` the web build (see the operations guide).

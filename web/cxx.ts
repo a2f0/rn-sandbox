@@ -3,7 +3,7 @@ import createRoundTripCxx, {
   type MainModule,
 } from './wasm/build/roundTripCxx.js';
 
-// The C++ TurboModule compiled to WebAssembly (scripts/buildWasm.sh). Both web
+// The C++ TurboModule compiled to WebAssembly (scripts/build/buildWasm.sh). Both web
 // modules keep their files in its Emscripten file system, as the native
 // modules share the device's.
 

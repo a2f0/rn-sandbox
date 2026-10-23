@@ -1,6 +1,6 @@
 // The C++ TurboModule's logic (shared/RoundTripCxxCore.h), bound to
 // JavaScript with Embind and compiled to WebAssembly for the web
-// (scripts/buildWasm.sh). web/RoundTripCxxModule.ts implements the spec with
+// (scripts/build/buildWasm.sh). web/RoundTripCxxModule.ts implements the spec with
 // these functions.
 //
 // Each function returns { value } or { error }; the TypeScript side throws the

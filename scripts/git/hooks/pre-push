@@ -1,6 +1,9 @@
+#!/bin/sh
 set -e
 
-sh scripts/checks/checkBinaryFiles.sh
+bun run hooks:check
+bun run lint:branch-name --pre-push
+bun run check:binaries
 bun run lint
 bun run lint:md
 bun run lint:shell

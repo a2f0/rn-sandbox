@@ -47,7 +47,8 @@ unsupported candidates in the PR. Earlier findings and upgrade decisions are
 recorded in [PR #58](https://github.com/a2f0/rn-sandbox/pull/58); they are not a
 current audit result.
 
-For deployment changes, follow the [web deployment](../README.md#web) preview and
+For deployment changes, follow the
+[web deployment](operations.md#web-deployment) preview and
 live resource verification requirements. A local Wrangler dry run does not verify
 remote effects. Skip an upgrade if it would delete or recreate resources, or
 those effects cannot be verified. Store the evidence in the PR; push and merge
