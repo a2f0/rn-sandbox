@@ -52,7 +52,8 @@ README or maintenance docs.
 
 Do not commit binary files. Generate them from text sources instead, as the app
 icons (`assets/brand/*.svg`, `scripts/build/buildImages.sh`) and the Gradle
-wrapper jar (`scripts/dev/ensureGradleWrapper.sh`) are; see the README.
+wrapper jar (`scripts/dev/ensureGradleWrapper.sh`) are; see
+[docs/tooling.md](docs/tooling.md#binary-files).
 Tool versions come from `.mise.toml`, `.ruby-version`, and `.nvmrc`.
 
 ## Validation

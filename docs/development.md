@@ -1,6 +1,6 @@
 # Development
 
-See the [README](../README.md#getting-started) for installation and normal app
+See the [README](../README.md#quick-start) for installation and normal app
 commands, [tooling](tooling.md) for script ownership, and
 [AGENTS.md](../AGENTS.md#validation) for the required shipping checks.
 
