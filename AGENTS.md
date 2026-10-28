@@ -20,16 +20,6 @@ Where the skills run `agent-tool <arguments>`, run
 `bun run agent-tool <arguments>`. For commands needing a literal empty argument,
 invoke `node_modules/.bin/agent-tool` directly.
 
-Capture noisy finite commands with `bun run agent:run --label <name> --
-<command> <arguments>`. The harness preserves exit status and full private logs,
-returning a compact receipt and a bounded failure excerpt. Inspect more evidence
-with `bun run agent-tool logs <log-path>` or a targeted search; review
-required warnings, timings, and artifacts before accepting a check. Keep review
-verdicts and structured decision output visible. Run interactive tools and
-persistent servers directly.
-Keep `--label <name>` before the separator; Bun strips a leading `--` from
-script arguments.
-
 Use the shared `update-dependencies` skill for dependency refreshes, including
 compatibility checks, advisories, and non-destructive deployment previews.
 Managed skill directories are excluded from the local Markdown style checker;
@@ -47,6 +37,25 @@ guidance and active compatibility or security constraints in
 obsolete guidance. Put each run's version inventory, audit findings, validation,
 and deployment preview evidence in its PR; do not accumulate upgrade journals in
 README or maintenance docs.
+
+## Output capture
+
+Run finite, noisy commands, such as installs, builds, tests, linters, and Git
+commands that run hooks, through
+`bun run agent:run --label <name> -- <command> [args...]`, for example
+`bun run agent:run --label tests -- bun run test`. It keeps complete output in
+a private log, preserves the exit status, and prints a compact receipt, with a
+bounded excerpt of the log on failure. Read more with
+`bun run agent:logs <log-path>`, raising `--tail-lines` or `--max-bytes` as
+needed, or with a targeted search of the log. A zero exit does not rule out
+warnings: inspect required warnings, timings, and artifacts before accepting a
+check. Run reviews, version preparation, audits, infrastructure previews, and
+run-group checks such as `bun run check` directly so their results stay
+visible, and run interactive tools and servers directly too. Never narrow a
+suite or silence warnings to reduce output.
+
+Keep `--label <name>` before the separator; Bun strips a leading `--` from
+script arguments.
 
 ## Binary files
 
