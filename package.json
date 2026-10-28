@@ -31,6 +31,7 @@
     "prepare": "bun run hooks:install && sh scripts/dev/ensureGradleWrapper.sh --optional",
     "agent-tool": "agent-tool",
     "agent:run": "agent-tool run",
+    "agent:logs": "agent-tool logs",
     "agents:sync": "agent-tool skills install --apply",
     "agents:check": "agent-tool skills check",
     "test:markdownlint": "node --test scripts/checks/markdownlintConfig.test.mjs",

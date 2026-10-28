@@ -6,9 +6,9 @@ Capture noisy finite commands with the pinned harness:
 bun run agent:run --label <name> -- <command> <args>
 ```
 
-Inspect complete logs with bounded `bun run agent-tool logs <log-path>`
-reads or targeted searches for the signatures below. Keep interactive tools
-direct. These commands preserve their original working directories.
+Inspect complete logs with bounded `bun run agent:logs <log-path>` reads or
+targeted searches for the signatures below. Keep interactive tools direct.
+These commands preserve their original working directories.
 
 ## Toolchain Mismatch
 
