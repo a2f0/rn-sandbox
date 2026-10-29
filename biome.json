@@ -25,7 +25,15 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "suspicious": {
+        "noImportCycles": {
+          "level": "error",
+          "options": {
+            "ignoreTypes": false
+          }
+        }
+      }
     }
   },
   "javascript": {
@@ -33,5 +41,131 @@
       "quoteStyle": "single",
       "trailingCommas": "all"
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["specs/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/App", "**/src/**"],
+                    "message": "Lower layers must not import the app (see docs/development.md#layers)."
+                  },
+                  {
+                    "group": ["**/web/**"],
+                    "message": "Only web/index.tsx wires the web platform in; app code reaches it through react-native-web and the TurboModule specs."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["web/**", "!web/index.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/App", "**/src/**"],
+                    "message": "Lower layers must not import the app (see docs/development.md#layers)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["App.tsx", "src/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/web/**"],
+                    "message": "Only web/index.tsx wires the web platform in; app code reaches it through react-native-web and the TurboModule specs."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/roundTrip/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/web/**"],
+                    "message": "Only web/index.tsx wires the web platform in; app code reaches it through react-native-web and the TurboModule specs."
+                  },
+                  {
+                    "group": ["**/RoundTripScreen"],
+                    "message": "Only App composes the screen (see docs/development.md#layers)."
+                  },
+                  {
+                    "group": ["**/auth/**"],
+                    "message": "The round-trip cases do not depend on sign-in (see docs/development.md#layers)."
+                  },
+                  {
+                    "group": ["**/theme"],
+                    "message": "The round-trip cases do not depend on UI styling (see docs/development.md#layers)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/auth/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/web/**"],
+                    "message": "Only web/index.tsx wires the web platform in; app code reaches it through react-native-web and the TurboModule specs."
+                  },
+                  {
+                    "group": ["**/RoundTripScreen"],
+                    "message": "Only App composes the screen (see docs/development.md#layers)."
+                  },
+                  {
+                    "group": ["**/roundTrip/**"],
+                    "message": "Sign-in does not depend on the round-trip cases (see docs/development.md#layers)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }
