@@ -9,6 +9,13 @@
   },
   "versions": { "lockfile": null },
   "pr": { "rejectClaudeBranding": true },
+  "permissions": {
+    "executables": {
+      "detox": "exec",
+      "playwright": "intake",
+      "wrangler": "release"
+    }
+  },
   "branch": {
     "types": null,
     "exempt": ["main"],

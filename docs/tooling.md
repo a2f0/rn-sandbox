@@ -2,7 +2,7 @@
 
 Use the exact-pinned `@a2f0/agent-tool` through `bun run agent-tool` for shared
 GitHub shipping, review, hooks, binary checks, validation reports, skill
-installation, and brand image rendering. The
+installation, harness permission rules, and brand image rendering. The
 [shared workflow reference](https://github.com/a2f0/agent-tool/blob/main/docs/workflows.md)
 describes its commands; repository policy lives in `agent-tool.json` and
 [AGENTS.md](../AGENTS.md). Do not edit installed managed skills.
@@ -74,7 +74,7 @@ branch, such as `fix/correction` or `revert/change`, before requesting a merge.
 explicit `bun run agent-tool hooks install --apply --adopt`; the installer backs
 up replacements and preserves hooks it does not own. The pre-push hook first
 checks installed-hook drift and destination branch names, then runs binary,
-lint, and skill checks. `bun run hooks:check` also runs in CI.
+lint, skill, and permission checks. `bun run hooks:check` also runs in CI.
 
 For a checkout previously using Husky, inspect its local setting with
 `git config --local --get core.hooksPath`. If it is exactly `.husky/_`, remove
