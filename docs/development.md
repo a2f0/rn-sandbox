@@ -38,6 +38,25 @@ returns instead and why, and the app shows it. With React Native 0.88.0:
 Changing a spec means updating all three implementations; iOS picks up the new
 codegen output after `pod install`.
 
+## Layers
+
+The TypeScript sources depend downward only. Biome's `noImportCycles` rejects
+import cycles, including type-only ones, and the `noRestrictedImports`
+overrides in `biome.json` reject imports against these layers (tests are
+exempt):
+
+| Layer | May import | Must not import |
+| --- | --- | --- |
+| `specs/` | React Native | `App`, `src/`, `web/` |
+| `src/roundTrip/` | `specs/` | `src/auth/`, `src/theme`, the screen, `web/` |
+| `src/auth/` | `src/theme` | `src/roundTrip/`, the screen, `web/` |
+| `App.tsx`, `src/` | the layers above | `web/` |
+| `web/` | `specs/`, its own modules | `App`, `src/` |
+
+`web/index.tsx` is the one exception: as the browser entrypoint it imports
+`App`. App code reaches the web modules only through react-native-web and the
+TurboModule registry that Vite's alias supplies.
+
 ## WebAssembly
 
 [react-native-web](https://necolas.github.io/react-native-web/) and
