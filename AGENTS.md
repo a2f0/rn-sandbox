@@ -130,8 +130,11 @@ with `pr threads resolve <thread-id>`; keep unresolved findings open.
 Ship with the `ship-pr` skill. `main` accepts squash merges only, and its
 branch protection requires the `code-quality (20)`, `detox-android (20)`, and
 `detox-macos (20, 3.3)` checks to pass on a head that contains the latest
-`main`. Integrate an updated base with a normal merge. `detox-macos` takes
-about 10 minutes. If the same job fails three times in a row, stop and report
-it. Merging deploys nothing: `bun run ios:upload-release` and
-`bun run android:upload-release` ship the store builds through fastlane, and
-`bun run deploy:web` the web build (see the operations guide).
+`main`. Integrate an updated base with a normal merge. `detox-macos` usually
+takes 10 to 14 minutes but has taken up to 20, longer than the default
+15-minute wait of `pr checks --wait`, so wait with
+`bun run agent-tool pr checks --wait --head <reviewed-head> --timeout 1800`.
+If the same job fails three times in a row, stop and report it. Merging deploys
+nothing: `bun run ios:upload-release` and `bun run android:upload-release` ship
+the store builds through fastlane, and `bun run deploy:web` the web build (see
+the operations guide).
