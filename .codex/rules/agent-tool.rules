@@ -67,16 +67,19 @@ prefix_rule(pattern=["bun", "run", "agent-tool", "branch", "create"], decision="
 prefix_rule(pattern=["bun", "run", "agent-tool", "versions", ["bump", "prepare", "resolve-conflicts"]], decision="allow", match=["bun run agent-tool versions bump"])
 prefix_rule(pattern=["bun", "run", "agent-tool", "images", "build"], decision="allow", match=["bun run agent-tool images build"])
 prefix_rule(pattern=["bun", "run", "agent-tool", ["review", "init", "bumpVersions", "resolveVersionConflicts", "solicitClaudeCodeReview", "solicitCodexReview", "solicitOpencodeReview"]], decision="allow", match=["bun run agent-tool review"])
+prefix_rule(pattern=["bun", "run", "agent-tool", "bun", "x", "playwright"], decision="allow", match=["bun run agent-tool bun x playwright"])
 prefix_rule(pattern=["node_modules/.bin/agent-tool", "bun", ["install", "update", "remove", "test"]], decision="allow", match=["node_modules/.bin/agent-tool bun install"])
 prefix_rule(pattern=["node_modules/.bin/agent-tool", "branch", "create"], decision="allow", match=["node_modules/.bin/agent-tool branch create"])
 prefix_rule(pattern=["node_modules/.bin/agent-tool", "versions", ["bump", "prepare", "resolve-conflicts"]], decision="allow", match=["node_modules/.bin/agent-tool versions bump"])
 prefix_rule(pattern=["node_modules/.bin/agent-tool", "images", "build"], decision="allow", match=["node_modules/.bin/agent-tool images build"])
 prefix_rule(pattern=["node_modules/.bin/agent-tool", ["review", "init", "bumpVersions", "resolveVersionConflicts", "solicitClaudeCodeReview", "solicitCodexReview", "solicitOpencodeReview"]], decision="allow", match=["node_modules/.bin/agent-tool review"])
+prefix_rule(pattern=["node_modules/.bin/agent-tool", "bun", "x", "playwright"], decision="allow", match=["node_modules/.bin/agent-tool bun x playwright"])
 prefix_rule(pattern=["agent-tool", "bun", ["install", "update", "remove", "test"]], decision="allow", match=["agent-tool bun install"])
 prefix_rule(pattern=["agent-tool", "branch", "create"], decision="allow", match=["agent-tool branch create"])
 prefix_rule(pattern=["agent-tool", "versions", ["bump", "prepare", "resolve-conflicts"]], decision="allow", match=["agent-tool versions bump"])
 prefix_rule(pattern=["agent-tool", "images", "build"], decision="allow", match=["agent-tool images build"])
 prefix_rule(pattern=["agent-tool", ["review", "init", "bumpVersions", "resolveVersionConflicts", "solicitClaudeCodeReview", "solicitCodexReview", "solicitOpencodeReview"]], decision="allow", match=["agent-tool review"])
+prefix_rule(pattern=["agent-tool", "bun", "x", "playwright"], decision="allow", match=["agent-tool bun x playwright"])
 
 # share: Publishes work for review without changing a shared branch: pushes a feature branch, opens a PR, or answers review threads.
 prefix_rule(pattern=["bun", "run", "agent-tool", "branch", "push"], decision="allow", match=["bun run agent-tool branch push"])
@@ -111,11 +114,8 @@ prefix_rule(pattern=["bun", "publish"], decision="prompt", justification="Merges
 
 # intake: Brings new third-party code into the repository.
 prefix_rule(pattern=["bun", "run", "agent-tool", "bun", "add"], decision="prompt", justification="Brings new third-party code into the repository.", match=["bun run agent-tool bun add"])
-prefix_rule(pattern=["bun", "run", "agent-tool", "bun", "x", "playwright"], decision="prompt", justification="Brings new third-party code into the repository.", match=["bun run agent-tool bun x playwright"])
 prefix_rule(pattern=["node_modules/.bin/agent-tool", "bun", "add"], decision="prompt", justification="Brings new third-party code into the repository.", match=["node_modules/.bin/agent-tool bun add"])
-prefix_rule(pattern=["node_modules/.bin/agent-tool", "bun", "x", "playwright"], decision="prompt", justification="Brings new third-party code into the repository.", match=["node_modules/.bin/agent-tool bun x playwright"])
 prefix_rule(pattern=["agent-tool", "bun", "add"], decision="prompt", justification="Brings new third-party code into the repository.", match=["agent-tool bun add"])
-prefix_rule(pattern=["agent-tool", "bun", "x", "playwright"], decision="prompt", justification="Brings new third-party code into the repository.", match=["agent-tool bun x playwright"])
 prefix_rule(pattern=["bun", ["add", "a", "x"]], decision="prompt", justification="Brings new third-party code into the repository.", match=["bun add"])
 prefix_rule(pattern=["npm", ["install", "i", "add"]], decision="prompt", justification="Brings new third-party code into the repository.", match=["npm install"])
 prefix_rule(pattern=["pnpm", "add"], decision="prompt", justification="Brings new third-party code into the repository.", match=["pnpm add"])

@@ -59,6 +59,7 @@
       "Bash(bun run agent-tool solicitCodexReview *)",
       "Bash(bun run agent-tool solicitOpencodeReview *)",
       "Bash(bun run agent-tool openPr *)",
+      "Bash(bun run agent-tool bun x playwright *)",
       "Bash(node_modules/.bin/agent-tool --help)",
       "Bash(node_modules/.bin/agent-tool --version)",
       "Bash(node_modules/.bin/agent-tool logs *)",
@@ -116,6 +117,7 @@
       "Bash(node_modules/.bin/agent-tool solicitCodexReview *)",
       "Bash(node_modules/.bin/agent-tool solicitOpencodeReview *)",
       "Bash(node_modules/.bin/agent-tool openPr *)",
+      "Bash(node_modules/.bin/agent-tool bun x playwright *)",
       "Bash(agent-tool --help)",
       "Bash(agent-tool --version)",
       "Bash(agent-tool logs *)",
@@ -172,7 +174,8 @@
       "Bash(agent-tool solicitClaudeCodeReview *)",
       "Bash(agent-tool solicitCodexReview *)",
       "Bash(agent-tool solicitOpencodeReview *)",
-      "Bash(agent-tool openPr *)"
+      "Bash(agent-tool openPr *)",
+      "Bash(agent-tool bun x playwright *)"
     ],
     "ask": [
       "Bash(bun run agent-tool permissions install *--apply*)",
@@ -181,7 +184,6 @@
       "Bash(bun run agent-tool bun add *)",
       "Bash(bun run agent-tool squashMerge *)",
       "Bash(bun run agent-tool bun x detox *)",
-      "Bash(bun run agent-tool bun x playwright *)",
       "Bash(bun run agent-tool bun x wrangler *)",
       "Bash(node_modules/.bin/agent-tool permissions install *--apply*)",
       "Bash(node_modules/.bin/agent-tool pr merge *)",
@@ -189,7 +191,6 @@
       "Bash(node_modules/.bin/agent-tool bun add *)",
       "Bash(node_modules/.bin/agent-tool squashMerge *)",
       "Bash(node_modules/.bin/agent-tool bun x detox *)",
-      "Bash(node_modules/.bin/agent-tool bun x playwright *)",
       "Bash(node_modules/.bin/agent-tool bun x wrangler *)",
       "Bash(agent-tool permissions install *--apply*)",
       "Bash(agent-tool pr merge *)",
@@ -197,7 +198,6 @@
       "Bash(agent-tool bun add *)",
       "Bash(agent-tool squashMerge *)",
       "Bash(agent-tool bun x detox *)",
-      "Bash(agent-tool bun x playwright *)",
       "Bash(agent-tool bun x wrangler *)",
       "Bash(bun add *)",
       "Bash(bun a *)",
@@ -216,6 +216,6 @@
   },
   "codex": {
     "file": ".codex/rules/agent-tool.rules",
-    "sha256": "83915c786ad4b125d9e2a3285a1ead86562264720764c2d98129e1d03822ca2b"
+    "sha256": "39dc22641f39d47a161541c21ed7b2433a861107a0773bc9667c6c373abd7782"
   }
 }

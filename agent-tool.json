@@ -12,7 +12,7 @@
   "permissions": {
     "executables": {
       "detox": "exec",
-      "playwright": "intake",
+      "playwright": "local",
       "wrangler": "release"
     }
   },
