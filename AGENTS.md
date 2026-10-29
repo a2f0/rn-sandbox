@@ -11,10 +11,15 @@ attribution footers. Do not create GitHub issues without an explicit request.
 
 Shipping and review skills come from the exactly pinned `@a2f0/agent-tool`
 dev dependency and are managed in `.agents/skills` and `.claude/skills`. Do not
-edit them. After changing its version, run `bun run agents:sync` and commit
-`package.json`, `bun.lock`, the skills, and `.agent-tool-skills.json`
-together. The CLI runs under Bun, so Bun must be on `PATH`. Title and required
-CI policy is in `agent-tool.json`.
+edit them. `bun run agents:sync` installs them and then writes the generated
+harness permission rules (`.claude/settings.json`,
+`.codex/rules/agent-tool.rules`, and `.agent-tool-permissions.json`), which
+must stay as generated. After changing its version or the
+`permissions.executables` classes in `agent-tool.json`, run
+`bun run agents:sync` and commit `package.json`, `bun.lock`, the skills,
+`.agent-tool-skills.json`, and the permission files together. The CLI runs
+under Bun, so Bun must be on `PATH`. Title and required CI policy is in
+`agent-tool.json`.
 
 Where the skills run `agent-tool <arguments>`, run
 `bun run agent-tool <arguments>`. For commands needing a literal empty argument,
@@ -40,8 +45,8 @@ README or maintenance docs.
 
 ## Output capture
 
-Run finite, noisy commands, such as installs, builds, tests, linters, and Git
-commands that run hooks, through
+Run finite, noisy commands, such as installs, builds, tests, linters, package
+scripts, and Git commands that run hooks, through
 `bun run agent:run --label <name> -- <command> [args...]`, for example
 `bun run agent:run --label tests -- bun run test`. It keeps complete output in
 a private log, preserves the exit status, and prints a compact receipt, with a

@@ -32,8 +32,8 @@
     "agent-tool": "agent-tool",
     "agent:run": "agent-tool run",
     "agent:logs": "agent-tool logs",
-    "agents:sync": "agent-tool skills install --apply",
-    "agents:check": "agent-tool skills check",
+    "agents:sync": "agent-tool skills install --apply && agent-tool permissions install --apply",
+    "agents:check": "agent-tool skills check && agent-tool permissions check",
     "test:markdownlint": "node --test scripts/checks/markdownlintConfig.test.mjs",
     "check:binaries": "agent-tool checks binaries",
     "hooks:install": "agent-tool hooks install --apply",
@@ -55,7 +55,7 @@
     "react-native-web": "0.21.4"
   },
   "devDependencies": {
-    "@a2f0/agent-tool": "0.1.23",
+    "@a2f0/agent-tool": "0.1.25",
     "@babel/core": "7.29.7",
     "@babel/preset-env": "7.29.7",
     "@babel/runtime": "7.29.10",
