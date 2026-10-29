@@ -90,10 +90,13 @@ branch-name, binary file, lint, and agent checks. `lint:shell` needs ShellCheck;
 - `bun run agent:run --label web -- bun run test:web` (Playwright; needs Chromium)
 - `bun run agents:check`
 
-Install Chromium with:
+Install Chromium through agent-tool, which runs the checkout's installed
+Playwright. `permissions.executables` classes `playwright` as `local`, so the
+generated rules allow this form, while Codex still prompts for raw `bunx`.
+`--log` keeps the download output in a private log, as `agent:run` would:
 
 ```sh
-bun run agent:run --label chromium -- bunx playwright install chromium
+bun run agent-tool bun x playwright --log -- install chromium
 ```
 
 See [docs/tooling.md](docs/tooling.md) for script ownership and layout,

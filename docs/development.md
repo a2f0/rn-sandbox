@@ -80,7 +80,7 @@ checks the fastlane Ruby with RuboCop.
 ### Playwright
 
 ```bash
-bunx playwright install chromium
+bun run agent-tool bun x playwright -- install chromium
 bun run test:web
 ```
 
