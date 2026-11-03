@@ -26,8 +26,14 @@ The WebAssembly build records the active compiler version beside its generated
 module and rebuilds when the installed compiler changes. Run the web and Jest
 suites against the rebuilt output after an Emscripten update.
 
-After changing React Native, refresh its cached prebuilt podspecs with
-`cd ios && bundle exec pod update React-Core-prebuilt hermes-engine --no-repo-update`.
+After changing React Native, refresh its cached prebuilt podspecs with:
+
+```sh
+cd ios
+bundle exec pod update React-Core-prebuilt ReactNativeDependencies \
+  hermes-engine --no-repo-update
+```
+
 These pods take their versions from the installed React Native package; do not
 select their versions independently. Check the prebuilt core version and Hermes
 runtime version in `Podfile.lock`, then run `bundle exec pod install --deployment`
@@ -73,6 +79,22 @@ the installed versions to the reviewed lockfile. See
 Validate the installed Markdown CLI when refreshing the lock. Its own supported
 YAML and TOML ranges now include the fixes formerly supplied by version-scoped
 overrides. Keep Jest's separate YAML dependency on its supported major.
+The temporary `markdownlint@0.42.0` override selects `re2js@2.8.7` for
+[GHSA-gg6h-894w-4m9c](https://github.com/advisories/GHSA-gg6h-894w-4m9c).
+Upstream pins the affected patch exactly. Keep the override scoped to that owner
+and run `bun run test:markdownlint`, which checks its actual resolved dependency
+and CLI parsing behavior. Remove the override when an upstream release selects
+a fixed version, then rerun the regression tests and audit.
+
+Run Ruby gates in a subshell with checkout-specific `GEM_HOME`, `GEM_PATH`,
+`BUNDLE_PATH`, and `BUNDLE_GEMFILE`; never inherit another checkout's gem paths.
+Confirm the pinned Ruby executable and `bundle check` before CocoaPods or
+Fastlane. If another job may have used the same ignored installation, compare
+Bundler's loaded specifications with this checkout's lock and rerun affected
+gates after isolation; installed files alone are not a source-bound receipt.
+A new Ruby patch installation can require rebuilding locked native gems: inspect
+an incompatible `libruby` load error with `otool -L`, then use `bundle pristine`
+for this bundle's extension-bearing gems. Do not delete shared caches.
 
 Firebase provisioning continues to invoke its separately pinned Firebase CLI
 through `npx` under Node. This is separate from application dependency installs;
@@ -148,13 +170,13 @@ Re-audit them on every refresh; advisory counts belong in the PR.
 Markdownlint CLI now resolves the supported YAML API and patched TOML parser
 through its own dependency ranges, without overrides. Preserve the integration
 checks introduced for the TOML parser's
-  [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
-  Markdownlint CLI merges explicit TOML configuration through `deep-extend`,
-  converting smol-toml's null-prototype tables into ordinary rule options.
-  `bun run test:markdownlint` checks the installed CLI with nested TOML options,
-  disabled rules, severity, inherited configuration, YAML, JSON, JavaScript class
-  options, and many flat TOML keys. `lint:md` runs these regressions first. Keep
-  this boundary tested when upgrading the CLI or replacing its merger.
+[GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
+Markdownlint CLI merges explicit TOML configuration through `deep-extend`,
+converting smol-toml's null-prototype tables into ordinary rule options.
+`bun run test:markdownlint` checks the installed CLI with nested TOML options,
+disabled rules, severity, inherited configuration, YAML, JSON, JavaScript class
+options, and many flat TOML keys. `lint:md` runs these regressions first. Keep
+this boundary tested when upgrading the CLI or replacing its merger.
 
 Do not restore an override unless a current advisory and compatible integration
 require it. The withdrawn Braces [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)
