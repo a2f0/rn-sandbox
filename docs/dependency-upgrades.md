@@ -87,7 +87,8 @@ and CLI parsing behavior. Remove the override when an upstream release selects
 a fixed version, then rerun the regression tests and audit.
 
 Run Ruby gates in a subshell with checkout-specific `GEM_HOME`, `GEM_PATH`,
-`BUNDLE_PATH`, and `BUNDLE_GEMFILE`; never inherit another checkout's gem paths.
+`BUNDLE_PATH`, `BUNDLE_GEMFILE`, `BUNDLE_APP_CONFIG`, and `BUNDLE_USER_HOME`;
+never inherit another checkout's gem paths or Bundler configuration.
 Confirm the pinned Ruby executable and `bundle check` before CocoaPods or
 Fastlane. If another job may have used the same ignored installation, compare
 Bundler's loaded specifications with this checkout's lock and rerun affected
