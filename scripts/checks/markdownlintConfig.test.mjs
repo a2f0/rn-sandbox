@@ -36,6 +36,7 @@ test('Markdown engine resolves the fixed regular-expression implementation', () 
       join(dirname(dirname(engine.resolve('re2js'))), 'package.json'),
     ),
   ).version;
+  assert.match(version, /^\d+\.\d+\.\d+$/);
   assert.ok(
     version.localeCompare('2.8.7', 'en', { numeric: true }) >= 0,
     'Markdown engine must resolve the fix for GHSA-gg6h-894w-4m9c',

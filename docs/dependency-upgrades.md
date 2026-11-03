@@ -41,6 +41,24 @@ to verify the committed lock agrees with the installed framework. CI uses this
 frozen install too; an ordinary install can retain a stale prebuilt core or
 silently rewrite an inconsistent lock.
 
+For the RN 0.88.1 status-bar migration, keep
+`UIViewControllerBasedStatusBarAppearance` enabled. The published framework's
+`React/CoreModules/RCTStatusBarManager.mm` routes `setStyle` through
+`RCTStatusBarAppearance`; its default factory creates `RCTRootViewController`,
+which returns that shared style. The older requirement to disable controller
+appearance no longer applies. Compare the exact Upgrade Helper trees and check
+light and dark appearance on the built app; do not infer this behavior from an
+older RN release or its peer dependency range.
+
+Google Sign-In 17 updates the native iOS SDK and offers opt-in SPM resolution;
+this app keeps CocoaPods. When refreshing the module, verify its published
+`src/signIn/GoogleSignin.ts` and `src/types.ts` against `src/auth/session.ts`:
+`configure` takes the web/iOS client IDs, `hasPlayServices` takes the update-dialog
+option, and `signIn` returns a cancelled response or success with `data.idToken`.
+Mocked Jest auth tests cannot establish that native contract; run both release
+builds and the headless native gates. A configured live OAuth flow remains a
+separate check and requires the application's credentials.
+
 Hermes' external-source `:tag` is a CocoaPods cache key read from React Native's
 `sdks/.hermesv1version`, not the runtime artifact version. The framework's
 [setup helper](https://github.com/facebook/react-native/blob/v0.88.0/packages/react-native/scripts/cocoapods/jsengine.rb)
