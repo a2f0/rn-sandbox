@@ -26,14 +26,38 @@ The WebAssembly build records the active compiler version beside its generated
 module and rebuilds when the installed compiler changes. Run the web and Jest
 suites against the rebuilt output after an Emscripten update.
 
-After changing React Native, refresh its cached prebuilt podspecs with
-`cd ios && bundle exec pod update React-Core-prebuilt hermes-engine --no-repo-update`.
+After changing React Native, refresh its cached prebuilt podspecs with:
+
+```sh
+cd ios
+bundle exec pod update React-Core-prebuilt ReactNativeDependencies \
+  hermes-engine --no-repo-update
+```
+
 These pods take their versions from the installed React Native package; do not
 select their versions independently. Check the prebuilt core version and Hermes
 runtime version in `Podfile.lock`, then run `bundle exec pod install --deployment`
 to verify the committed lock agrees with the installed framework. CI uses this
 frozen install too; an ordinary install can retain a stale prebuilt core or
 silently rewrite an inconsistent lock.
+
+For the RN 0.88.1 status-bar migration, keep
+`UIViewControllerBasedStatusBarAppearance` enabled. The published framework's
+`React/CoreModules/RCTStatusBarManager.mm` routes `setStyle` through
+`RCTStatusBarAppearance`; its default factory creates `RCTRootViewController`,
+which returns that shared style. The older requirement to disable controller
+appearance no longer applies. Compare the exact Upgrade Helper trees and check
+light and dark appearance on the built app; do not infer this behavior from an
+older RN release or its peer dependency range.
+
+Google Sign-In 17 updates the native iOS SDK and offers opt-in SPM resolution;
+this app keeps CocoaPods. When refreshing the module, verify its published
+`src/signIn/GoogleSignin.ts` and `src/types.ts` against `src/auth/session.ts`:
+`configure` takes the web/iOS client IDs, `hasPlayServices` takes the update-dialog
+option, and `signIn` returns a cancelled response or success with `data.idToken`.
+Mocked Jest auth tests cannot establish that native contract; run both release
+builds and the headless native gates. A configured live OAuth flow remains a
+separate check and requires the application's credentials.
 
 Hermes' external-source `:tag` is a CocoaPods cache key read from React Native's
 `sdks/.hermesv1version`, not the runtime artifact version. The framework's
@@ -70,10 +94,26 @@ packages, because Bun grants trust by package name. Frozen installs constrain
 the installed versions to the reviewed lockfile. See
 [Bun's lifecycle-script policy](https://bun.com/docs/pm/lifecycle).
 
-Keep the nested, version-scoped Markdown overrides unchanged when refreshing
-the lock. Bun supports this form and records it in lockfile version 3; see
-[Bun overrides](https://bun.com/docs/pm/overrides). Validate the installed
-Markdown CLI and keep Jest's separate YAML dependency on its supported major.
+Validate the installed Markdown CLI when refreshing the lock. Its own supported
+YAML and TOML ranges now include the fixes formerly supplied by version-scoped
+overrides. Keep Jest's separate YAML dependency on its supported major.
+The temporary `markdownlint@0.42.0` override selects `re2js@2.8.7` for
+[GHSA-gg6h-894w-4m9c](https://github.com/advisories/GHSA-gg6h-894w-4m9c).
+Upstream pins the affected patch exactly. Keep the override scoped to that owner
+and run `bun run test:markdownlint`, which checks its actual resolved dependency
+and CLI parsing behavior. Remove the override when an upstream release selects
+a fixed version, then rerun the regression tests and audit.
+
+Run Ruby gates in a subshell with checkout-specific `GEM_HOME`, `GEM_PATH`,
+`BUNDLE_PATH`, `BUNDLE_GEMFILE`, `BUNDLE_APP_CONFIG`, and `BUNDLE_USER_HOME`;
+never inherit another checkout's gem paths or Bundler configuration.
+Confirm the pinned Ruby executable and `bundle check` before CocoaPods or
+Fastlane. If another job may have used the same ignored installation, compare
+Bundler's loaded specifications with this checkout's lock and rerun affected
+gates after isolation; installed files alone are not a source-bound receipt.
+A new Ruby patch installation can require rebuilding locked native gems: inspect
+an incompatible `libruby` load error with `otool -L`, then use `bundle pristine`
+for this bundle's extension-bearing gems. Do not delete shared caches.
 
 Firebase provisioning continues to invoke its separately pinned Firebase CLI
 through `npx` under Node. This is separate from application dependency installs;
@@ -131,13 +171,6 @@ Re-audit them on every refresh; advisory counts belong in the PR.
   React Native ships a compatible plugin or a supported public fix becomes
   available; require wrapper generation, Android release build, and headless
   Detox checks. Do not bypass Kotlin metadata compatibility checks.
-- Metro, React Native CLI, and Jest use Micromatch/Braces. The latest Braces
-  release is affected by [nested-pattern stack exhaustion](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
-  Revisit when a patched release exists; validate bundling and both test runners.
-- Jest's Istanbul configuration loader uses js-yaml 3, Argparse, and sprintf-js.
-  sprintf-js has [unbounded precision handling](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)
-  with no patched release. Revisit an upstream loader update and test coverage
-  configuration parsing before changing that parser chain.
 - Markdownlint's math extension restricts KaTeX to its 0.16 line, below the
   [prototype-pollution gadget fix](https://github.com/advisories/GHSA-238p-pmpm-9mq7)
   in 0.18.2. The advisory requires prior prototype pollution and rendered output
@@ -151,25 +184,24 @@ Re-audit them on every refresh; advisory counts belong in the PR.
   require the 3.6 line or newer. Do not force the incompatible major into Detox;
   revisit its owner releases and run both native suites.
 
-## Security overrides
+## Security integration checks
 
-The version-scoped Markdown CLI overrides in [package.json](../package.json)
-preserve the fixes and compatibility decisions documented in
-[PR #58](https://github.com/a2f0/rn-sandbox/pull/58).
+Markdownlint CLI now resolves the supported YAML API and patched TOML parser
+through its own dependency ranges, without overrides. Preserve the integration
+checks introduced for the TOML parser's
+[GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
+Markdownlint CLI merges explicit TOML configuration through `deep-extend`,
+converting smol-toml's null-prototype tables into ordinary rule options.
+`bun run test:markdownlint` checks the installed CLI with nested TOML options,
+disabled rules, severity, inherited configuration, YAML, JSON, JavaScript class
+options, and many flat TOML keys. `lint:md` runs these regressions first. Keep
+this boundary tested when upgrading the CLI or replacing its merger.
 
-- The Markdown CLI overrides retain its supported YAML API and fix the TOML
-  parser's
-  [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
-  Markdownlint CLI merges explicit TOML configuration through `deep-extend`,
-  converting smol-toml's null-prototype tables into ordinary rule options.
-  `bun run test:markdownlint` checks the installed CLI with nested TOML options,
-  disabled rules, severity, inherited configuration, YAML, JSON, JavaScript class
-  options, and many flat TOML keys. `lint:md` runs these regressions first. Keep
-  this boundary tested when upgrading the CLI or replacing its merger.
-
-Remove an override when its owning package resolves the patched dependency
-itself and the Markdown configuration tests still pass. Update this section to
-describe the remaining active constraints.
+Do not restore an override unless a current advisory and compatible integration
+require it. The withdrawn Braces [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)
+and sprintf-js [GHSA-hp3w-g68c-fv3c](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)
+records are not active findings; check the upstream status before carrying old
+audit entries forward.
 
 Wrangler now resolves patched Sharp through its own Miniflare dependency.
 Keep `node scripts/checks/checkWranglerImages.mjs` as the regression check for

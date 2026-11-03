@@ -292,7 +292,7 @@ GEM
     retriable (4.2.0)
     rexml (3.4.4)
     rouge (3.28.0)
-    rubocop (1.92.0)
+    rubocop (1.92.2)
       json (>= 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
@@ -364,10 +364,10 @@ DEPENDENCIES
   logger (= 1.7.0)
   mutex_m (= 0.3.0)
   nkf (= 0.3.0)
-  rubocop (= 1.92.0)
+  rubocop (= 1.92.2)
 
 RUBY VERSION
-  ruby 3.3.12
+  ruby 3.3.13
 
 BUNDLED WITH
   4.0.23

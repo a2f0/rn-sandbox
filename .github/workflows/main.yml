@@ -11,9 +11,9 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: jdx/mise-action@v5.2.2
+      - uses: jdx/mise-action@v5.2.6
         with:
-          version: 2026.10.17
+          version: 2026.11.0
           install_args: node bun shellcheck
           cache: true
       - name: Cache Bun downloads
@@ -31,9 +31,9 @@ jobs:
         with:
           version: ${{ steps.emsdk.outputs.version }}
       # RuboCop, and the Ruby the fastlane tests run.
-      - uses: ruby/setup-ruby@v1.332.0
+      - uses: ruby/setup-ruby@v1.336.0
         with:
-          ruby-version: '3.3.12'
+          ruby-version: '3.3.13'
           bundler-cache: true
       - run: bun install --frozen-lockfile
       - name: Verify agent-tool
@@ -58,9 +58,9 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: jdx/mise-action@v5.2.2
+      - uses: jdx/mise-action@v5.2.6
         with:
-          version: 2026.10.17
+          version: 2026.11.0
           install_args: node bun
           cache: true
       - name: Cache Bun downloads
@@ -95,9 +95,9 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: jdx/mise-action@v5.2.2
+      - uses: jdx/mise-action@v5.2.6
         with:
-          version: 2026.10.17
+          version: 2026.11.0
           install_args: node bun
           cache: true
       - name: Cache Bun downloads
@@ -107,9 +107,9 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-bun-
-      - uses: ruby/setup-ruby@v1.332.0
+      - uses: ruby/setup-ruby@v1.336.0
         with:
-          ruby-version: '3.3.12'
+          ruby-version: '3.3.13'
           bundler-cache: true
       - name: Cache CocoaPods
         uses: actions/cache@v6.1.0
@@ -157,9 +157,9 @@ jobs:
     continue-on-error: false
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: jdx/mise-action@v5.2.2
+      - uses: jdx/mise-action@v5.2.6
         with:
-          version: 2026.10.17
+          version: 2026.11.0
           install_args: node bun
           cache: true
       - name: Cache Bun downloads
@@ -176,7 +176,7 @@ jobs:
       # Before anything runs Gradle: setup-gradle won't restore its cache once
       # ~/.gradle exists.
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
         with:
           # Generates the gitignored wrapper jar (scripts/dev/ensureGradleWrapper.sh).
           gradle-version: '9.4.1'

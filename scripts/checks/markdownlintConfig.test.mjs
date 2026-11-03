@@ -29,6 +29,20 @@ test('Markdown CLI resolves the fixed TOML parser', () => {
   );
 });
 
+test('Markdown engine resolves the fixed regular-expression implementation', () => {
+  const engine = createRequire(markdownlint.resolve('markdownlint'));
+  const version = JSON.parse(
+    readFileSync(
+      join(dirname(dirname(engine.resolve('re2js'))), 'package.json'),
+    ),
+  ).version;
+  assert.match(version, /^\d+\.\d+\.\d+$/);
+  assert.ok(
+    version.localeCompare('2.8.7', 'en', { numeric: true }) >= 0,
+    'Markdown engine must resolve the fix for GHSA-gg6h-894w-4m9c',
+  );
+});
+
 function fixture(t, config, markdown = '# Good\n') {
   const directory = mkdtempSync(join(tmpdir(), 'rn-markdownlint-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
