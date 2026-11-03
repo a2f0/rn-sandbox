@@ -70,10 +70,9 @@ packages, because Bun grants trust by package name. Frozen installs constrain
 the installed versions to the reviewed lockfile. See
 [Bun's lifecycle-script policy](https://bun.com/docs/pm/lifecycle).
 
-Keep the nested, version-scoped Markdown overrides unchanged when refreshing
-the lock. Bun supports this form and records it in lockfile version 3; see
-[Bun overrides](https://bun.com/docs/pm/overrides). Validate the installed
-Markdown CLI and keep Jest's separate YAML dependency on its supported major.
+Validate the installed Markdown CLI when refreshing the lock. Its own supported
+YAML and TOML ranges now include the fixes formerly supplied by version-scoped
+overrides. Keep Jest's separate YAML dependency on its supported major.
 
 Firebase provisioning continues to invoke its separately pinned Firebase CLI
 through `npx` under Node. This is separate from application dependency installs;
@@ -131,13 +130,6 @@ Re-audit them on every refresh; advisory counts belong in the PR.
   React Native ships a compatible plugin or a supported public fix becomes
   available; require wrapper generation, Android release build, and headless
   Detox checks. Do not bypass Kotlin metadata compatibility checks.
-- Metro, React Native CLI, and Jest use Micromatch/Braces. The latest Braces
-  release is affected by [nested-pattern stack exhaustion](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
-  Revisit when a patched release exists; validate bundling and both test runners.
-- Jest's Istanbul configuration loader uses js-yaml 3, Argparse, and sprintf-js.
-  sprintf-js has [unbounded precision handling](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)
-  with no patched release. Revisit an upstream loader update and test coverage
-  configuration parsing before changing that parser chain.
 - Markdownlint's math extension restricts KaTeX to its 0.16 line, below the
   [prototype-pollution gadget fix](https://github.com/advisories/GHSA-238p-pmpm-9mq7)
   in 0.18.2. The advisory requires prior prototype pollution and rendered output
@@ -151,14 +143,11 @@ Re-audit them on every refresh; advisory counts belong in the PR.
   require the 3.6 line or newer. Do not force the incompatible major into Detox;
   revisit its owner releases and run both native suites.
 
-## Security overrides
+## Security integration checks
 
-The version-scoped Markdown CLI overrides in [package.json](../package.json)
-preserve the fixes and compatibility decisions documented in
-[PR #58](https://github.com/a2f0/rn-sandbox/pull/58).
-
-- The Markdown CLI overrides retain its supported YAML API and fix the TOML
-  parser's
+Markdownlint CLI now resolves the supported YAML API and patched TOML parser
+through its own dependency ranges, without overrides. Preserve the integration
+checks introduced for the TOML parser's
   [GHSA-r4xh-jqrq-34v2](https://github.com/advisories/GHSA-r4xh-jqrq-34v2).
   Markdownlint CLI merges explicit TOML configuration through `deep-extend`,
   converting smol-toml's null-prototype tables into ordinary rule options.
@@ -167,9 +156,11 @@ preserve the fixes and compatibility decisions documented in
   options, and many flat TOML keys. `lint:md` runs these regressions first. Keep
   this boundary tested when upgrading the CLI or replacing its merger.
 
-Remove an override when its owning package resolves the patched dependency
-itself and the Markdown configuration tests still pass. Update this section to
-describe the remaining active constraints.
+Do not restore an override unless a current advisory and compatible integration
+require it. The withdrawn Braces [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)
+and sprintf-js [GHSA-hp3w-g68c-fv3c](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)
+records are not active findings; check the upstream status before carrying old
+audit entries forward.
 
 Wrangler now resolves patched Sharp through its own Miniflare dependency.
 Keep `node scripts/checks/checkWranglerImages.mjs` as the regression check for
