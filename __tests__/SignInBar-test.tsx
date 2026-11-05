@@ -1,4 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import { act } from 'react';
 import { SignInBar } from '../src/auth/SignInBar';
 import type * as Session from '../src/auth/session';
@@ -88,4 +93,34 @@ test('shows why sign-in failed', async () => {
   expect(screen.getByTestId('signin-error')).toHaveTextContent(
     'The network is offline.',
   );
+});
+
+test('disables the buttons while signing in and clears a failure on retry', async () => {
+  session.signIn.mockRejectedValueOnce(new Error('The network is offline.'));
+  await render(<SignInBar colors={light} />);
+  await fireEvent.press(screen.getByTestId('signin-google'));
+  expect(screen.getByTestId('signin-error')).toBeOnTheScreen();
+
+  let finish: () => void = () => {};
+  session.signIn.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      finish = resolve;
+    }),
+  );
+  // The press settles only once sign-in does, so wait for the retry to
+  // render, which the enabled buttons show it hasn't yet, before awaiting it.
+  expect(screen.getByTestId('signin-google')).toBeEnabled();
+  const pressed = fireEvent.press(screen.getByTestId('signin-google'));
+  await waitFor(() =>
+    expect(screen.getByTestId('signin-google')).toBeDisabled(),
+  );
+  expect(screen.queryByTestId('signin-error')).toBeNull();
+  expect(screen.getByTestId('signin-apple')).toBeDisabled();
+
+  await act(async () => {
+    finish();
+    await pressed;
+  });
+  expect(screen.getByTestId('signin-google')).toBeEnabled();
+  expect(screen.queryByTestId('signin-error')).toBeNull();
 });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Colors } from '../theme';
 import {
@@ -9,6 +9,7 @@ import {
   signOut,
   subscribe,
 } from './session';
+import { idle, transition } from './signInAction';
 
 const labels: Record<Provider, string> = {
   google: 'Google',
@@ -19,20 +20,23 @@ const labels: Record<Provider, string> = {
 // who's signed in.
 export function SignInBar({ colors }: { colors: Colors }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [action, dispatch] = useReducer(transition, idle);
+  const nextRequest = useRef(0);
+  const busy = action.status === 'pending';
+  const error = action.status === 'failed' ? action.message : null;
 
   useEffect(() => subscribe(setUser), []);
 
-  const run = async (action: () => Promise<void>) => {
-    setBusy(true);
-    setError(null);
+  const run = async (perform: () => Promise<void>) => {
+    nextRequest.current += 1;
+    const request = nextRequest.current;
+    dispatch({ type: 'start', request });
     try {
-      await action();
+      await perform();
+      dispatch({ type: 'succeed', request });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : String(caught));
-    } finally {
-      setBusy(false);
+      const message = caught instanceof Error ? caught.message : String(caught);
+      dispatch({ type: 'fail', request, message });
     }
   };
 
