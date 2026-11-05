@@ -1,4 +1,9 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import { act } from 'react';
 import { SignInBar } from '../src/auth/SignInBar';
 import type * as Session from '../src/auth/session';
@@ -102,15 +107,20 @@ test('disables the buttons while signing in and clears a failure on retry', asyn
       finish = resolve;
     }),
   );
-  // The press settles only once sign-in does, so check before awaiting it.
+  // The press settles only once sign-in does, so wait for the retry to
+  // render, which the enabled buttons show it hasn't yet, before awaiting it.
+  expect(screen.getByTestId('signin-google')).toBeEnabled();
   const pressed = fireEvent.press(screen.getByTestId('signin-google'));
-  await screen.findByText('Signed out');
+  await waitFor(() =>
+    expect(screen.getByTestId('signin-google')).toBeDisabled(),
+  );
   expect(screen.queryByTestId('signin-error')).toBeNull();
-  expect(screen.getByTestId('signin-google')).toBeDisabled();
   expect(screen.getByTestId('signin-apple')).toBeDisabled();
 
-  finish();
-  await pressed;
+  await act(async () => {
+    finish();
+    await pressed;
+  });
   expect(screen.getByTestId('signin-google')).toBeEnabled();
   expect(screen.queryByTestId('signin-error')).toBeNull();
 });
