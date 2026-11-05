@@ -89,3 +89,28 @@ test('shows why sign-in failed', async () => {
     'The network is offline.',
   );
 });
+
+test('disables the buttons while signing in and clears a failure on retry', async () => {
+  session.signIn.mockRejectedValueOnce(new Error('The network is offline.'));
+  await render(<SignInBar colors={light} />);
+  await fireEvent.press(screen.getByTestId('signin-google'));
+  expect(screen.getByTestId('signin-error')).toBeOnTheScreen();
+
+  let finish: () => void = () => {};
+  session.signIn.mockReturnValueOnce(
+    new Promise<void>((resolve) => {
+      finish = resolve;
+    }),
+  );
+  // The press settles only once sign-in does, so check before awaiting it.
+  const pressed = fireEvent.press(screen.getByTestId('signin-google'));
+  await screen.findByText('Signed out');
+  expect(screen.queryByTestId('signin-error')).toBeNull();
+  expect(screen.getByTestId('signin-google')).toBeDisabled();
+  expect(screen.getByTestId('signin-apple')).toBeDisabled();
+
+  finish();
+  await pressed;
+  expect(screen.getByTestId('signin-google')).toBeEnabled();
+  expect(screen.queryByTestId('signin-error')).toBeNull();
+});
