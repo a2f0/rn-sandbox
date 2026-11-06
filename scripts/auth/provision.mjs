@@ -8,7 +8,7 @@
 // 3. The Identity Platform API turns on Apple sign-in with the Sign in with
 //    Apple key, which Terraform's resource can't take.
 // 4. src/auth/config.json and the iOS URL scheme are written from the result.
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import {
   existsSync,
   mkdtempSync,
@@ -65,6 +65,84 @@ function succeeds(command, args, options = {}) {
   return (
     spawnSync(command, args, { stdio: 'inherit', ...options }).status === 0
   );
+}
+
+// How long a command and the processes it started have to stop after a signal
+// before they are killed.
+const STOP_GRACE_MS = 3000;
+
+// Runs command like succeeds, but without blocking, so this script outlives a
+// signal such as Ctrl-C and can clean up after it. The command runs in its own
+// process group, which gets the signal, so it reaches every process the
+// command started; the group is killed if it hasn't stopped STOP_GRACE_MS
+// after the first signal. Resolves once the command ends, and after a signal
+// once its group has stopped, with { outcome: 'succeeded' | 'failed' } or
+// { outcome: 'interrupted', signal }.
+function runInterruptible(command, args, options = {}) {
+  const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
+  return new Promise((resolve) => {
+    let interrupted;
+    let stopped;
+    const child = spawn(command, args, {
+      stdio: 'inherit',
+      detached: true,
+      ...options,
+    });
+    const forward = (signal) => {
+      interrupted ??= signal;
+      // A command that failed to start has no process group.
+      if (child.pid === undefined) return;
+      signalGroup(child.pid, signal);
+      stopped ??= stopGroup(child.pid);
+    };
+    for (const signal of signals) process.on(signal, forward);
+    // 'close' follows 'error' as well, as when the command can't start.
+    child.on('error', () => {});
+    child.on('close', async (code) => {
+      await stopped;
+      for (const signal of signals) process.off(signal, forward);
+      if (interrupted) resolve({ outcome: 'interrupted', signal: interrupted });
+      else resolve({ outcome: code === 0 ? 'succeeded' : 'failed' });
+    });
+  });
+}
+
+// Sends signal to process group pgid. Returns false if the group has exited.
+function signalGroup(pgid, signal) {
+  try {
+    process.kill(-pgid, signal);
+    return true;
+  } catch (error) {
+    if (error.code === 'ESRCH') return false;
+    throw error;
+  }
+}
+
+// Waits for process group pgid to exit, killing it after STOP_GRACE_MS. Once
+// killed, its processes no longer run, so it waits only a second more for them
+// to be reaped: one whose parent is gone can stay a zombie in a container
+// whose PID 1 doesn't reap.
+async function stopGroup(pgid) {
+  const killAt = Date.now() + STOP_GRACE_MS;
+  let giveUpAt;
+  while (signalGroup(pgid, 0)) {
+    const now = Date.now();
+    if (giveUpAt === undefined) {
+      if (now >= killAt) {
+        signalGroup(pgid, 'SIGKILL');
+        giveUpAt = now + 1000;
+      }
+    } else if (now >= giveUpAt) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}
+
+// Stops this script with signal, as it would have without a handler.
+function reraise(signal) {
+  process.kill(process.pid, signal);
+  fail(`Stopped by ${signal}.`);
 }
 
 function run(command, args, options = {}) {
@@ -170,7 +248,7 @@ const deploy = [
   '--non-interactive',
 ];
 const firebaseDir = mkdtempSync(join(tmpdir(), 'rn-sandbox-auth-'));
-let deployed;
+let deployment;
 try {
   writeFileSync(
     join(firebaseDir, 'firebase.json'),
@@ -186,7 +264,7 @@ try {
       },
     }),
   );
-  deployed = succeeds('npx', deploy, {
+  deployment = await runInterruptible('npx', deploy, {
     cwd: firebaseDir,
     // The CLI uses Application Default Credentials, and only names a quota
     // project for them from here.
@@ -195,9 +273,10 @@ try {
 } finally {
   rmSync(firebaseDir, { recursive: true, force: true });
 }
-// fail() exits at once, skipping finally blocks, so it waits until the folder
-// is gone.
-if (!deployed) fail(`npx ${deploy.join(' ')} failed.`);
+// fail() and signals exit at once, skipping finally blocks, so both wait until
+// the folder is gone.
+if (deployment.outcome === 'interrupted') reraise(deployment.signal);
+if (deployment.outcome === 'failed') fail(`npx ${deploy.join(' ')} failed.`);
 const google = await api('GET', `${identityPlatform}/google.com`);
 if (!google?.clientId) fail('Google sign-in has no OAuth client.');
 
