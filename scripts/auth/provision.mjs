@@ -319,15 +319,9 @@ const config = appConfig({
     ? { servicesId: APPLE_SERVICES_ID, redirectUri: authHandler }
     : null,
 });
-writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
-console.log(`Wrote ${configPath}`);
-if (!config.google.iosClientId) {
-  console.warn(
-    "The iOS app's Firebase config has no OAuth client yet, so Google sign-in is off on iOS. Run this again in a few minutes.",
-  );
-}
-
-// Google Sign-In on iOS returns to the app through its reversed client ID.
+// Google Sign-In on iOS returns to the app through its reversed client ID,
+// and crashes release builds without it (appConfig.mjs), so the URL scheme is
+// added first: if that fails, the config doesn't turn Google on for iOS.
 const reversedClientId = plistString(iosPlist, 'REVERSED_CLIENT_ID');
 if (config.google.iosClientId && reversedClientId) {
   run('plutil', [
@@ -338,6 +332,14 @@ if (config.google.iosClientId && reversedClientId) {
     infoPlistPath,
   ]);
   console.log(`Added the ${reversedClientId} URL scheme to ${infoPlistPath}`);
+}
+
+writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
+console.log(`Wrote ${configPath}`);
+if (!config.google.iosClientId) {
+  console.warn(
+    "The iOS app's Firebase config has no OAuth client yet, so Google sign-in is off on iOS. Run this again in a few minutes.",
+  );
 }
 
 step('Done');

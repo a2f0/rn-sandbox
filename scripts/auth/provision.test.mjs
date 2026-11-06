@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -20,7 +21,7 @@ const script = join(import.meta.dirname, 'provision.mjs');
 const fakes = {
   gcloud: 'printf "%s\\n" fake',
   mise: `case "$*" in
-  *" output -json") printf '%s\\n' '{"project_id":{"value":"p"},"firebase_config":{"value":{"authDomain":"p.firebaseapp.com"}}}' ;;
+  *" output -json") printf '%s\\n' '{"project_id":{"value":"p"},"firebase_config":{"value":{"authDomain":"p.firebaseapp.com"}},"apple_app_id":{"value":"ios"}}' ;;
 esac`,
   npx: 'exit 1',
 };
@@ -151,6 +152,62 @@ test('kills a deploy whose npx ignores the signal, then removes its folder', asy
   assert.equal(result.signal, 'SIGINT', output());
   assert.equal(isRunning(deployPid), false);
   assert.deepEqual(readdirSync(temp), []);
+});
+
+// Google's and Firebase's APIs, as provision.mjs reaches them through fetch:
+// Google sign-in is on, Apple sign-in isn't set up yet, and the iOS app's
+// Firebase config has its client IDs.
+const fakeApis = `
+const plist = '<key>CLIENT_ID</key><string>ios-client</string>' +
+  '<key>REVERSED_CLIENT_ID</key><string>com.example.ios-client</string>';
+globalThis.fetch = async (url, { method }) => {
+  const reply = (status, body) =>
+    new Response(body === undefined ? '' : JSON.stringify(body), { status });
+  if (url.endsWith('/google.com')) return reply(200, { clientId: 'web-client' });
+  if (url.endsWith('/apple.com')) return reply(404);
+  if (method === 'POST') return reply(200, {});
+  if (url.includes('/iosApps/')) {
+    return reply(200, { configFileContents: Buffer.from(plist).toString('base64') });
+  }
+  return reply(500, { unexpected: url });
+};
+`;
+
+test('leaves the app config alone when the iOS URL scheme fails', (t) => {
+  // The script writes its outputs under its own repository, so it runs from a
+  // copy in a stand-in one.
+  const { root, env } = setUp(t, { npx: 'exit 0', plutil: 'exit 1' });
+  const repo = join(root, 'repo');
+  for (const dir of ['scripts/auth', 'src/auth', 'ios/sandbox']) {
+    mkdirSync(join(repo, dir), { recursive: true });
+  }
+  for (const file of [
+    'provision.mjs',
+    'appConfig.mjs',
+    'apple.mjs',
+    'googleApi.mjs',
+  ]) {
+    copyFileSync(
+      join(import.meta.dirname, file),
+      join(repo, 'scripts/auth', file),
+    );
+  }
+  const configPath = join(repo, 'src/auth/config.json');
+  const unprovisioned = '{ "firebase": null, "google": null, "apple": null }\n';
+  writeFileSync(configPath, unprovisioned);
+  writeFileSync(join(repo, 'ios/sandbox/Info.plist'), '');
+  const apis = join(root, 'apis.mjs');
+  writeFileSync(apis, fakeApis);
+
+  const result = spawnSync(
+    process.execPath,
+    ['--import', apis, join(repo, 'scripts/auth/provision.mjs')],
+    { encoding: 'utf8', env },
+  );
+
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.match(result.stderr, /plutil -replace CFBundleURLTypes .* failed\./);
+  assert.equal(readFileSync(configPath, 'utf8'), unprovisioned);
 });
 
 function sleep(ms) {
