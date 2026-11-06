@@ -22,7 +22,7 @@
     "deploy:web": "bun run build:web && wrangler deploy",
     "auth:provision": "node scripts/auth/provision.mjs",
     "lint": "biome check .",
-    "lint:md": "bun run --silent test:markdownlint && markdownlint --dot \"**/*.md\" --ignore-path .gitignore --ignore .git --ignore vendor --ignore .agents/skills/cross-agent-review --ignore .agents/skills/open-issue --ignore .agents/skills/open-pr --ignore .agents/skills/reset --ignore .agents/skills/ship-pr --ignore .agents/skills/squash-merge --ignore .agents/skills/update-dependencies --ignore .claude/skills/cross-agent-review --ignore .claude/skills/open-issue --ignore .claude/skills/open-pr --ignore .claude/skills/reset --ignore .claude/skills/ship-pr --ignore .claude/skills/squash-merge --ignore .claude/skills/update-dependencies",
+    "lint:md": "bun run --silent test:markdownlint && markdownlint --dot \"**/*.md\" --ignore-path .gitignore --ignore .git --ignore vendor --ignore .agents/skills/cross-agent-review --ignore .agents/skills/explicit-state-machines --ignore .agents/skills/open-issue --ignore .agents/skills/open-pr --ignore .agents/skills/reset --ignore .agents/skills/ship-pr --ignore .agents/skills/squash-merge --ignore .agents/skills/update-dependencies --ignore .claude/skills/cross-agent-review --ignore .claude/skills/explicit-state-machines --ignore .claude/skills/open-issue --ignore .claude/skills/open-pr --ignore .claude/skills/reset --ignore .claude/skills/ship-pr --ignore .claude/skills/squash-merge --ignore .claude/skills/update-dependencies",
     "lint:shell": "shellcheck -x scripts/*/*.sh scripts/git/hooks/*",
     "lint:ruby": "bundle exec rubocop",
     "start": "react-native start",
@@ -55,7 +55,7 @@
     "react-native-web": "0.21.4"
   },
   "devDependencies": {
-    "@a2f0/agent-tool": "0.1.46",
+    "@a2f0/agent-tool": "0.1.51",
     "@babel/core": "7.29.7",
     "@babel/preset-env": "7.29.7",
     "@babel/runtime": "7.29.10",
