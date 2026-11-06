@@ -116,6 +116,22 @@ bun run agent:run --label ios-build -- bunx detox build --configuration ios.rele
 bun run agent:run --label android-build -- bunx detox build --configuration android.release
 ```
 
+## State machines
+
+Make implicit state machines explicit when you write or change code: one closed
+state type (a discriminated union, enum, or sealed type) carrying each state's
+data, typed events, and one pure transition function, with effects run on
+entering a state and async work tagged so only the current request can finish.
+Follow the `explicit-state-machines` skill for what to convert, what to leave
+alone, and how to prove behavior did not change; `agent-tool state-machines`
+lists leads. Reviews flag new implicit machines.
+
+Here, machines are TypeScript unions tagged `status`, with the transition
+function in its own module beside the component, as
+`src/auth/signInAction.ts` is for `SignInBar` (driven through `useReducer`,
+each attempt carrying a request number). State lives in `src/` and `web/`;
+`RoundTripScreen`'s `Run` is a union tagged `state`. Native modules hold none.
+
 ## Pull requests
 
 Describe pull requests under `## Summary`, `## Testing`, and `## Related`. List
