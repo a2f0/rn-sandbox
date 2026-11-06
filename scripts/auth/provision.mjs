@@ -61,9 +61,14 @@ function output(command, args, options = {}) {
   }).trim();
 }
 
+function succeeds(command, args, options = {}) {
+  return (
+    spawnSync(command, args, { stdio: 'inherit', ...options }).status === 0
+  );
+}
+
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, { stdio: 'inherit', ...options });
-  if (result.status !== 0) {
+  if (!succeeds(command, args, options)) {
     fail(`${command} ${args.join(' ')} failed.`);
   }
 }
@@ -154,7 +159,18 @@ const api = googleApi({ project, token: gcloudToken });
 // --- Google
 
 step('Turning on Google sign-in');
+const deploy = [
+  '--yes',
+  FIREBASE_TOOLS,
+  'deploy',
+  '--only',
+  'auth',
+  '--project',
+  project,
+  '--non-interactive',
+];
 const firebaseDir = mkdtempSync(join(tmpdir(), 'rn-sandbox-auth-'));
+let deployed;
 try {
   writeFileSync(
     join(firebaseDir, 'firebase.json'),
@@ -170,28 +186,18 @@ try {
       },
     }),
   );
-  run(
-    'npx',
-    [
-      '--yes',
-      FIREBASE_TOOLS,
-      'deploy',
-      '--only',
-      'auth',
-      '--project',
-      project,
-      '--non-interactive',
-    ],
-    {
-      cwd: firebaseDir,
-      // The CLI uses Application Default Credentials, and only names a quota
-      // project for them from here.
-      env: { ...process.env, GOOGLE_CLOUD_QUOTA_PROJECT: project },
-    },
-  );
+  deployed = succeeds('npx', deploy, {
+    cwd: firebaseDir,
+    // The CLI uses Application Default Credentials, and only names a quota
+    // project for them from here.
+    env: { ...process.env, GOOGLE_CLOUD_QUOTA_PROJECT: project },
+  });
 } finally {
   rmSync(firebaseDir, { recursive: true, force: true });
 }
+// fail() exits at once, skipping finally blocks, so it waits until the folder
+// is gone.
+if (!deployed) fail(`npx ${deploy.join(' ')} failed.`);
 const google = await api('GET', `${identityPlatform}/google.com`);
 if (!google?.clientId) fail('Google sign-in has no OAuth client.');
 
