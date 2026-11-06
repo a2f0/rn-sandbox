@@ -26,7 +26,7 @@
     "lint:shell": "shellcheck -x scripts/*/*.sh scripts/git/hooks/*",
     "lint:ruby": "bundle exec rubocop",
     "start": "react-native start",
-    "test": "bun run --silent build:wasm && jest && node --test scripts/auth/*.test.mjs",
+    "test": "bun run --silent build:wasm && jest && node --test scripts/auth/*.test.mjs scripts/dev/*.test.mjs",
     "test:web": "playwright test",
     "prepare": "bun run hooks:install && sh scripts/dev/ensureGradleWrapper.sh --optional",
     "agent-tool": "agent-tool",
