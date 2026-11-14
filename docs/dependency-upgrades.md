@@ -125,13 +125,36 @@ do not execute provisioning or store-release lanes as migration tests.
   rerun `e2e/web/clickTracking.spec.ts` to verify opt-outs, the requested GPC
   override, safe metadata and refusal to collect outside the production origin.
 - React Native owns the React renderer, Babel 7 preset, Metro, Hermes, native
-  pods, and Android toolchain. Keep Gradle, AGP, Kotlin, SDK, and NDK on the
-  selected release's [template](https://github.com/react-native-community/rn-diff-purge)
+  pods, and Android toolchain. Keep Gradle, AGP, Kotlin, build tools, compile
+  SDK, and NDK on the selected release's [template](https://github.com/react-native-community/rn-diff-purge)
   and Gradle plugin versions until both release builds and headless Detox suites
   validate a newer supported combination. React Native 0.88 still supports this
   app's existing AppDelegate lifecycle; its new SceneDelegate template is an
   optional lifecycle migration, which needs launch and URL callback tests before
   adoption.
+- The Android target SDK deliberately diverges from the template: React Native
+  0.88's targets 36, and this app targets 37 (Android 17) to adopt its
+  [target-SDK behavior changes](https://developer.android.com/about/versions/17/behavior-changes-17).
+  React Native 0.88.1 supports it: its debug manifests declare
+  `ACCESS_LOCAL_NETWORK` and request it before reaching Metro at the emulator's
+  `10.0.2.2`, and release builds load their libraries read-only from the APK.
+  Detox grants declared permissions on install and reaches its server over
+  `adb reverse` loopback. Espresso 3.7.0, which Detox 20.51 requires, idles
+  loopers through `TestLooperManager` instead of the lock-free `MessageQueue`
+  internals and no longer calls the removed
+  [`InputManager.getInstance`](https://github.com/android/android-test/issues/2507);
+  older Espresso versions fail on Android 17. The Android release build and the
+  headless Detox suite on an API 37 emulator validated this combination. When a
+  React Native release's template targets 37 or newer, return to its value. Rerun
+  that validation on an Android 17 emulator after changing Detox, Espresso, or
+  native dependencies that load native code, access the local network, or
+  reflect on platform internals.
+- CI's `detox-android` job replaces the runner image's Android command-line tools
+  12.0 with 23.0: older `avdmanager` releases write `target=android-0` into AVDs
+  on minor-versioned system images such as `android-37.0`, which breaks the
+  emulator's graphics ([emulator runner issue](https://github.com/ReactiveCircus/android-emulator-runner/issues/482)).
+  The job checks the created AVD's target. Remove the replacement when the runner
+  image ships command-line tools 22.0 or newer.
 - The Google Sign-In native module owns the supported GoogleSignIn pod range.
   Refresh its compatible pods together with `bundle exec pod update GoogleSignIn`.
   AppCheckCore's Swift implementation needs module maps for GoogleUtilities and

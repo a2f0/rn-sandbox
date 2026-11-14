@@ -13,6 +13,8 @@ clean:
 - `.github/workflows/main.yml`
   - Node, Ruby, Java setup versions
 - `android/build.gradle`
+  - `targetSdkVersion` deliberately leads a template that targets 36; keep
+    the higher value (see `docs/dependency-upgrades.md`).
 - `android/app/build.gradle`
   - Keep `androidTestImplementation("com.wix:detox:<version>")` aligned with
     `package.json` `devDependencies.detox`.

@@ -81,9 +81,13 @@ the browser gives WebAssembly no threads without cross-origin isolation.
 ### Setup
 
 Create an Android virtual device named `rn-sandbox` with Android Studio or
-`avdmanager`, using a system image compatible with the host CPU. Verify its name
-with `emulator -list-avds`. The headless Android helper detects the running
-emulator or configured AVD ABI; CI selects its own x86_64 image.
+`avdmanager`, using an Android 17 (API 37) system image for the host CPU, such
+as `system-images;android-37.0;google_apis;arm64-v8a` on Apple silicon. The
+package path is `android-37.0`; there is no `android-37`. Verify its name with
+`emulator -list-avds`. The headless Android helper detects the running emulator
+or configured AVD ABI; CI creates its own `x86_64` API 37 image. On Android 17,
+debug builds ask for the Nearby devices permission (`ACCESS_LOCAL_NETWORK`)
+before reaching Metro at `10.0.2.2`; Detox grants it when installing.
 
 ### Jest
 
