@@ -163,6 +163,15 @@ do not execute provisioning or store-release lanes as migration tests.
   entries in `ios/Podfile` until those podspecs provide modules themselves or the
   integration changes; verify a frozen pod install and the iOS release Detox suite
   before removing them.
+- GoogleSignIn 10.1.0 is the SDK's [last CocoaPods release](https://github.com/google/GoogleSignIn-iOS/releases/tag/10.1.0),
+  and CocoaPods trunk becomes read-only on 2026-12-02. Trunk has republished
+  GoogleSignIn 10.1.0, AppAuth 3.0.0, and GTMAppAuth 6.0.0 as deprecated, which
+  changed their `Podfile.lock` checksums. Regenerate the lock with
+  `bundle exec pod install --repo-update`, never by hand, and verify it with
+  `pod install --deployment`. Plan the module's opt-in Swift Package Manager
+  resolution ([migration guide](https://github.com/google/GoogleSignIn-iOS/blob/main/MIGRATING_FROM_COCOAPODS.md))
+  before the next GoogleSignIn SDK update. Verify it with a frozen install, the
+  iOS release Detox suite, and the `modular_headers` entries above.
 - Keep TypeScript 6 while Jest's TypeScript configuration loads through
   `ts-node` and its JavaScript compiler API. [TypeScript 7](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/)
   uses the native compiler. Revisit when the configuration loader supports that
