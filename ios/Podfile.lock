@@ -2167,7 +2167,7 @@ EXTERNAL SOURCES:
     :path: build/rncore-facades/Yoga
 
 SPEC CHECKSUMS:
-  AppAuth: 5dec4b6a833eb0342b26bacbc5f3af694f71274a
+  AppAuth: b19b479e4e20f31869ce3fc2302312dc3fce98b8
   AppCheckCore: be8fce5469f68d7f6a29aa94b25f097409ff7fdc
   boost: 8502bfdc46e2804408af2e163049ece181009af4
   DoubleConversion: 501a575c40c0b50c89685762dd3e415e6bb26fb0
@@ -2175,9 +2175,9 @@ SPEC CHECKSUMS:
   FBLazyVector: 07cb4c5b92110c132f2bb73b908e87f35cbe0a19
   fmt: ba0886e864ebb21d14c98b2e12e164b8002f5b93
   glog: 3cf7cb46f743c4bc758ae3e6d9c15bd1b4cfd6d4
-  GoogleSignIn: 52f0c3c702ae6ff72fcbcf695a9f26c52f31dc4b
+  GoogleSignIn: 6c0681460b202440022a4029ac0cbd71ef72068f
   GoogleUtilities: 7dc09b3fa9ecb5c2298b952313d14628b61b9da3
-  GTMAppAuth: 66e839a30bb63acb109b8986a0c3f642d56d48fd
+  GTMAppAuth: d5a53b9611d30bb40d92293f72f12c3ac3a08321
   GTMSessionFetcher: a6d2b2aa203485893d4511ff64642dc811f7c09f
   hermes-engine: 79484fc4e58f328d01b9339ef899ca633d3702ee
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273

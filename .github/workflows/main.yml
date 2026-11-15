@@ -193,10 +193,22 @@ jobs:
           sudo rm -rf /opt/ghc
           df -h
       - run: bunx detox build --configuration android.release
+      # The runner image's command-line tools (12.0) write target=android-0 into
+      # AVDs on minor-versioned images such as android-37.0, which breaks the
+      # emulator's graphics, and the emulator action keeps preinstalled tools.
+      # https://github.com/ReactiveCircus/android-emulator-runner/issues/482
+      - name: Install Android command-line tools 23.0
+        run: |
+          tools="$ANDROID_HOME/cmdline-tools"
+          yes | "$tools/latest/bin/sdkmanager" --install 'cmdline-tools;23.0' > /dev/null
+          rm -rf "$tools/latest"
+          mv "$tools/23.0" "$tools/latest"
+          grep -qx 'Pkg.Revision=23.0' "$tools/latest/source.properties"
       - name: run tests
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
-          api-level: 31
+          # Android 17's SDK packages are android-37.0; there is no android-37.
+          api-level: '37.0'
           target: google_apis
           arch: x86_64
           force-avd-creation: true
@@ -204,6 +216,7 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           emulator-boot-timeout: 600
+          pre-emulator-launch-script: grep -qx 'target=android-37.0' "$ANDROID_AVD_HOME/rn-sandbox.ini"
           script: |
             adb devices
             adb wait-for-device
