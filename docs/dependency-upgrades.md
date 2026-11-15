@@ -86,6 +86,13 @@ scripts and installs dependencies; Node remains installed for React Native,
 Metro, Jest, codegen, and other tools with Node entry points. Use `bun run test`
 for the existing Jest suite, not Bun's test runner.
 
+The committed `mise.lock` records the tool versions, download URLs, and
+checksums for `.mise.toml`, `.ruby-version`, and `.nvmrc`; regenerate it with
+`mise lock` whenever they change. `jdx/mise-action` installs from it in locked
+mode, so the `version` of every workflow's mise-action must read its lockfile
+format (format 4 needs mise 2026.11.1 or later). Raise those pins before the
+lock's format changes.
+
 The explicit `trustedDependencies` list permits dependency lifecycle scripts for
 `@parcel/watcher`, `detox`, `fsevents`, and `unrs-resolver`. It replaces Bun's
 default trust list; `dtrace-provider`, `esbuild`, `workerd`, and `@firebase/util`

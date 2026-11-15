@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
       - uses: jdx/mise-action@v5.2.6
         with:
-          version: 2026.11.0
+          version: 2026.11.8
           install_args: node bun shellcheck
           cache: true
       - name: Cache Bun downloads
@@ -60,7 +60,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
       - uses: jdx/mise-action@v5.2.6
         with:
-          version: 2026.11.0
+          version: 2026.11.8
           install_args: node bun
           cache: true
       - name: Cache Bun downloads
@@ -97,7 +97,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
       - uses: jdx/mise-action@v5.2.6
         with:
-          version: 2026.11.0
+          version: 2026.11.8
           install_args: node bun
           cache: true
       - name: Cache Bun downloads
@@ -159,7 +159,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
       - uses: jdx/mise-action@v5.2.6
         with:
-          version: 2026.11.0
+          version: 2026.11.8
           install_args: node bun
           cache: true
       - name: Cache Bun downloads
