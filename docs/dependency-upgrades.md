@@ -233,8 +233,10 @@ Markdownlint CLI merges explicit TOML configuration through `deep-extend`,
 converting smol-toml's null-prototype tables into ordinary rule options.
 `bun run test:markdownlint` checks the installed CLI with nested TOML options,
 disabled rules, severity, inherited configuration, YAML, JSON, JavaScript class
-options, and many flat TOML keys. `lint:md` runs these regressions first. Keep
-this boundary tested when upgrading the CLI or replacing its merger.
+options, and many flat TOML keys. `lint:md`, which CI and `bun run check` run,
+runs these regressions first and then `lint:md:files`; the push gate runs
+`lint:md:files` alone, since it runs no tests. Keep this boundary tested when
+upgrading the CLI or replacing its merger.
 
 Do not restore an override unless a current advisory and compatible integration
 require it. The withdrawn Braces [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)

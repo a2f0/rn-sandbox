@@ -40,7 +40,7 @@ lifecycle-script trust and lockfile maintenance.
 | `scripts/build/` | WebAssembly compilation and native image build adapter | `bun run build:wasm`; Xcode and Gradle image tasks |
 | `scripts/checks/` | Repository-specific tool regressions and policy checks | `bun run lint:md`; Jest tooling checks |
 | `scripts/dev/` | Generate the ignored Gradle wrapper jar | Package preparation, Android and fastlane builds |
-| `scripts/git/hooks/` | Tracked hook bodies copied by agent-tool | `bun run hooks:install`; `bun run hooks:check` |
+| `scripts/git/hooks/` | The generated push-gate hook, copied by agent-tool | `bun run hooks:install`; `bun run hooks:check` |
 | `scripts/testing/` | Headless Detox platform runners | `scripts/testing/detox-{ios,android}-headless.sh` |
 
 The image adapter resolves the checkout and supplies a minimal IDE environment
@@ -72,9 +72,23 @@ branch, such as `fix/correction` or `revert/change`, before requesting a merge.
 `bun install --frozen-lockfile` installs the tracked pre-push hook through
 `bun run hooks:install`. Existing unmanaged hook targets require inspection and
 explicit `bun run agent-tool hooks install --apply --adopt`; the installer backs
-up replacements and preserves hooks it does not own. The pre-push hook first
-checks installed-hook drift and destination branch names, then runs binary,
-lint, skill, and permission checks. `bun run hooks:check` also runs in CI.
+up replacements and preserves hooks it does not own. `bun run hooks:check` also
+runs in CI.
+
+The pre-push hook is agent-tool's push gate, the exact output of
+`bun run agent-tool push-gate hook`. `bun run agent-tool push-gate check`, which
+CI runs, fails when the hook drifts from that output or a step reaches a test
+runner, build, or install. Its built-in guards check installed-hook drift,
+managed skills and permissions, destination branch names, the pushed commits,
+and binary files in those commits. It then runs the steps in the `pushGate`
+section of `agent-tool.json`: Biome (`lint`), Markdown (`lint:md:files`),
+ShellCheck (`lint:shell`), and RuboCop (`lint:ruby`). Each push records its
+step timings in `bun run agent-tool runs list`. Keep the gate static, seconds
+long: tests, builds, browsers, simulators, and installs run in CI, which runs
+`lint:md` with its markdownlint regression tests as well. When a CI job fails,
+push a reviewed fix commit; a branch does not need the latest `main` to merge.
+The [shared push-gate rules](https://github.com/a2f0/matrix/blob/main/docs/tooling.md#push-gates)
+say what belongs in a gate.
 
 For a checkout previously using Husky, inspect its local setting with
 `git config --local --get core.hooksPath`. If it is exactly `.husky/_`, remove
