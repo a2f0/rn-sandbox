@@ -30,6 +30,14 @@
       }
     ]
   },
+  "pushGate": {
+    "steps": [
+      { "label": "lint", "command": ["bun", "run", "lint"] },
+      { "label": "markdown", "command": ["bun", "run", "lint:md:files"] },
+      { "label": "shell", "command": ["bun", "run", "lint:shell"] },
+      { "label": "ruby", "command": ["bun", "run", "lint:ruby"] }
+    ]
+  },
   "images": {
     "targets": {
       "ios": {

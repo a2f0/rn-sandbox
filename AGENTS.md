@@ -73,10 +73,12 @@ Tool versions come from `.mise.toml`, `.ruby-version`, and `.nvmrc`.
 ## Validation
 
 Run `bun run check` to record the complete validation group, or run each
-command below before shipping. The pre-push hook runs hook-drift, destination
-branch-name, binary file, lint, and agent checks. `lint:shell` needs ShellCheck;
-`lint:ruby` needs
-`bundle install`.
+command below before shipping. The pre-push hook is agent-tool's push gate: its
+built-in guards check hook drift, managed skills and permissions, destination
+branch names, the pushed commits, and binary files, and then it runs the static
+`pushGate` steps in `agent-tool.json` (Biome, Markdown, shell, and Ruby lint).
+Tests and builds run in CI, never in the gate. `lint:shell` needs ShellCheck;
+`lint:ruby` needs `bundle install`.
 
 - `bun run agent:run --label binary -- bun run check:binaries --all`
 - `bun run lint:branch-name`
@@ -153,8 +155,13 @@ with `pr threads resolve <thread-id>`; keep unresolved findings open.
 
 Ship with the `ship-pr` skill. `main` accepts squash merges only, and its
 branch protection requires the `code-quality (20)`, `detox-android (20)`, and
-`detox-macos (20, 3.3)` checks to pass on a head that contains the latest
-`main`. Integrate an updated base with a normal merge. `detox-macos` usually
+`detox-macos (20, 3.3)` checks to pass. It does not require a branch to
+contain the latest `main`; integrate `main` with a normal merge only when
+GitHub reports a conflict. CI also runs on every push to `main`, so two merges
+that break it together show up there, and `ship-pr` starts by checking it with
+`bun run agent-tool repo base-health`. When a job fails on a PR, read it with
+`bun run agent-tool pr logs --head <reviewed-head>` and push a reviewed fix
+commit. `detox-macos` usually
 takes 10 to 14 minutes but has taken up to 20, longer than the default
 15-minute wait of `pr checks --wait`, so wait with
 `bun run agent-tool pr checks --wait --head <reviewed-head> --timeout 1800`.
