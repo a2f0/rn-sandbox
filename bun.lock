@@ -18,7 +18,7 @@
         "react-native-web": "0.21.4",
       },
       "devDependencies": {
-        "@a2f0/agent-tool": "0.1.59",
+        "@a2f0/agent-tool": "0.1.64",
         "@babel/core": "7.29.7",
         "@babel/preset-env": "7.29.7",
         "@babel/runtime": "7.29.10",
@@ -60,7 +60,7 @@
     },
   },
   "packages": {
-    "@a2f0/agent-tool": ["@a2f0/agent-tool@0.1.59", "", { "dependencies": { "@resvg/resvg-wasm": "2.6.2" }, "bin": { "agent-tool": "src/index.ts" } }, "sha512-440GyauSfeqSMlcGHiOPMc3VJ+G8bbOEK8SlwjpAJAChWo/IAoNvYo8Xcid8XiyJirKA9kAHRwpkjnmU+R64ZQ=="],
+    "@a2f0/agent-tool": ["@a2f0/agent-tool@0.1.64", "", { "dependencies": { "@resvg/resvg-wasm": "2.6.2" }, "bin": { "agent-tool": "src/index.ts" } }, "sha512-fBEWVSuDA6Fxx5aDRKcFnrfMMKJG6EYxDe1VJbc8dqH4/AwsQ7lKhYC8ucAqNgMYd50FP/Mw7K++HlxsuwUWIg=="],
 
     "@a2f0/ct-client": ["@a2f0/ct-client@0.1.6", "", {}, "sha512-DlDg2DKCilbrX5jIh3D+jctG66+xwpjnead8L4YY3jnIVFZ4fOBHbpJk7yY9KFBcuhNAy9UhvbgmHJgI97dI4w=="],
 
