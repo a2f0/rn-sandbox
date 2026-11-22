@@ -9,8 +9,9 @@ attribution footers. Do not create GitHub issues without an explicit request.
 
 ## Agent tooling
 
-Shipping and review skills come from the exactly pinned `@a2f0/agent-tool`
-dev dependency and are managed in `.agents/skills` and `.claude/skills`. Do not
+Shared skills, such as shipping, review, `app-store-readiness`, and
+`take-screenshots`, come from the exactly pinned `@a2f0/agent-tool` dev
+dependency and are managed in `.agents/skills` and `.claude/skills`. Do not
 edit them. `bun run agents:sync` installs them and then writes the generated
 harness permission rules (`.claude/settings.json`,
 `.codex/rules/agent-tool.rules`, and `.agent-tool-permissions.json`), which
