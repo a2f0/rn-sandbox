@@ -23,7 +23,7 @@
     "auth:provision": "node scripts/auth/provision.mjs",
     "lint": "biome check .",
     "lint:md": "bun run --silent test:markdownlint && bun run --silent lint:md:files",
-    "lint:md:files": "markdownlint --dot \"**/*.md\" --ignore-path .gitignore --ignore .git --ignore vendor --ignore .agents/skills/app-store-readiness --ignore .agents/skills/audit-trails --ignore .agents/skills/cross-agent-review --ignore .agents/skills/explicit-state-machines --ignore .agents/skills/open-issue --ignore .agents/skills/open-pr --ignore .agents/skills/performance-pass --ignore .agents/skills/reset --ignore .agents/skills/seo-optimization --ignore .agents/skills/ship-pr --ignore .agents/skills/space-cleanup --ignore .agents/skills/squash-merge --ignore .agents/skills/take-screenshots --ignore .agents/skills/update-dependencies --ignore .claude/skills/app-store-readiness --ignore .claude/skills/audit-trails --ignore .claude/skills/cross-agent-review --ignore .claude/skills/explicit-state-machines --ignore .claude/skills/open-issue --ignore .claude/skills/open-pr --ignore .claude/skills/performance-pass --ignore .claude/skills/reset --ignore .claude/skills/seo-optimization --ignore .claude/skills/ship-pr --ignore .claude/skills/space-cleanup --ignore .claude/skills/squash-merge --ignore .claude/skills/take-screenshots --ignore .claude/skills/update-dependencies",
+    "lint:md:files": "markdownlint --dot \"**/*.md\" --ignore-path .gitignore --ignore .git --ignore vendor --ignore .agents/skills/app-store-readiness --ignore .agents/skills/audit-trails --ignore .agents/skills/cross-agent-review --ignore .agents/skills/explicit-state-machines --ignore .agents/skills/open-issue --ignore .agents/skills/open-pr --ignore .agents/skills/optimize-ci --ignore .agents/skills/performance-pass --ignore .agents/skills/reset --ignore .agents/skills/seo-optimization --ignore .agents/skills/ship-pr --ignore .agents/skills/space-cleanup --ignore .agents/skills/squash-merge --ignore .agents/skills/take-screenshots --ignore .agents/skills/update-dependencies --ignore .claude/skills/app-store-readiness --ignore .claude/skills/audit-trails --ignore .claude/skills/cross-agent-review --ignore .claude/skills/explicit-state-machines --ignore .claude/skills/open-issue --ignore .claude/skills/open-pr --ignore .claude/skills/optimize-ci --ignore .claude/skills/performance-pass --ignore .claude/skills/reset --ignore .claude/skills/seo-optimization --ignore .claude/skills/ship-pr --ignore .claude/skills/space-cleanup --ignore .claude/skills/squash-merge --ignore .claude/skills/take-screenshots --ignore .claude/skills/update-dependencies",
     "lint:shell": "shellcheck -x scripts/*/*.sh scripts/git/hooks/*",
     "lint:ruby": "bundle exec rubocop",
     "start": "react-native start",
@@ -56,7 +56,7 @@
     "react-native-web": "0.21.4"
   },
   "devDependencies": {
-    "@a2f0/agent-tool": "0.1.74",
+    "@a2f0/agent-tool": "0.1.78",
     "@babel/core": "7.29.7",
     "@babel/preset-env": "7.29.7",
     "@babel/runtime": "7.29.10",
