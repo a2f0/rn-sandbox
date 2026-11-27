@@ -13,9 +13,9 @@ Shared skills, including the shipping and review skills, come from the exactly
 pinned `@a2f0/agent-tool` dev dependency and are managed in `.agents/skills`
 and `.claude/skills`. Do not edit them. `bun run agents:sync` installs them and
 then writes the generated harness permission rules (`.claude/settings.json`,
-`.codex/rules/agent-tool.rules`, and `.agent-tool-permissions.json`), which
-must stay as generated. After changing its version or the
-`permissions.executables` classes in `agent-tool.json`, run
+`.codex/rules/agent-tool.rules`, `.gemini/policies/agent-tool.toml`, and
+`.agent-tool-permissions.json`), which must stay as generated. After changing
+its version or the `permissions.executables` classes in `agent-tool.json`, run
 `bun run agents:sync` and commit `package.json`, `bun.lock`, the skills,
 `.agent-tool-skills.json`, and the permission files together. The CLI runs
 under Bun, so Bun must be on `PATH`. Title and required CI policy is in
